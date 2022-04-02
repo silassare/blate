@@ -1,0 +1,21 @@
+<?php
+declare(strict_types=1);
+
+/**
+ * Blate {blate_version}
+ * Auto-generated file, please don't edit
+ */
+
+namespace Blate;
+
+if (Blate::register([
+	'version'		=> '{blate_version}',
+	'version_name'	=> '{blate_version_name}',
+	'src_path'		=> '{blate_src_path}',
+	'compile_time'	=> {blate_compile_time},
+	'class_fqn'	    => '{blate_class_fqn}'
+])) {
+	class {blate_class_name} extends TemplateParsed {
+		{blate_class_body}
+	}
+}

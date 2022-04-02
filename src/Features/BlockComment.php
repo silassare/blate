@@ -1,0 +1,58 @@
+<?php
+
+/**
+ * Copyright (c) 2021-present, Emile Silas Sare
+ *
+ * This file is part of Blate package.
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+declare(strict_types=1);
+
+namespace Blate\Features;
+
+use Blate\Blate;
+use Blate\Token;
+
+/**
+ * Class BlockComment.
+ */
+class BlockComment extends Block
+{
+	public const NAME = 'comment';
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function getName(): string
+	{
+		return self::NAME;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @throws \Blate\Exceptions\BlateParserException
+	 */
+	public function onOpen(): void
+	{
+		$reader = $this->lexer->getReader();
+
+		$reader->whileTrue(function () use ($reader) {
+			return !$reader->isNextChunk(Blate::BLOCK_COMMENT . Blate::TAG_CLOSER);
+		});
+
+		$this->lexer->nextIs(null, Blate::BLOCK_COMMENT);
+		$this->lexer->nextIs(Token::T_TAG_CLOSE);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function requireClose(): bool
+	{
+		return false;
+	}
+}

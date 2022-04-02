@@ -1,0 +1,56 @@
+{
+	"name": "silassare/blate-php",
+	"version": "1.0.0",
+	"description": "Blate template.",
+	"license": "MIT",
+	"keywords": [
+		"blate",
+		"template",
+		"php",
+		"website"
+	],
+	"homepage": "https://github.com/silassare/blate-php#readme",
+	"require": {
+		"php": ">=8.0",
+		"ext-json": "*",
+		"silassare/php-utils": "@dev"
+	},
+	"require-dev": {
+		"roave/security-advisories": "dev-latest",
+		"oliup/oliup-cs-php": "dev-main",
+		"phpunit/phpunit": "^9"
+	},
+	"repositories": {
+		"oliup/oliup-cs-php": {
+			"type": "vcs",
+			"url": "https://github.com/oliup-io/oliup-cs-php"
+		},
+		"silassare/php-utils": {
+			"type": "vcs",
+			"url": "https://github.com/silassare/php-utils"
+		}
+	},
+	"archive": {
+		"exclude": [
+			"/ignore"
+		]
+	},
+	"autoload": {
+		"psr-4": {
+			"Blate\\": "src",
+			"Blate\\Tests\\": "tests"
+		},
+		"files": [
+			"src/bootstrap.php"
+		]
+	},
+	"authors": [
+		{
+			"name": "Emile Silas Sare",
+			"email": "emile.silas@gmail.com",
+			"homepage": "https://github.com/silassare"
+		}
+	],
+	"minimum-stability": "stable",
+	"prefer-stable": true
+}
