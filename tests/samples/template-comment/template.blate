@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>{ me.getFirstName() }</title>
+	</head>
+	<body>
+		{# This is a comment #}
+		My name is { me.getLastName() } { me.getFirstName() }
+		{#
+		    This is a multiline
+		    comment
+		#}
+	</body>
+</html>

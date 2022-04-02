@@ -1,0 +1,6 @@
+Found "_" on line 5 at index 12, while expecting "}".
+
+4|        <li><a href="{ item.href }">{ item.caption }</a></li>
+5|    {/each _}
+             ^
+6|</ul>

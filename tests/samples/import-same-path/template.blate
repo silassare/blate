@@ -1,0 +1,2 @@
+// error: import same path
+{@import './template.blate' context}

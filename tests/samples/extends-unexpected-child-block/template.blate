@@ -1,0 +1,5 @@
+// error: extends unexpected child block
+{@extends './path.to.file.blate' context}
+	{@slot title} Title {/slot}
+	{@if title} Title {/if}
+{/extends}

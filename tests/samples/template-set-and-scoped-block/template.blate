@@ -1,0 +1,13 @@
+{@set foo = 8;
+      bar = foo + 9}
+foo = {foo}
+bar = {bar}
+{@scoped}
+--SCOPE START--
+    {@set foo = foo + 5}
+    foo = {foo}
+    bar = {bar}
+--SCOPE END--
+{/scoped}
+foo = {foo}
+bar = {bar}

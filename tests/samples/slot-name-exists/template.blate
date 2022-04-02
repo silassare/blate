@@ -1,0 +1,4 @@
+// error: slot name already defined
+{@slot foo} Foo foo {/slot}
+{@slot bar_baz} Bar baz {/slot}
+{@slot foo} Foo foo {/slot}

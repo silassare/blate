@@ -1,0 +1,6 @@
+Slot name "foo" is already in use, found on line 4 at index 8.
+
+3|{@slot bar_baz} Bar baz {/slot}
+4|{@slot foo} Foo foo {/slot}
+         ^
+5|

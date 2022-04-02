@@ -1,0 +1,6 @@
+// error: _
+<ul id="navigation">
+    {@each item in navigation}
+        <li><a href="{ item.href }">{ item.caption }</a></li>
+    {/each _}
+</ul>

@@ -1,0 +1,3 @@
+// error: slot default outside extends
+{@slot foo} Foo foo {/slot}
+{@slot bar_baz} {:default} Bar baz {/slot}

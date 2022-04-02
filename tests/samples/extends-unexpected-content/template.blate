@@ -1,0 +1,5 @@
+// error: extends unexpected content
+{@extends './path.to.file.blate' context}
+	{@slot title} Title {/slot}
+	a content that should not be there
+{/extends}

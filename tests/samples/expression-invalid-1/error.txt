@@ -1,0 +1,6 @@
+Unexpected "%" on line 2 at index 11.
+
+1|// error: %
+2|        { %(na9me_.a().pm["[]"][mop]["mop'op"].mm(4.258,'oplm').tty + 9  + (mmo[lm]))}
+            ^
+3|

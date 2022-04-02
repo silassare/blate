@@ -1,0 +1,6 @@
+Unexpected end of expression.
+
+1|
+2|        { 1+ }
+             ^
+3|

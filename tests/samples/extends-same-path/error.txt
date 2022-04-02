@@ -1,0 +1,6 @@
+A template shouldn't extend itself, "'./template.blate'" found on line 2 at index 11.
+
+1|// error: extends same path
+2|{@extends './template.blate' context}
+            ^
+3|	{@slot title} Title {/slot}

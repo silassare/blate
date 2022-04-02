@@ -1,0 +1,6 @@
+Unexpected "m258" on line 2 at index 52.
+
+1|// error: 4.m258
+2|        { (na9me_.a().pm["[]"][mop]["mop'op"].mm(4.m258,'oplm').tty + 9  + (mmo[lm]))}
+                                                     ^
+3|

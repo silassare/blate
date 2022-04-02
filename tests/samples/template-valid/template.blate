@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>{ me.getFirstName() }</title>
+	</head>
+	<body>
+		<h1>My Webpage</h1>
+		<p>
+			First Name: { me.getFirstName() }
+			Last Name: { me.getLastName() }
+		</p>
+		<ul id="navigation">
+			{@each item in me.links}
+			<li>
+    			{@if item.type === 'social'}
+                You can follow me on
+                {:elseif item.type === 'project'}
+                View my open sources projects on
+                {:else}
+                Write to
+                {/if}
+			    <a href="{ item.href }">{ item.caption }</a>
+			</li>
+			{/each}
+		</ul>
+	</body>
+</html>

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Emile Silas</title>
+	</head>
+	<body>
+		<h1>My Webpage</h1>
+		<p>
+			First Name: Emile Silas
+			Last Name: SARE
+		</p>
+		<ul id="navigation">
+			
+			<li>
+    			
+                You can follow me on
+                
+			    <a href="https://twitter.com/silassare">Twitter</a>
+			</li>
+			
+			<li>
+    			
+                View my open sources projects on
+                
+			    <a href="https://github.com/silassare">Github</a>
+			</li>
+			
+			<li>
+    			
+                Write to
+                
+			    <a href="mailto:emile.silas@gmail.com">Email</a>
+			</li>
+			
+		</ul>
+	</body>
+</html>

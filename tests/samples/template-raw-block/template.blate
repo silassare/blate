@@ -1,0 +1,10 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>{ me.getFirstName() }</title>
+	</head>
+	<body>
+		{@raw} { {/raw}
+		{ me.getLastName() }
+	</body>
+</html>

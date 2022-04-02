@@ -1,0 +1,9 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>{ me.getFirstName() }</title>
+	</head>
+	<body>
+		{ '{' }
+	</body>
+</html>

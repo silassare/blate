@@ -1,0 +1,6 @@
+You can only define "slot" in "extends" block, "if" found on line 4 at index 4.
+
+3|	{@slot title} Title {/slot}
+4|	{@if title} Title {/if}
+  	  ^
+5|{/extends}

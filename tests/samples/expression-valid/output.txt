@@ -1,0 +1,15 @@
+
+		public function build(DataContext $context): void
+		{
+			
+echo '        ';
+echo $context->noHTML((($context->chain()->get('na9me_')
+        ->get('a')->call()
+        ->get('pm')->get("[]
+         	")->call()->get("mop'op")->get('lol')
+
+
+         	->get('foo')->call(4.2+$context->chain()->get('m58')->val())->get('tty')->call($context->chain()->get('foo')->call()->val())->val() + 9  - 12e2 + ($context->chain()->get('bar')->get($context->chain()->get('baz')->val())->val())) === 8 && 78 <= 788 || 96 >= 85 || 85 === 78 && 69 == 67) + $context->chain()->get('kir')->call(3,((458)),25,($context->chain()->get('foo')->call()->val()))->val() - $context->chain()->get('zoo')->call(458)->val() + $context->chain()->get('tar')->get($context->chain()->get('boo')->call()->val())->val());
+echo '
+';
+		}

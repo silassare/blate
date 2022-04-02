@@ -1,0 +1,5 @@
+Unexpected "{" on line 1 at index 84.
+
+1|        {(na9me_.a().pm["[]"][mop]["mop'op"].mm(4.258,'oplm').tty + 9  + (mmo[lm])){}}
+                                                                                     ^
+2|

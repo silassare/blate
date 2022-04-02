@@ -1,0 +1,6 @@
+Found "]" on line 2 at index 32, while expecting expression.
+
+1|// error: empty []
+2|        { (na9me_.a().pm["[]"][]["mop'op"].mm(4.258,'oplm').tty + 9  + (mmo[0))}
+                                 ^
+3|

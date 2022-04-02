@@ -1,0 +1,12 @@
+
+foo = 8
+bar = 17
+
+--SCOPE START--
+    
+    foo = 13
+    bar = 17
+--SCOPE END--
+
+foo = 8
+bar = 17

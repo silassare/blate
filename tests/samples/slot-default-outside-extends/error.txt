@@ -1,0 +1,5 @@
+Can't use slot "default" when parent "slot" is outside an "extends" block, found on line 3 at index 19.
+
+2|{@slot foo} Foo foo {/slot}
+3|{@slot bar_baz} {:default} Bar baz {/slot}
+                    ^

@@ -1,0 +1,4 @@
+// error: extends same path
+{@extends './template.blate' context}
+	{@slot title} Title {/slot}
+{/extends}

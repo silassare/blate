@@ -1,0 +1,6 @@
+Block "each" opened on line 3 index 7 was never closed.
+
+2|<ul id="navigation">
+3|    {@each item in navigation}
+        ^
+4|        <li><a href="{ item.href }">{ item.caption }</a></li>

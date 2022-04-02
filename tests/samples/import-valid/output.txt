@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>Blabla WebSite</title>
+	</head>
+	<body>
+		Welcome to Blabla WebSite
+		<ul>
+			
+			    <li> 0 - Banana </li>
+			
+			    <li> 1 - Avocado </li>
+			
+			    <li> 2 - Apple </li>
+			
+        </ul>
+	</body>
+</html>
+

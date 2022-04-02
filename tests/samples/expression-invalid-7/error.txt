@@ -1,0 +1,6 @@
+Unexpected "(" on line 2 at index 68.
+
+1|// error: 9()
+2|        { (na9me_.a().pm["[]"]()["mop'op"].mm(4.258,'oplm').tty + 9()  + (mmo[]))}
+                                                                     ^
+3|

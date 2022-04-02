@@ -1,0 +1,5 @@
+// error: extends unexpected child expression
+{@extends './path.to.file.blate' context}
+	{@slot title} Title {/slot}
+	{ expression }
+{/extends}

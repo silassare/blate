@@ -1,0 +1,6 @@
+Unexpected "{" on line 4 at index 2.
+
+3|	{@slot title} Title {/slot}
+4|	{ expression }
+  	^
+5|{/extends}

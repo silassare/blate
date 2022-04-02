@@ -1,0 +1,6 @@
+Found "}" on line 3 at index 9, while expecting expression.
+
+2|        {
+3|        }
+          ^
+4|

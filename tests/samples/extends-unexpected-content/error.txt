@@ -1,0 +1,8 @@
+Unexpected "
+	a content that should not be there
+" on line 3 at index 29.
+
+2|{@extends './path.to.file.blate' context}
+3|	{@slot title} Title {/slot}
+  	                           ^
+4|	a content that should not be there

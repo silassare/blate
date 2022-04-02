@@ -1,0 +1,6 @@
+A template shouldn't import itself, "'./template.blate'" found on line 2 at index 10.
+
+1|// error: import same path
+2|{@import './template.blate' context}
+           ^
+3|
