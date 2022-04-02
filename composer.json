@@ -1,7 +1,7 @@
 {
 	"name": "silassare/blate",
 	"version": "1.0.0",
-	"description": "Blate template.",
+	"description": "Blate template engine for php.",
 	"license": "MIT",
 	"keywords": [
 		"blate",
