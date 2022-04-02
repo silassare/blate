@@ -1,5 +1,5 @@
 {
-	"name": "silassare/blate-php",
+	"name": "silassare/blate",
 	"version": "1.0.0",
 	"description": "Blate template.",
 	"license": "MIT",
@@ -9,7 +9,7 @@
 		"php",
 		"website"
 	],
-	"homepage": "https://github.com/silassare/blate-php#readme",
+	"homepage": "https://github.com/silassare/blate#readme",
 	"require": {
 		"php": ">=8.0",
 		"ext-json": "*",
