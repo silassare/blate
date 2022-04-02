@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="{lang}">
+	<head>
+		<title>{@slot title} Blabla WebSite {/slot}</title>
+	</head>
+	<body>
+		{@slot body} Welcome to Blabla WebSite {/slot}
+		<ul>
+			{@each value:key:index in list}
+			    <li>{@slot item} {value} {/slot}</li>
+			{/each}
+        </ul>
+	</body>
+</html>

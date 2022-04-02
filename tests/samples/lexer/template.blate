@@ -1,0 +1,9 @@
+
+
+{@extends './base.blate' context}
+	{@slot title} Contacts {/slot}
+	{@slot body} {:default} Call: +229 00 00 00 {/slot}
+    {@slot item:inject}
+        {inject.value}:{inject.index}
+    {/slot}
+{/extends}
