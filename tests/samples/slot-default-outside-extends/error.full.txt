@@ -5,22 +5,23 @@ Can't use slot "default" when parent "slot" is outside an "extends" block, found
                     ^
 
 File: /mnt/Emile/silassare/blate/src/Exceptions/Traits/BlateExceptionTrait.php
-Line: 56
+Line: 57
 #0 /mnt/Emile/silassare/blate/src/Features/BlockSlot.php(141): Blate\Exceptions\BlateRuntimeException::withToken()
 #1 /mnt/Emile/silassare/blate/src/Parser.php(174): Blate\Features\BlockSlot->onBreakPoint()
 #2 /mnt/Emile/silassare/blate/src/Parser.php(88): Blate\Parser->blockBreakpoint()
-#3 /mnt/Emile/silassare/blate/src/Blate.php(143): Blate\Parser->parse()
-#4 /mnt/Emile/silassare/blate/tests/TemplateSyntaxTest.php(261): Blate\Blate->parse()
-#5 /mnt/Emile/silassare/blate/tests/TemplateSyntaxTest.php(128): Blate\Tests\TemplateSyntaxTest->runInvalid()
-#6 /mnt/Emile/silassare/blate/vendor/phpunit/phpunit/src/Framework/TestCase.php(1545): Blate\Tests\TemplateSyntaxTest->testSlotDefaultOutsideExtends()
-#7 /mnt/Emile/silassare/blate/vendor/phpunit/phpunit/src/Framework/TestCase.php(1151): PHPUnit\Framework\TestCase->runTest()
-#8 /mnt/Emile/silassare/blate/vendor/phpunit/phpunit/src/Framework/TestResult.php(726): PHPUnit\Framework\TestCase->runBare()
-#9 /mnt/Emile/silassare/blate/vendor/phpunit/phpunit/src/Framework/TestCase.php(903): PHPUnit\Framework\TestResult->run()
-#10 /mnt/Emile/silassare/blate/vendor/phpunit/phpunit/src/Framework/TestSuite.php(677): PHPUnit\Framework\TestCase->run()
-#11 /mnt/Emile/silassare/blate/vendor/phpunit/phpunit/src/Framework/TestSuite.php(677): PHPUnit\Framework\TestSuite->run()
-#12 /mnt/Emile/silassare/blate/vendor/phpunit/phpunit/src/Framework/TestSuite.php(677): PHPUnit\Framework\TestSuite->run()
-#13 /mnt/Emile/silassare/blate/vendor/phpunit/phpunit/src/TextUI/TestRunner.php(673): PHPUnit\Framework\TestSuite->run()
-#14 /mnt/Emile/silassare/blate/vendor/phpunit/phpunit/src/TextUI/Command.php(143): PHPUnit\TextUI\TestRunner->run()
-#15 /mnt/Emile/silassare/blate/vendor/phpunit/phpunit/src/TextUI/Command.php(96): PHPUnit\TextUI\Command->run()
-#16 /mnt/Emile/silassare/blate/vendor/phpunit/phpunit/phpunit(98): PHPUnit\TextUI\Command::main()
-#17 {main}
+#3 /mnt/Emile/silassare/blate/src/Blate.php(144): Blate\Parser->parse()
+#4 /mnt/Emile/silassare/blate/tests/TemplateSyntaxTest.php(262): Blate\Blate->parse()
+#5 /mnt/Emile/silassare/blate/tests/TemplateSyntaxTest.php(129): Blate\Tests\TemplateSyntaxTest->runInvalid()
+#6 /mnt/Emile/silassare/blate/vendor/phpunit/phpunit/src/Framework/TestCase.php(1617): Blate\Tests\TemplateSyntaxTest->testSlotDefaultOutsideExtends()
+#7 /mnt/Emile/silassare/blate/vendor/phpunit/phpunit/src/Framework/TestCase.php(1223): PHPUnit\Framework\TestCase->runTest()
+#8 /mnt/Emile/silassare/blate/vendor/phpunit/phpunit/src/Framework/TestResult.php(729): PHPUnit\Framework\TestCase->runBare()
+#9 /mnt/Emile/silassare/blate/vendor/phpunit/phpunit/src/Framework/TestCase.php(973): PHPUnit\Framework\TestResult->run()
+#10 /mnt/Emile/silassare/blate/vendor/phpunit/phpunit/src/Framework/TestSuite.php(685): PHPUnit\Framework\TestCase->run()
+#11 /mnt/Emile/silassare/blate/vendor/phpunit/phpunit/src/Framework/TestSuite.php(685): PHPUnit\Framework\TestSuite->run()
+#12 /mnt/Emile/silassare/blate/vendor/phpunit/phpunit/src/Framework/TestSuite.php(685): PHPUnit\Framework\TestSuite->run()
+#13 /mnt/Emile/silassare/blate/vendor/phpunit/phpunit/src/TextUI/TestRunner.php(651): PHPUnit\Framework\TestSuite->run()
+#14 /mnt/Emile/silassare/blate/vendor/phpunit/phpunit/src/TextUI/Command.php(146): PHPUnit\TextUI\TestRunner->run()
+#15 /mnt/Emile/silassare/blate/vendor/phpunit/phpunit/src/TextUI/Command.php(99): PHPUnit\TextUI\Command->run()
+#16 /mnt/Emile/silassare/blate/vendor/phpunit/phpunit/phpunit(107): PHPUnit\TextUI\Command::main()
+#17 /mnt/Emile/silassare/blate/vendor/bin/phpunit(123): include('...')
+#18 {main}
