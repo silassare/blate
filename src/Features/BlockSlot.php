@@ -28,7 +28,7 @@ class BlockSlot extends Block
 	public const SLOT_DEFAULT = 'default';
 
 	private TokenInterface $slot;
-	private string         $slot_inject_arg;
+	private string $slot_inject_arg;
 
 	/**
 	 * {@inheritDoc}
@@ -41,7 +41,7 @@ class BlockSlot extends Block
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @throws \Blate\Exceptions\BlateParserException
+	 * @throws BlateParserException
 	 */
 	public function onOpen(): void
 	{

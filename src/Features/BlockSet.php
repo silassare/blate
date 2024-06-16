@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Blate\Features;
 
 use Blate\Blate;
+use Blate\Exceptions\BlateParserException;
 use Blate\Expressions\Expression;
 use Blate\Interfaces\TokenInterface;
 use Blate\Token;
@@ -36,7 +37,7 @@ class BlockSet extends Block
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @throws \Blate\Exceptions\BlateParserException
+	 * @throws BlateParserException
 	 */
 	public function onOpen(): void
 	{

@@ -16,6 +16,4 @@ namespace Blate\Exceptions;
 /**
  * Class BlateParserException.
  */
-class BlateParserException extends BlateRuntimeException
-{
-}
+class BlateParserException extends BlateRuntimeException {}

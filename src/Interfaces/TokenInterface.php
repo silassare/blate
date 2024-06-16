@@ -97,7 +97,7 @@ interface TokenInterface extends ArrayCapableInterface, \Stringable
 	/**
 	 * Sets token parent.
 	 *
-	 * @param null|\Blate\Interfaces\TokenInterface $parent
+	 * @param null|TokenInterface $parent
 	 *
 	 * @return $this
 	 */

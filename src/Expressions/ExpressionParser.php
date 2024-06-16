@@ -39,11 +39,9 @@ class ExpressionParser implements ParserInterface
 	/**
 	 * ExpressionParser constructor.
 	 *
-	 * @param \Blate\Interfaces\LexerInterface $lexer
+	 * @param LexerInterface $lexer
 	 */
-	public function __construct(protected LexerInterface $lexer)
-	{
-	}
+	public function __construct(protected LexerInterface $lexer) {}
 
 	/**
 	 * {@inheritDoc}
@@ -78,7 +76,7 @@ class ExpressionParser implements ParserInterface
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @throws \Blate\Exceptions\BlateParserException
+	 * @throws BlateParserException
 	 */
 	public function parse(?callable $while_true = null, ?array $options = []): static
 	{

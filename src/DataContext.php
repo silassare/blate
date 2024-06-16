@@ -23,7 +23,7 @@ class DataContext
 	/**
 	 * DataContext constructor.
 	 *
-	 * @param \Blate\Blate $blate
+	 * @param Blate $blate
 	 */
 	public function __construct(array|object $data, private Blate $blate)
 	{
@@ -31,7 +31,7 @@ class DataContext
 	}
 
 	/**
-	 * @return \Blate\Blate
+	 * @return Blate
 	 */
 	public function getBlate(): Blate
 	{
@@ -59,7 +59,7 @@ class DataContext
 	}
 
 	/**
-	 * @return \Blate\SimpleChain
+	 * @return SimpleChain
 	 */
 	public function chain(): SimpleChain
 	{

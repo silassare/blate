@@ -99,7 +99,7 @@ class Token implements TokenInterface
 	protected array $attributes = [];
 
 	private static int $counter = 0;
-	private string     $ref;
+	private string $ref;
 
 	/**
 	 * Token constructor.

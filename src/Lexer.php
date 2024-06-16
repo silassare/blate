@@ -32,7 +32,7 @@ class Lexer implements LexerInterface
 	 */
 	protected array $tree = [];
 
-	protected int  $token_cursor         = -1;
+	protected int $token_cursor          = -1;
 	protected bool $in_tag               = false;
 	protected ?int $infinite_loop_cursor = null;
 
@@ -193,7 +193,7 @@ class Lexer implements LexerInterface
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @throws \Blate\Exceptions\BlateParserException
+	 * @throws BlateParserException
 	 */
 	public function tokenize(): array
 	{
@@ -217,7 +217,7 @@ class Lexer implements LexerInterface
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @throws \Blate\Exceptions\BlateParserException
+	 * @throws BlateParserException
 	 */
 	public function nextIs(?int $type = null, ?string $value = null, bool $ignore_whitespace = false): TokenInterface
 	{
@@ -253,7 +253,7 @@ class Lexer implements LexerInterface
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @throws \Blate\Exceptions\BlateParserException
+	 * @throws BlateParserException
 	 */
 	public function nextIsOneOf(array $types, bool $ignore_whitespace = false): TokenInterface
 	{
@@ -319,7 +319,7 @@ class Lexer implements LexerInterface
 			$type         = Token::T_TAG_CLOSE;
 			$this->in_tag = false;
 		} elseif (!$this->in_tag) {
-			$chunk = $reader->whileTrue(function () use ($reader) {
+			$chunk = $reader->whileTrue(static function () use ($reader) {
 				return !$reader->isNextChunk(Blate::TAG_OPENER);
 			});
 			$type  = Token::T_RAW_DATA;

@@ -47,11 +47,11 @@ abstract class TemplateParsed
 	}
 
 	/**
-	 * @param \Blate\Blate $to_extends
+	 * @param Blate $to_extends
 	 *
-	 * @throws \Blate\Exceptions\BlateException
+	 * @return DataContext
 	 *
-	 * @return \Blate\DataContext
+	 * @throws BlateException
 	 */
 	public function createExtendsContext(Blate $to_extends, mixed $data): DataContext
 	{
@@ -63,7 +63,7 @@ abstract class TemplateParsed
 	}
 
 	/**
-	 * @param \Blate\DataContext $context
+	 * @param DataContext $context
 	 */
 	abstract public function build(DataContext $context): void;
 }

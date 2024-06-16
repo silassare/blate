@@ -52,9 +52,7 @@ abstract class Block implements BlockInterface
 	/**
 	 * {@inheritDoc}
 	 */
-	public function onChildBlockFound(BlockInterface $block): void
-	{
-	}
+	public function onChildBlockFound(BlockInterface $block): void {}
 
 	/**
 	 * {@inheritDoc}
@@ -75,14 +73,12 @@ abstract class Block implements BlockInterface
 	/**
 	 * {@inheritDoc}
 	 */
-	public function onClose(): void
-	{
-	}
+	public function onClose(): void {}
 
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @throws \Blate\Exceptions\BlateParserException
+	 * @throws BlateParserException
 	 */
 	public function onBreakPoint(TokenInterface $token): void
 	{

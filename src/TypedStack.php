@@ -24,12 +24,12 @@ class TypedStack
 	/**
 	 * @var TokenInterface[]
 	 */
-	private array           $stack  = [];
+	private array $stack  = [];
 
 	/**
 	 * @var TokenInterface[]
 	 */
-	private array           $all    = [];
+	private array $all              = [];
 	private ?TokenInterface $active = null;
 
 	private array $codes = [];

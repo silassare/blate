@@ -13,17 +13,19 @@ declare(strict_types=1);
 
 namespace Blate\Tests;
 
+use Blate\Exceptions\BlateException;
 use Blate\Lexer;
 use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
+ *
  * @coversNothing
  */
 final class LexerTest extends TestCase
 {
 	/**
-	 * @throws \Blate\Exceptions\BlateException
+	 * @throws BlateException
 	 */
 	public function testTokenize(): void
 	{
@@ -39,7 +41,7 @@ final class LexerTest extends TestCase
 
 		if (\file_exists($tokens_file)) {
 			$expected = \file_get_contents($tokens_file);
-			static::assertSame($expected, $output);
+			self::assertSame($expected, $output);
 		} else {
 			\file_put_contents($tokens_file, $output);
 		}

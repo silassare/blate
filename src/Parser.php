@@ -35,7 +35,7 @@ class Parser
 	protected Lexer $lexer;
 
 	/**
-	 * @param \Blate\Blate $blate
+	 * @param Blate $blate
 	 */
 	public function __construct(protected Blate $blate)
 	{
@@ -47,7 +47,7 @@ class Parser
 	}
 
 	/**
-	 * @return \Blate\Blate
+	 * @return Blate
 	 */
 	public function getBlate(): Blate
 	{
@@ -55,7 +55,7 @@ class Parser
 	}
 
 	/**
-	 * @return \Blate\Lexer
+	 * @return Lexer
 	 */
 	public function getLexer(): Lexer
 	{

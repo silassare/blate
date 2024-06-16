@@ -28,7 +28,7 @@ interface ParserInterface
 	 *
 	 * @return $this
 	 */
-	public function write(TokenInterface|string $str): static;
+	public function write(string|TokenInterface $str): static;
 
 	/**
 	 * Gets output string.

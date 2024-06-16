@@ -187,7 +187,7 @@ class StringReader
 	}
 
 	/**
-	 * @return null|\Blate\StringChunk
+	 * @return null|StringChunk
 	 */
 	public function getChunkIfNextIs(string $chunk, ?string $escape_char = null): ?StringChunk
 	{

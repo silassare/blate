@@ -22,10 +22,10 @@ use PHPUtils\Store\Store;
  */
 trait ParserOutputTrait
 {
-	protected string     $main_code = '';
+	protected string $main_code = '';
 	protected TypedStack $ts_slots;
 	protected TypedStack $ts_extends;
-	protected Store      $ps_store;
+	protected Store $ps_store;
 
 	public function slots(): TypedStack
 	{

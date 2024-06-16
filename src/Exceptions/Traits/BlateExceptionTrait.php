@@ -16,9 +16,10 @@ namespace Blate\Exceptions\Traits;
 use Blate\Interfaces\ChunkInterface;
 use Blate\Interfaces\TokenInterface;
 use Blate\Message;
+use PHPUtils\Traits\RichExceptionTrait;
+
 use const JSON_PRETTY_PRINT;
 use const PHP_EOL;
-use PHPUtils\Traits\RichExceptionTrait;
 
 /**
  * Class BlateExceptionTrait.

@@ -47,7 +47,7 @@ class StringChunk implements ChunkInterface
 	/**
 	 * StringChunk constructor.
 	 *
-	 * @param \Blate\StringReader $reader
+	 * @param StringReader $reader
 	 */
 	public function __construct(protected StringReader $reader)
 	{

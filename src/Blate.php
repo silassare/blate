@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Blate;
 
 use Blate\Exceptions\BlateException;
+use Blate\Exceptions\BlateParserException;
 use Blate\Interfaces\BlockInterface;
 use Blate\Interfaces\TokenInterface;
 use PHPUtils\FS\PathUtils;
@@ -70,7 +71,7 @@ final class Blate
 	private string $class_fqn;
 
 	/**
-	 * @throws \Blate\Exceptions\BlateException
+	 * @throws BlateException
 	 */
 	private function __construct(string $template, protected bool $is_url = true, bool $timed_class_name = false)
 	{
@@ -106,11 +107,11 @@ final class Blate
 			$this->class_name = 'blate_tpl_' . \md5($out_file_name . \microtime());
 		}
 
-		$this->class_fqn = '\\Blate\\' . $this->class_name;
+		$this->class_fqn = '\Blate\\' . $this->class_name;
 	}
 
 	/**
-	 * @throws \Blate\Exceptions\BlateException
+	 * @throws BlateException
 	 */
 	public static function fromPath(string $path, bool $timed_class_name = false): self
 	{
@@ -118,7 +119,7 @@ final class Blate
 	}
 
 	/**
-	 * @throws \Blate\Exceptions\BlateException
+	 * @throws BlateException
 	 */
 	public static function fromString(string $template, bool $timed_class_name = false): self
 	{
@@ -131,10 +132,10 @@ final class Blate
 	}
 
 	/**
-	 * @throws \Blate\Exceptions\BlateException
-	 * @throws \Blate\Exceptions\BlateParserException
-	 *
 	 * @return $this
+	 *
+	 * @throws BlateException
+	 * @throws BlateParserException
 	 */
 	public function parse(bool $force_new_compile = false): self
 	{
@@ -149,7 +150,7 @@ final class Blate
 	}
 
 	/**
-	 * @throws \Blate\Exceptions\BlateException
+	 * @throws BlateException
 	 */
 	public static function loadFile(string $src): string
 	{
@@ -176,7 +177,7 @@ final class Blate
 	}
 
 	/**
-	 * @throws \Blate\Exceptions\BlateException
+	 * @throws BlateException
 	 */
 	public function getParsedInstance(): TemplateParsed
 	{
@@ -202,20 +203,20 @@ final class Blate
 	}
 
 	/**
-	 * @throws \Blate\Exceptions\BlateException
+	 * @throws BlateException
 	 */
 	public function runGet(array|object $data): string
 	{
 		$instance = $this->getParsedInstance();
 
 		\ob_start();
-		$instance->build((new DataContext($data, $this)));
+		$instance->build(new DataContext($data, $this));
 
 		return \ob_get_clean();
 	}
 
 	/**
-	 * @throws \Blate\Exceptions\BlateException
+	 * @throws BlateException
 	 */
 	public function runSave(array $data, string $to): void
 	{
@@ -261,7 +262,7 @@ final class Blate
 	/**
 	 * Returns a new block instance.
 	 *
-	 * @param \Blate\Parser $parser
+	 * @param Parser $parser
 	 */
 	public static function getBlockInstance(Parser $parser, TokenInterface $token): ?BlockInterface
 	{
@@ -269,7 +270,7 @@ final class Blate
 
 		if (isset(self::$blocks[$name])) {
 			/**
-			 * @var \Blate\Interfaces\BlockInterface $class_name
+			 * @var BlockInterface $class_name
 			 */
 			$class_name = self::$blocks[$name];
 
@@ -299,7 +300,7 @@ final class Blate
 	}
 
 	/**
-	 * @throws \Blate\Exceptions\BlateException
+	 * @throws BlateException
 	 */
 	private function save(): void
 	{
@@ -338,7 +339,7 @@ final class Blate
 	}
 
 	/**
-	 * @throws \Blate\Exceptions\BlateException
+	 * @throws BlateException
 	 */
 	private function writeFile(string $path, string $content): void
 	{

@@ -22,12 +22,13 @@ use RuntimeException;
 
 /**
  * @internal
+ *
  * @coversNothing
  */
 final class TemplateSyntaxTest extends TestCase
 {
 	/**
-	 * @throws \Blate\Exceptions\BlateException
+	 * @throws BlateException
 	 */
 	public function testNoTokenTemplate(): void
 	{
@@ -35,7 +36,7 @@ final class TemplateSyntaxTest extends TestCase
 	}
 
 	/**
-	 * @throws \Blate\Exceptions\BlateException
+	 * @throws BlateException
 	 */
 	public function testEmptyTemplate(): void
 	{
@@ -43,7 +44,7 @@ final class TemplateSyntaxTest extends TestCase
 	}
 
 	/**
-	 * @throws \Blate\Exceptions\BlateException
+	 * @throws BlateException
 	 */
 	public function testValidTemplate(): void
 	{
@@ -51,7 +52,7 @@ final class TemplateSyntaxTest extends TestCase
 	}
 
 	/**
-	 * @throws \Blate\Exceptions\BlateException
+	 * @throws BlateException
 	 */
 	public function testValidExpression(): void
 	{
@@ -149,7 +150,7 @@ final class TemplateSyntaxTest extends TestCase
 	}
 
 	/**
-	 * @throws \Blate\Exceptions\BlateException
+	 * @throws BlateException
 	 */
 	public function testExtendsValid(): void
 	{
@@ -157,7 +158,7 @@ final class TemplateSyntaxTest extends TestCase
 	}
 
 	/**
-	 * @throws \Blate\Exceptions\BlateException
+	 * @throws BlateException
 	 */
 	public function testImportValid(): void
 	{
@@ -170,7 +171,7 @@ final class TemplateSyntaxTest extends TestCase
 	}
 
 	/**
-	 * @throws \Blate\Exceptions\BlateException
+	 * @throws BlateException
 	 */
 	public function testTemplatePrintToken(): void
 	{
@@ -178,7 +179,7 @@ final class TemplateSyntaxTest extends TestCase
 	}
 
 	/**
-	 * @throws \Blate\Exceptions\BlateException
+	 * @throws BlateException
 	 */
 	public function testTemplateComment(): void
 	{
@@ -186,7 +187,7 @@ final class TemplateSyntaxTest extends TestCase
 	}
 
 	/**
-	 * @throws \Blate\Exceptions\BlateException
+	 * @throws BlateException
 	 */
 	public function testTemplateRawBlock(): void
 	{
@@ -194,7 +195,7 @@ final class TemplateSyntaxTest extends TestCase
 	}
 
 	/**
-	 * @throws \Blate\Exceptions\BlateException
+	 * @throws BlateException
 	 */
 	public function testTemplateSetAndScopedBlock(): void
 	{
@@ -202,7 +203,7 @@ final class TemplateSyntaxTest extends TestCase
 	}
 
 	/**
-	 * @throws \Blate\Exceptions\BlateException
+	 * @throws BlateException
 	 */
 	protected function runValid(string $name): void
 	{
@@ -226,7 +227,7 @@ final class TemplateSyntaxTest extends TestCase
 				$parser->parse();
 				$output = $parser->getClassBody();
 			}
-		} catch (BlateParserException|BlateException $e) {
+		} catch (BlateException|BlateParserException $e) {
 			$error = $e->describe(false, false);
 			\file_put_contents($full_error_file, $e->describe(false, true));
 		}
@@ -243,7 +244,7 @@ final class TemplateSyntaxTest extends TestCase
 			\file_put_contents($output_file, $output);
 		} else {
 			$expected = \file_get_contents($output_file);
-			static::assertSame($expected, $output);
+			self::assertSame($expected, $output);
 		}
 	}
 
@@ -264,7 +265,7 @@ final class TemplateSyntaxTest extends TestCase
 				$inject = include $inject_file;
 				$bl->runGet($inject);
 			}
-		} catch (BlateParserException|BlateException $e) {
+		} catch (BlateException|BlateParserException $e) {
 			$error = $e->describe(false, false);
 			\file_put_contents($full_error_file, $e->describe(false, true));
 		}
@@ -277,7 +278,7 @@ final class TemplateSyntaxTest extends TestCase
 			\file_put_contents($error_file, $error);
 		} else {
 			$expected = \file_get_contents($error_file);
-			static::assertSame($expected, $error);
+			self::assertSame($expected, $error);
 		}
 	}
 }

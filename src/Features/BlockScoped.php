@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Blate\Features;
 
+use Blate\Exceptions\BlateParserException;
 use Blate\Token;
 
 /**
@@ -33,7 +34,7 @@ class BlockScoped extends Block
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @throws \Blate\Exceptions\BlateParserException
+	 * @throws BlateParserException
 	 */
 	public function onOpen(): void
 	{

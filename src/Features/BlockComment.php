@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Blate\Features;
 
 use Blate\Blate;
+use Blate\Exceptions\BlateParserException;
 use Blate\Token;
 
 /**
@@ -34,13 +35,13 @@ class BlockComment extends Block
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @throws \Blate\Exceptions\BlateParserException
+	 * @throws BlateParserException
 	 */
 	public function onOpen(): void
 	{
 		$reader = $this->lexer->getReader();
 
-		$reader->whileTrue(function () use ($reader) {
+		$reader->whileTrue(static function () use ($reader) {
 			return !$reader->isNextChunk(Blate::BLOCK_COMMENT . Blate::TAG_CLOSER);
 		});
 

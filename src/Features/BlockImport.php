@@ -38,7 +38,7 @@ class BlockImport extends Block
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @throws \Blate\Exceptions\BlateParserException
+	 * @throws BlateParserException
 	 */
 	public function onOpen(): void
 	{

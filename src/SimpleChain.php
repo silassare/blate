@@ -41,9 +41,9 @@ class SimpleChain
 	/**
 	 * @param $key
 	 *
-	 * @throws \Blate\Exceptions\BlateRuntimeException
-	 *
 	 * @return $this
+	 *
+	 * @throws BlateRuntimeException
 	 */
 	public function get($key): self
 	{
@@ -71,9 +71,9 @@ class SimpleChain
 	/**
 	 * @param mixed ...$args
 	 *
-	 * @throws \Blate\Exceptions\BlateRuntimeException
-	 *
 	 * @return $this
+	 *
+	 * @throws BlateRuntimeException
 	 */
 	public function call(...$args): static
 	{

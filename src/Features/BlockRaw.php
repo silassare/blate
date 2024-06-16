@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Blate\Features;
 
 use Blate\Blate;
+use Blate\Exceptions\BlateParserException;
 use Blate\Token;
 
 /**
@@ -34,14 +35,14 @@ class BlockRaw extends Block
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @throws \Blate\Exceptions\BlateParserException
+	 * @throws BlateParserException
 	 */
 	public function onOpen(): void
 	{
 		$this->lexer->nextIs(Token::T_TAG_CLOSE, null, true);
 		$reader = $this->lexer->getReader();
 
-		$chunk = $reader->whileTrue(function () use ($reader) {
+		$chunk = $reader->whileTrue(static function () use ($reader) {
 			return !$reader->isNextChunk(Blate::TAG_OPENER . Blate::BLOCK_CLOSE . self::NAME);
 		});
 
