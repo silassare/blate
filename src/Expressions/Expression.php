@@ -24,11 +24,9 @@ class Expression
 {
 	public function get(LexerInterface $lexer): string
 	{
-		$ep = new ExpressionParser($lexer);
-
-		return $ep->parse(static function (TokenInterface $token) {
+		return $this->getWhileTrue($lexer, static function (TokenInterface $token) {
 			return Token::T_TAG_CLOSE !== $token->getType();
-		})->getOutput();
+		});
 	}
 
 	public function getWhileTrue(LexerInterface $lexer, callable $whileTrue): string
