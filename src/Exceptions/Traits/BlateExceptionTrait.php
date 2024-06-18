@@ -39,6 +39,20 @@ trait BlateExceptionTrait
 	}
 
 	/**
+	 * Define template source.
+	 *
+	 * @param string $template
+	 *
+	 * @return $this
+	 */
+	public function templateSource(string $template): static
+	{
+		$this->data['_blate_template'] = $template;
+
+		return $this;
+	}
+
+	/**
 	 * Gets instance with chunk exception with.
 	 */
 	public static function withChunk(string $message, ChunkInterface $chunk, array $data = []): static
