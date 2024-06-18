@@ -15,6 +15,7 @@ namespace Blate;
 
 use Blate\Exceptions\BlateException;
 use Blate\Exceptions\BlateParserException;
+use Blate\Exceptions\BlateRuntimeException;
 use Blate\Interfaces\BlockInterface;
 use Blate\Interfaces\TokenInterface;
 use PHPUtils\FS\PathUtils;
@@ -78,26 +79,26 @@ final class Blate
 	/**
 	 * @throws BlateException
 	 */
-	private function __construct(string $template, protected bool $is_url = true, bool $timed_class_name = false)
+	private function __construct(private string $template, protected bool $is_url = true, bool $timed_class_name = false)
 	{
 		if ($this->is_url) {
-			$template       = PathUtils::resolve(BLATE_TEMPLATE_RESOLVE_DIR, $template);
-			$this->input    = self::loadFile($template);
-			$this->src_path = $template;
+			$this->template = PathUtils::resolve(BLATE_TEMPLATE_RESOLVE_DIR, $this->template);
+			$this->input    = self::loadFile($this->template);
+			$this->src_path = $this->template;
 
-			$path_info = \pathinfo($template);
+			$path_info = \pathinfo($this->template);
 			$dst_dir   = $path_info['dirname'];
 
 			// change only if:
 			// - file content change
 			// - or file path change
 			// - or blate version change
-			$out_file_name = $path_info['filename'] . '_' . ($hash = \md5($template . \md5_file($template) . self::VERSION));
+			$out_file_name = $path_info['filename'] . '_' . ($hash = \md5($this->template . \md5_file($this->template) . self::VERSION));
 		} else {
-			$this->input = $template;
+			$this->input = $this->template;
 
 			$dst_dir       = BLATE_TEMPLATE_RESOLVE_DIR;
-			$out_file_name = 'blate_' . ($hash = \md5($template . self::VERSION));
+			$out_file_name = 'blate_' . ($hash = \md5($this->template . self::VERSION));
 		}
 
 		$sub1    = \substr($hash, 0, 2);
@@ -139,16 +140,19 @@ final class Blate
 	/**
 	 * @return $this
 	 *
-	 * @throws BlateException
-	 * @throws BlateParserException
+	 * @throws BlateException|BlateParserException
 	 */
 	public function parse(bool $force_new_compile = false): self
 	{
-		if ($force_new_compile || !\file_exists($this->dst_path)) {
-			$parser       = new Parser($this);
-			$this->output = $parser->parse()
-				->getClassBody();
-			$this->save();
+		try {
+			if ($force_new_compile || !\file_exists($this->dst_path)) {
+				$parser       = new Parser($this);
+				$this->output = $parser->parse()
+					->getClassBody();
+				$this->save();
+			}
+		} catch (BlateException|BlateRuntimeException $t) {
+			throw $t->templateSource($this->template);
 		}
 
 		return $this;
@@ -207,9 +211,7 @@ final class Blate
 		$o = $this->is_url ? self::fromPath($this->src_path) : self::fromString($this->input);
 		$o->parse();
 
-		$instance = $o->getParsedInstance();
-
-		return $instance;
+		return $o->getParsedInstance();
 	}
 
 	/**
