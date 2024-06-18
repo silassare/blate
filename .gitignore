@@ -3,3 +3,4 @@
 /vendor
 **/blate_cache/**
 composer.lock
+error.full.txt
