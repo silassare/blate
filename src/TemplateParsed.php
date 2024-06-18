@@ -64,7 +64,7 @@ abstract class TemplateParsed
 	}
 
 	/**
-	 * @param DataContext $data_context
+	 * @param DataContext $context
 	 */
-	abstract public function build(DataContext $data_context): void;
+	abstract public function build(DataContext $context): void;
 }
