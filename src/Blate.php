@@ -186,7 +186,10 @@ final class Blate
 	 */
 	public function getParsedInstance(): TemplateParsed
 	{
+		$f_exists = false;
 		if (\file_exists($this->dst_path)) {
+			$f_exists = true;
+
 			include $this->dst_path;
 		}
 
@@ -196,15 +199,17 @@ final class Blate
 			return new $fqn();
 		}
 
-		@\unlink($this->dst_path);
+		unset(self::$checked_classes[$fqn]);
 
-		// let's parse again with a timed class_name: just for this use
-		$o = $this->is_url ? self::fromPath($this->src_path, true) : self::fromString($this->input, true);
-		$o->parse(true);
+		$f_exists && @\unlink($this->dst_path);
 
-		@\unlink($this->dst_path);
+		// let's parse
+		$o = $this->is_url ? self::fromPath($this->src_path) : self::fromString($this->input);
+		$o->parse();
 
-		return $o->getParsedInstance();
+		$instance = $o->getParsedInstance();
+
+		return $instance;
 	}
 
 	/**
