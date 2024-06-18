@@ -156,3 +156,11 @@ item:inject}{inject.index}:{inject.value}{/slot} {/extends}
     { } { }
 {/raw}
 ```
+
+# injected data context reference [DONE]
+
+> `$$` is the injected data
+
+```html
+{@import 'path/to/file' $$}
+```

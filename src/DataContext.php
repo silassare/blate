@@ -23,11 +23,16 @@ class DataContext
 	/**
 	 * DataContext constructor.
 	 *
-	 * @param Blate $blate
+	 * @param array|object $data
+	 * @param Blate        $blate
 	 */
 	public function __construct(array|object $data, private Blate $blate)
 	{
-		$this->stack[] = $data;
+		if ($data instanceof self) {
+			$this->stack = [...$data->stack];
+		} else {
+			$this->stack[] = $data;
+		}
 	}
 
 	/**

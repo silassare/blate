@@ -32,10 +32,11 @@ class VarName implements TokenHandlerInterface
 	 */
 	public function handle(ParserInterface $parser, TokenInterface $token, bool $is_head): void
 	{
-		$current   = $token;
-		$lexer     = $parser->getLexer();
-		$prev      = $lexer->lookBackward(true);
-		$prev_type = $prev?->getType();
+		$current             = $token;
+		$lexer               = $parser->getLexer();
+		$prev                = $lexer->lookBackward(true);
+		$prev_type           = $prev?->getType();
+		$is_ref              = false;
 
 		if (Token::T_DOT === $prev_type) { // foo.bar
 			$parser->write('->get(\'');
@@ -61,16 +62,26 @@ class VarName implements TokenHandlerInterface
 
 			Helpers::setActiveChain($current, $current);
 
-			$parser->write(Blate::DATA_CONTEXT_VAR . '->chain()->get(\'');
-			$parser->write($current->getValue());
-			$parser->write('\')');
+			$var_name            = $current->getValue();
+			$is_ref              = (Blate::DATA_CONTEXT_REF === $var_name);
+
+			if ($is_ref) {
+				$parser->write(Blate::DATA_CONTEXT_VAR);
+			} else {
+				$parser->write(Blate::DATA_CONTEXT_VAR . '->chain()->get(\'');
+				$parser->write($var_name);
+				$parser->write('\')');
+			}
+
 			$next = $lexer->lookForward(true);
 			$lexer->move();
 		} else {
 			throw BlateParserException::withToken(Message::UNEXPECTED, $current);
 		}
 
-		if (!$next || $next->isComparator() || $next->isLogicalCondition() || $next->isOperator() || $next->isGroupCloser()) {
+		if ($is_ref) {
+			Helpers::setActiveChain($current, null);
+		} elseif (!$next || $next->isComparator() || $next->isLogicalCondition() || $next->isOperator() || $next->isGroupCloser()) {
 			Helpers::setActiveChain($current, null);
 			$parser->write('->val()');
 		}

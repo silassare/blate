@@ -50,6 +50,8 @@ final class Blate
 
 	public const DATA_CONTEXT_VAR = '$context';
 
+	public const DATA_CONTEXT_REF = '$$';
+
 	public const SLOT_METHOD_PREFIX = 'slot_';
 
 	private static int $var_counter = 0;
