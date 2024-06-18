@@ -367,6 +367,10 @@ class Lexer implements LexerInterface
 			$reader->move();
 			$chunk->setValue($c);
 			$type = Token::T_DOT;
+		} elseif ('~' === $c) {
+			$reader->move();
+			$chunk->setValue($c);
+			$type = Token::T_TILDE;
 		} elseif ($this->isDigit($c)) {
 			$chunk = $this->eatNumber();
 			$type  = Token::T_DNUMBER;

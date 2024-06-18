@@ -27,6 +27,7 @@ class Token implements TokenInterface
 	use ArrayCapableTrait;
 
 	public const T_UNKNOWN  = 1;
+
 	public const T_RAW_DATA = 2;
 
 	public const T_HASH = 3;
@@ -80,6 +81,8 @@ class Token implements TokenInterface
 	public const T_PIPE = 27;
 
 	public const T_AT = 28;
+
+	public const T_TILDE = 29;
 
 	public const ATTR_IN_TREE = 'in_tree';
 
