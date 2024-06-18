@@ -22,16 +22,11 @@ use Blate\Exceptions\BlateRuntimeException;
  */
 class SimpleChain
 {
-	private DataContext $context;
-
 	private mixed $current;
 
 	private bool $is_head = true;
 
-	public function __construct(DataContext $context)
-	{
-		$this->context = $context;
-	}
+	public function __construct(private DataContext $data_context) {}
 
 	public function val(): mixed
 	{
@@ -49,7 +44,7 @@ class SimpleChain
 	{
 		if ($this->is_head) {
 			$this->is_head = false;
-			$val           = $this->context->get($key);
+			$val           = $this->data_context->get($key);
 		} else {
 			$source = $this->current;
 			$found  = self::access($source, $key, $val);

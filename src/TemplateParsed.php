@@ -35,7 +35,7 @@ abstract class TemplateParsed
 		return $this;
 	}
 
-	public function renderInjectedSlot(string $name, DataContext $context): void
+	public function renderInjectedSlot(string $name, DataContext $data_context): void
 	{
 		if (!$this->hasInjectedSlot($name)) {
 			throw new LogicException(\sprintf('Unknown slot %s', $name));
@@ -43,11 +43,12 @@ abstract class TemplateParsed
 
 		$fn = $this->injected_slots[$name];
 
-		$fn($context);
+		$fn($data_context);
 	}
 
 	/**
 	 * @param Blate $to_extends
+	 * @param mixed $data
 	 *
 	 * @return DataContext
 	 *
@@ -63,7 +64,7 @@ abstract class TemplateParsed
 	}
 
 	/**
-	 * @param DataContext $context
+	 * @param DataContext $data_context
 	 */
-	abstract public function build(DataContext $context): void;
+	abstract public function build(DataContext $data_context): void;
 }

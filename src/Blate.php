@@ -56,6 +56,9 @@ final class Blate
 
 	private static array $checked_classes = [];
 
+	/**
+	 * @var array<string, class-string<BlockInterface>>
+	 */
 	private static array $blocks = [];
 
 	private string $input;
@@ -253,6 +256,9 @@ final class Blate
 
 	/**
 	 * Register block.
+	 *
+	 * @param string                       $name
+	 * @param class-string<BlockInterface> $block_class
 	 */
 	public static function registerBlock(string $name, string $block_class): void
 	{
@@ -262,7 +268,10 @@ final class Blate
 	/**
 	 * Returns a new block instance.
 	 *
-	 * @param Parser $parser
+	 * @param Parser         $parser
+	 * @param TokenInterface $token
+	 *
+	 * @return null|BlockInterface
 	 */
 	public static function getBlockInstance(Parser $parser, TokenInterface $token): ?BlockInterface
 	{
