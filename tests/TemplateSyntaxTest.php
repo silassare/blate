@@ -197,6 +197,14 @@ final class TemplateSyntaxTest extends TestCase
 	/**
 	 * @throws BlateException
 	 */
+	public function testTemplateImportRaw(): void
+	{
+		$this->runValid('template-import-raw');
+	}
+
+	/**
+	 * @throws BlateException
+	 */
 	public function testTemplateSetAndScopedBlock(): void
 	{
 		$this->runValid('template-set-and-scoped-block');

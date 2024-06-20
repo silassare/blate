@@ -1,0 +1,8 @@
+ <!DOCTYPE html>
+<html>
+<body>
+<code>
+	{@import_raw './raw.blate'}
+</code>
+</body>
+</html>
