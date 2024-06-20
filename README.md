@@ -157,6 +157,12 @@ item:inject}{inject.index}:{inject.value}{/slot} {/extends}
 {/raw}
 ```
 
+# print raw data from a file [DONE]
+
+```
+{@import_raw 'file_path'}
+```
+
 # injected data context reference [DONE]
 
 > `$$` is the injected data
