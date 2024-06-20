@@ -55,6 +55,8 @@ final class Blate
 
 	public const SLOT_METHOD_PREFIX = 'slot_';
 
+	public const BLOCK_NAME_PATTERN = '~^[a-z_][a-z0-9_]*$~i';
+
 	private static int $var_counter = 0;
 
 	private static array $checked_classes = [];
@@ -271,6 +273,10 @@ final class Blate
 	 */
 	public static function registerBlock(string $name, string $block_class): void
 	{
+		if (!\preg_match(self::BLOCK_NAME_PATTERN, $name)) {
+			throw new BlateRuntimeException(\sprintf(Message::INVALID_BLOCK_NAME, $name, self::BLOCK_NAME_PATTERN));
+		}
+
 		self::$blocks[$name] = $block_class;
 	}
 
