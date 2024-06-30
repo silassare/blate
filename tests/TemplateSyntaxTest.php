@@ -38,6 +38,14 @@ final class TemplateSyntaxTest extends TestCase
 	/**
 	 * @throws BlateException
 	 */
+	public function testBlockPrint(): void
+	{
+		$this->runValid('block-print');
+	}
+
+	/**
+	 * @throws BlateException
+	 */
 	public function testEmptyTemplate(): void
 	{
 		$this->runValid('template-empty');

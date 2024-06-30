@@ -1,0 +1,9 @@
+<!DOCTYPE html>
+<html>
+	<body>
+		// auto escaped
+		{unsafe}
+		// unescaped
+		{= unsafe}
+	</body>
+</html>

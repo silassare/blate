@@ -1,0 +1,9 @@
+<!DOCTYPE html>
+<html>
+	<body>
+		// auto escaped
+		&lt;script&gt;alert(&quot;beware of xss attack!&quot;);&lt;/script&gt;
+		// unescaped
+		<script>alert("beware of xss attack!");</script>
+	</body>
+</html>
