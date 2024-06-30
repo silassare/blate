@@ -12,6 +12,13 @@ Another template engine for php.
 { '{}' }
 ```
 
+By default all printed value will be escaped to prevent XSS
+to print a variable without escaping use:
+
+```
+{= unsafe}
+```
+
 # filters [TODO]
 
 ```

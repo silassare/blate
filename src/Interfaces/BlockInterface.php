@@ -53,7 +53,7 @@ interface BlockInterface
 	/**
 	 * Called when a child expression is found in this block.
 	 */
-	public function onChildExpressionFound(TokenInterface $token): void;
+	public function onChildExpressionFound(TokenInterface $token, bool $escape): void;
 
 	/**
 	 * Called when a child breakpoint is found in this block.

@@ -65,9 +65,9 @@ abstract class Block implements BlockInterface
 	/**
 	 * {@inheritDoc}
 	 */
-	public function onChildExpressionFound(TokenInterface $token): void
+	public function onChildExpressionFound(TokenInterface $token, bool $escape): void
 	{
-		$this->parser->writeExpression((new Expression())->get($this->lexer));
+		$this->parser->writeExpression((new Expression())->get($this->lexer), $escape);
 	}
 
 	/**

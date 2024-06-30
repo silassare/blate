@@ -135,11 +135,19 @@ class Parser
 
 	private function expression(TokenInterface $token): void
 	{
-		$block = $this->lastUnclosedBlock();
+		$block     = $this->lastUnclosedBlock();
+		$current   = $this->lexer->current();
+		$escape    = true;
+
+		if (Blate::BLOCK_SAFE_ECHO === $current?->getValue()) {
+			$escape = false;
+			$this->lexer->move();
+		}
+
 		if ($block) {
-			$block->onChildExpressionFound($token);
+			$block->onChildExpressionFound($token, $escape);
 		} else {
-			$this->writeExpression((new Expression())->get($this->lexer));
+			$this->writeExpression((new Expression())->get($this->lexer), $escape);
 		}
 	}
 

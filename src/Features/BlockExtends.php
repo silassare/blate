@@ -62,7 +62,7 @@ class BlockExtends extends Block
 	/**
 	 * {@inheritDoc}
 	 */
-	public function onChildExpressionFound(TokenInterface $token): void
+	public function onChildExpressionFound(TokenInterface $token, bool $escape): void
 	{
 		throw BlateParserException::withToken(Message::UNEXPECTED, $token);
 	}

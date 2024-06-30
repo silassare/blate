@@ -111,9 +111,15 @@ trait ParserOutputTrait
 		return $this;
 	}
 
-	public function writeExpression(string $expression, bool $clean_html = true): static
+	public function writeExpression(string $expression, bool $escape = true): static
 	{
-		$code = \PHP_EOL . ($clean_html ? 'echo ' . Blate::DATA_CONTEXT_VAR . '->noHTML(' . $expression . ');' : 'echo (' . $expression . ');');
+		$code = \PHP_EOL;
+
+		if ($escape) {
+			$code .= 'echo ' . Blate::DATA_CONTEXT_VAR . '->noHTML(' . $expression . ');';
+		} else {
+			$code .= 'echo (' . $expression . ');';
+		}
 
 		if ($this->ts_slots->getActive()) {
 			$this->ts_slots->write($code);
