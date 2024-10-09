@@ -31,6 +31,7 @@ class DataContext
 		if ($data instanceof self) {
 			$this->stack = [...$data->stack];
 		} else {
+			$this->stack[] = Blate::getHelpers();
 			$this->stack[] = $data;
 		}
 	}

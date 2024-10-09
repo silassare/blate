@@ -82,6 +82,8 @@ final class Message
 
 	public const INVALID_BLOCK_NAME =  'Invalid block name "%s", block name should match pattern: "%s"';
 
+	public const INVALID_HELPER_NAME =  'Invalid helper name "%s", helper name should match pattern: "%s"';
+
 	/**
 	 * Gets message.
 	 */

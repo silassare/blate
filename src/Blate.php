@@ -61,6 +61,8 @@ final class Blate
 
 	public const BLOCK_NAME_PATTERN = '~^[a-z_][a-z0-9_]*$~i';
 
+	public const HELPER_NAME_PATTERN = '~^[a-z$_][a-z0-9$_]*$~i';
+
 	private static int $var_counter = 0;
 
 	private static array $checked_classes = [];
@@ -69,6 +71,11 @@ final class Blate
 	 * @var array<string, class-string<BlockInterface>>
 	 */
 	private static array $blocks = [];
+
+	/**
+	 * @var array<string, callable>
+	 */
+	private static array $helpers = [];
 
 	private string $input;
 
@@ -83,6 +90,8 @@ final class Blate
 	private string $class_fqn;
 
 	/**
+	 * Blate constructor.
+	 *
 	 * @throws BlateException
 	 */
 	private function __construct(private string $template, protected bool $is_url = true, bool $timed_class_name = false)
@@ -123,6 +132,8 @@ final class Blate
 	}
 
 	/**
+	 * Get Blate instance from a file path.
+	 *
 	 * @throws BlateException
 	 */
 	public static function fromPath(string $path, bool $timed_class_name = false): self
@@ -131,6 +142,8 @@ final class Blate
 	}
 
 	/**
+	 * Get Blate instance from a string.
+	 *
 	 * @throws BlateException
 	 */
 	public static function fromString(string $template, bool $timed_class_name = false): self
@@ -138,12 +151,19 @@ final class Blate
 		return new self($template, false, $timed_class_name);
 	}
 
+	/**
+	 * Get the input.
+	 *
+	 * @return string
+	 */
 	public function getInput(): string
 	{
 		return $this->input;
 	}
 
 	/**
+	 * Parse the template.
+	 *
 	 * @return $this
 	 *
 	 * @throws BlateException|BlateParserException
@@ -165,6 +185,8 @@ final class Blate
 	}
 
 	/**
+	 * Load a file.
+	 *
 	 * @throws BlateException
 	 */
 	public static function loadFile(string $src): string
@@ -176,22 +198,39 @@ final class Blate
 		return \file_get_contents($src);
 	}
 
+	/**
+	 * Get the source path.
+	 *
+	 * @return null|string
+	 */
 	public function getSrcPath(): ?string
 	{
 		return $this->src_path;
 	}
 
+	/**
+	 * Get the source directory.
+	 *
+	 * @return string
+	 */
 	public function getSrcDir(): string
 	{
 		return $this->src_path ? \pathinfo($this->src_path, \PATHINFO_DIRNAME) : BLATE_TEMPLATE_RESOLVE_DIR;
 	}
 
+	/**
+	 * Get the destination path.
+	 *
+	 * @return string
+	 */
 	public function getDestPath(): string
 	{
 		return $this->dst_path;
 	}
 
 	/**
+	 * Get a parsed template instance.
+	 *
 	 * @throws BlateException
 	 */
 	public function getParsedInstance(): TemplateParsed
@@ -221,6 +260,8 @@ final class Blate
 	}
 
 	/**
+	 * Run the template with the given data.
+	 *
 	 * @throws BlateException
 	 */
 	public function runGet(array|object $data): string
@@ -259,11 +300,23 @@ final class Blate
 		return false;
 	}
 
+	/**
+	 * Create a new variable name.
+	 *
+	 * @return string
+	 */
 	public static function createVar(): string
 	{
 		return '$bv_' . (self::$var_counter++);
 	}
 
+	/**
+	 * Get a slot method name.
+	 *
+	 * @param string $name the slot name
+	 *
+	 * @return string
+	 */
 	public static function slotMethodName(string $name): string
 	{
 		return Str::toMethodName(self::SLOT_METHOD_PREFIX . $name);
@@ -272,8 +325,8 @@ final class Blate
 	/**
 	 * Register block.
 	 *
-	 * @param string                       $name
-	 * @param class-string<BlockInterface> $block_class
+	 * @param string                       $name        the block name
+	 * @param class-string<BlockInterface> $block_class the block class name
 	 */
 	public static function registerBlock(string $name, string $block_class): void
 	{
@@ -282,6 +335,31 @@ final class Blate
 		}
 
 		self::$blocks[$name] = $block_class;
+	}
+
+	/**
+	 * Register helper.
+	 *
+	 * @param string   $name   the helper name
+	 * @param callable $helper the helper callable
+	 */
+	public static function registerHelper(string $name, callable $helper): void
+	{
+		if (!\preg_match(self::HELPER_NAME_PATTERN, $name)) {
+			throw new BlateRuntimeException(\sprintf(Message::INVALID_HELPER_NAME, $name, self::HELPER_NAME_PATTERN));
+		}
+
+		self::$helpers[$name] = $helper;
+	}
+
+	/**
+	 * Get the registered helpers.
+	 *
+	 * @return array<string, callable>
+	 */
+	public static function getHelpers(): array
+	{
+		return self::$helpers;
 	}
 
 	/**
@@ -308,12 +386,26 @@ final class Blate
 		return null;
 	}
 
+	/**
+	 * Quote a string.
+	 *
+	 * @param string $str the string to quote
+	 *
+	 * @return string
+	 */
 	public static function quote(string $str): string
 	{
 		// return '"' . \str_replace(['"', '$'], ['\\"', '\\$'], $str) . '"';
 		return '\'' . \str_replace('\'', '\\\'', $str) . '\'';
 	}
 
+	/**
+	 * Unquote a string.
+	 *
+	 * @param string $str the string to unquote
+	 *
+	 * @return string
+	 */
 	public static function unquote(string $str): string
 	{
 		if (\str_starts_with($str, '\'') && \str_ends_with($str, '\'')) {
@@ -328,6 +420,8 @@ final class Blate
 	}
 
 	/**
+	 * Save the compiled template.
+	 *
 	 * @throws BlateException
 	 */
 	private function save(): void
@@ -367,6 +461,8 @@ final class Blate
 	}
 
 	/**
+	 * Write a file.
+	 *
 	 * @throws BlateException
 	 */
 	private function writeFile(string $path, string $content): void
