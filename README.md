@@ -171,3 +171,9 @@ item:inject}{inject.index}:{inject.value}{/slot} {/extends}
 ```html
 {@import 'path/to/file' $$}
 ```
+
+# php code [DONE]
+
+```
+{~ echo 'Hello World'; ~}
+```

@@ -49,6 +49,8 @@ final class Blate
 
 	public const BLOCK_COMMENT = '#';
 
+	public const BLOCK_PHP = '~';
+
 	public const BLOCK_SAFE_ECHO = '=';
 
 	public const DATA_CONTEXT_VAR = '$context';

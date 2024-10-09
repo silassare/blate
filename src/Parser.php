@@ -16,6 +16,7 @@ namespace Blate;
 use Blate\Exceptions\BlateParserException;
 use Blate\Expressions\Expression;
 use Blate\Features\BlockComment;
+use Blate\Features\BlockPhp;
 use Blate\Interfaces\TokenInterface;
 use Blate\Traits\ParserOutputTrait;
 use PHPUtils\Store\Store;
@@ -90,6 +91,8 @@ class Parser
 					$this->blockClose();
 				} elseif (Blate::BLOCK_COMMENT === $next_value) {
 					$this->comment();
+				} elseif (Blate::BLOCK_PHP === $next_value) {
+					$this->php();
 				} else {
 					$this->expression($token);
 				}
@@ -131,6 +134,11 @@ class Parser
 	private function comment(): void
 	{
 		(new BlockComment($this, $this->lexer->current()))->onOpen();
+	}
+
+	private function php(): void
+	{
+		(new BlockPhp($this, $this->lexer->current()))->onOpen();
 	}
 
 	private function expression(TokenInterface $token): void
