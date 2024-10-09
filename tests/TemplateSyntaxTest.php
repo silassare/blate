@@ -62,6 +62,14 @@ final class TemplateSyntaxTest extends TestCase
 	/**
 	 * @throws BlateException
 	 */
+	public function testValidPhp(): void
+	{
+		$this->runValid('template-php');
+	}
+
+	/**
+	 * @throws BlateException
+	 */
 	public function testValidExpression(): void
 	{
 		$this->runValid('expression-valid');

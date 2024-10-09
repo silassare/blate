@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>{ me.getFirstName() }</title>
+	</head>
+	<body>
+		<h1>My Webpage</h1>
+		<p>
+			First Name: { me.getFirstName() }
+			Last Name: { me.getLastName() }
+		</p>
+		{~
+			// This is a php code block
+			echo "<ul>";
+			foreach ([1, 2, 3] as $number) {
+				echo "<li>$number</li>";
+			}
+			echo "</ul>";
+		~}
+	</body>
+</html>

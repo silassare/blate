@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Emile Silas</title>
+	</head>
+	<body>
+		<h1>My Webpage</h1>
+		<p>
+			First Name: Emile Silas
+			Last Name: SARE
+		</p>
+		<ul><li>1</li><li>2</li><li>3</li></ul>
+	</body>
+</html>
