@@ -19,12 +19,6 @@ to print a variable without escaping use:
 {= unsafe}
 ```
 
-# filters [TODO]
-
-```
-{name ~ filterA(arg,5) ~ filterB}
-```
-
 # set var [DONE]
 
 ```
