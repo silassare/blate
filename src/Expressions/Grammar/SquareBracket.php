@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Blate\Expressions\Grammar;
 
 use Blate\Exceptions\BlateParserException;
-use Blate\Expressions\Helpers;
+use Blate\Expressions\Utils;
 use Blate\Interfaces\ParserInterface;
 use Blate\Interfaces\TokenHandlerInterface;
 use Blate\Interfaces\TokenInterface;
@@ -37,13 +37,13 @@ class SquareBracket implements TokenHandlerInterface
 			case Token::T_NAME: // var_name[expression]
 			case Token::T_PAREN_CLOSE: // var_name()[expression]
 			case Token::T_SQUARE_BRACKET_CLOSE: // var_name[expression][expression]
-				if (!Helpers::getActiveChain($current)) {
+				if (!Utils::getActiveChain($current)) {
 					throw BlateParserException::withToken(Message::UNEXPECTED, $current);
 				}
 
 				$parser->write('->get(');
 				$lexer->move();
-				$parser->parse(Helpers::whileInChildrenOf($current));
+				$parser->parse(Utils::whileInChildrenOf($current));
 
 				break;
 

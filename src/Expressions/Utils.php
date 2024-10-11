@@ -17,9 +17,9 @@ use Blate\Interfaces\TokenInterface;
 use Blate\Token;
 
 /**
- * Class Helpers.
+ * Class Utils.
  */
-class Helpers
+class Utils
 {
 	protected static ?TokenInterface $root_active_chain = null;
 

@@ -116,11 +116,11 @@ class ExpressionParser implements ParserInterface
 				case Token::T_SQUARE_BRACKET_CLOSE:
 					$to_close = \array_pop($close_stack);
 					if ($to_close && $current->isGroupCloserOf($to_close)) {
-						if (Helpers::getActiveChain($current)) {
+						if (Utils::getActiveChain($current)) {
 							$this->write(')');
 							$next = $this->lexer->lookForward(true);
 							if (!$next || $next->isComparator() || $next->isLogicalCondition() || $next->isOperator() || $next->isGroupCloser()) {
-								Helpers::setActiveChain($current, null);
+								Utils::setActiveChain($current, null);
 								$this->write('->val()');
 							}
 						} else {

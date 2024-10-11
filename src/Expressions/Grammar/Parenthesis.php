@@ -15,7 +15,7 @@ namespace Blate\Expressions\Grammar;
 
 use Blate\Exceptions\BlateParserException;
 use Blate\Expressions\ExpressionParser;
-use Blate\Expressions\Helpers;
+use Blate\Expressions\Utils;
 use Blate\Interfaces\ParserInterface;
 use Blate\Interfaces\TokenHandlerInterface;
 use Blate\Interfaces\TokenInterface;
@@ -37,25 +37,25 @@ class Parenthesis implements TokenHandlerInterface
 		if ($is_head) {// expression start
 			$parser->write($current);
 			$lexer->move();
-			$parser->parse(Helpers::whileInChildrenOf($current));
+			$parser->parse(Utils::whileInChildrenOf($current));
 		} else {
 			switch ($prev_type) {
 				case Token::T_PAREN_OPEN: // ((expression))
 					$parser->write($current);
 					$lexer->move();
-					$parser->parse(Helpers::whileInChildrenOf($current));
+					$parser->parse(Utils::whileInChildrenOf($current));
 
 					break;
 
 				case Token::T_NAME: // var_name(arg1, arg2)
 				case Token::T_SQUARE_BRACKET_CLOSE: // var_name[expression](arg1, arg2)
-					if (!Helpers::getActiveChain($current)) {
+					if (!Utils::getActiveChain($current)) {
 						throw BlateParserException::withToken(Message::UNEXPECTED, $current);
 					}
 
 					$parser->write('->call(');
 					$lexer->move();
-					$parser->parse(Helpers::whileInChildrenOf($current), [
+					$parser->parse(Utils::whileInChildrenOf($current), [
 						ExpressionParser::IN_FUNC_CALL_ARGS => true,
 						ExpressionParser::ALLOW_EMPTY       => true,
 					]);
@@ -66,7 +66,7 @@ class Parenthesis implements TokenHandlerInterface
 					if ($prev && ($prev->isOperator() || $prev->isLogicalCondition() || $prev->isComparator())) {
 						$parser->write($current);
 						$lexer->move();
-						$parser->parse(Helpers::whileInChildrenOf($current));
+						$parser->parse(Utils::whileInChildrenOf($current));
 					} else {
 						throw BlateParserException::withToken(Message::UNEXPECTED, $current);
 					}

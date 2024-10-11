@@ -15,7 +15,7 @@ namespace Blate\Expressions\Grammar;
 
 use Blate\Blate;
 use Blate\Exceptions\BlateParserException;
-use Blate\Expressions\Helpers;
+use Blate\Expressions\Utils;
 use Blate\Interfaces\ParserInterface;
 use Blate\Interfaces\TokenHandlerInterface;
 use Blate\Interfaces\TokenInterface;
@@ -56,11 +56,11 @@ class VarName implements TokenHandlerInterface
 					  )
 				  )
 		) {
-			if (Helpers::getActiveChain($current)) {
+			if (Utils::getActiveChain($current)) {
 				throw BlateParserException::withToken(Message::UNEXPECTED, $current);
 			}
 
-			Helpers::setActiveChain($current, $current);
+			Utils::setActiveChain($current, $current);
 
 			$var_name            = $current->getValue();
 			$is_ref              = (Blate::DATA_CONTEXT_REF === $var_name);
@@ -80,9 +80,9 @@ class VarName implements TokenHandlerInterface
 		}
 
 		if ($is_ref) {
-			Helpers::setActiveChain($current, null);
+			Utils::setActiveChain($current, null);
 		} elseif (!$next || $next->isComparator() || $next->isLogicalCondition() || $next->isOperator() || $next->isGroupCloser()) {
-			Helpers::setActiveChain($current, null);
+			Utils::setActiveChain($current, null);
 			$parser->write('->val()');
 		}
 	}
