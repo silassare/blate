@@ -84,6 +84,8 @@ final class Message
 
 	public const INVALID_HELPER_NAME =  'Invalid helper name "%s", helper name should match pattern: "%s"';
 
+	public const HELPER_ALREADY_REGISTERED =  'Helper "%s" is already registered.';
+
 	/**
 	 * Gets message.
 	 */

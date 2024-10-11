@@ -61,7 +61,7 @@ final class Blate
 
 	public const BLOCK_NAME_PATTERN = '~^[a-z_][a-z0-9_]*$~i';
 
-	public const HELPER_NAME_PATTERN = '~^[a-z$_][a-z0-9$_]*$~i';
+	public const HELPER_NAME_PATTERN = '~^[a-z_][a-z0-9$_]*$~i';
 
 	private static int $var_counter = 0;
 
@@ -307,7 +307,7 @@ final class Blate
 	 */
 	public static function createVar(): string
 	{
-		return '$bv_' . (self::$var_counter++);
+		return '$_bv_' . (self::$var_counter++);
 	}
 
 	/**
@@ -325,6 +325,8 @@ final class Blate
 	/**
 	 * Register block.
 	 *
+	 * The block name must match the pattern: {@see Blate::BLOCK_NAME_PATTERN}.
+	 *
 	 * @param string                       $name        the block name
 	 * @param class-string<BlockInterface> $block_class the block class name
 	 */
@@ -338,7 +340,29 @@ final class Blate
 	}
 
 	/**
-	 * Register helper.
+	 * Register a helper.
+	 *
+	 * The helper name must match the pattern: {@see Blate::HELPER_NAME_PATTERN}.
+	 *
+	 * ```
+	 * Blate::registerHelper('hello', function (string $name) {
+	 *    return 'Hello ' . $name;
+	 * });
+	 * ```
+	 *
+	 * The helper can be used in the template like this:
+	 *
+	 * ```
+	 * {hello('world')}
+	 * ```
+	 *
+	 * or if the current scope has a variable named `hello`:
+	 *
+	 * ```
+	 * {$hello('world')}
+	 * ```
+	 *
+	 * The above will output: `Hello world`.
 	 *
 	 * @param string   $name   the helper name
 	 * @param callable $helper the helper callable
@@ -349,7 +373,13 @@ final class Blate
 			throw new BlateRuntimeException(\sprintf(Message::INVALID_HELPER_NAME, $name, self::HELPER_NAME_PATTERN));
 		}
 
-		self::$helpers[$name] = $helper;
+		if (isset(self::$helpers[$name])) {
+			throw (new BlateRuntimeException(\sprintf(Message::HELPER_ALREADY_REGISTERED, $name)))
+				->suspectCallable(self::$helpers[$name]);
+		}
+
+		self::$helpers[$name]       = $helper;
+		self::$helpers['$' . $name] = $helper;
 	}
 
 	/**
