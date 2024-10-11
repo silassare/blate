@@ -177,3 +177,27 @@ item:inject}{inject.index}:{inject.value}{/slot} {/extends}
 ```
 {~ echo 'Hello World'; ~}
 ```
+
+# global helpers [DONE]
+
+define a global helper:
+
+```php
+Blate::registerHelper('hello', function (string $name) {
+   return 'Hello ' . $name;
+});
+```
+
+The helper can be used in the template like this:
+
+```html
+{hello('world')}
+```
+
+or if the current scope has a variable named `hello`:
+
+```html
+{$hello('world')}
+```
+
+The above will output: `Hello world`.
