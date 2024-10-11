@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace Blate;
 
+use Blate\Helpers\Helpers;
+
 /**
  * Class DataContext.
  */
@@ -82,7 +84,7 @@ class DataContext
 		while ($i--) {
 			$ctx = $this->stack[$i];
 
-			$found = SimpleChain::access($ctx, $key, $value);
+			$found = SimpleChain::has($ctx, $key, $value);
 
 			if ($found) {
 				return $value;
@@ -104,10 +106,10 @@ class DataContext
 	}
 
 	/**
-	 * Wrapper for htmlentities().
+	 * Alias for {@see Helpers::escapeHtml}.
 	 */
 	public function noHTML(mixed $untrusted): string
 	{
-		return \htmlentities((string) $untrusted, \ENT_QUOTES, 'UTF-8');
+		return Helpers::escapeHtml($untrusted);
 	}
 }

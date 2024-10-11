@@ -16,6 +16,7 @@ namespace Blate\Features;
 use Blate\Blate;
 use Blate\Exceptions\BlateParserException;
 use Blate\Expressions\Expression;
+use Blate\Helpers\Helpers;
 use Blate\Interfaces\BlockInterface;
 use Blate\Interfaces\TokenInterface;
 use Blate\Message;
@@ -83,7 +84,7 @@ class BlockExtends extends Block
 
 		$blate = $this->parser->getBlate();
 
-		$abs_path = PathUtils::resolve($blate->getSrcDir(), Blate::unquote($path_token->getValue()));
+		$abs_path = PathUtils::resolve($blate->getSrcDir(), Helpers::unquote($path_token->getValue()));
 
 		if ($abs_path === $blate->getSrcPath()) {
 			throw BlateParserException::withToken(Message::EXTENDED_PATH_IS_SELF, $path_token);
@@ -107,7 +108,7 @@ class BlockExtends extends Block
 %s = $this->createExtendsContext(%s, %s);
 ',
 			$extended_blate_var,
-			Blate::quote($abs_path),
+			Helpers::quote($abs_path),
 			$extended_instance_var,
 			$extended_blate_var,
 			$extended_context_var,

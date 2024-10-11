@@ -47,9 +47,8 @@ class SimpleChain
 			$val           = $this->data_context->get($key);
 		} else {
 			$source = $this->current;
-			$found  = self::access($source, $key, $val);
 
-			if (!$found) {
+			if (!self::has($source, $key, $val)) {
 				throw new BlateRuntimeException(\sprintf(Message::CHAIN_UNDEFINED_KEY, $key, \get_debug_type($source)));
 			}
 		}
@@ -81,7 +80,7 @@ class SimpleChain
 		return $this;
 	}
 
-	public static function access(mixed $source, mixed $key, mixed &$value): bool
+	public static function has(mixed $source, mixed $key, mixed &$value): bool
 	{
 		if (null === $source) {
 			return false;

@@ -16,6 +16,7 @@ namespace Blate\Features;
 use Blate\Blate;
 use Blate\Exceptions\BlateParserException;
 use Blate\Expressions\Expression;
+use Blate\Helpers\Helpers;
 use Blate\Message;
 use Blate\Token;
 use PHPUtils\FS\PathUtils;
@@ -46,7 +47,7 @@ class BlockImport extends Block
 
 		$blate = $this->parser->getBlate();
 
-		$abs_path = PathUtils::resolve($blate->getSrcDir(), Blate::unquote($path_token->getValue()));
+		$abs_path = PathUtils::resolve($blate->getSrcDir(), Helpers::unquote($path_token->getValue()));
 
 		if ($abs_path === $blate->getSrcPath()) {
 			throw BlateParserException::withToken(Message::IMPORT_PATH_IS_SELF, $path_token);
@@ -67,7 +68,7 @@ class BlockImport extends Block
 %s->build(%s);
 ',
 			$blate_var,
-			Blate::quote($abs_path),
+			Helpers::quote($abs_path),
 			$instance_var,
 			$blate_var,
 			$context_var,

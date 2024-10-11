@@ -13,8 +13,8 @@ declare(strict_types=1);
 
 namespace Blate\Features;
 
-use Blate\Blate;
 use Blate\Exceptions\BlateParserException;
+use Blate\Helpers\Helpers;
 use Blate\Token;
 use PHPUtils\FS\PathUtils;
 
@@ -44,11 +44,11 @@ class BlockImportRaw extends Block
 
 		$blate = $this->parser->getBlate();
 
-		$abs_path = PathUtils::resolve($blate->getSrcDir(), Blate::unquote($path_token->getValue()));
+		$abs_path = PathUtils::resolve($blate->getSrcDir(), Helpers::unquote($path_token->getValue()));
 
 		$this->parser->writeCode(\sprintf(
 			\PHP_EOL . 'echo Blate::loadFile(%s);' . \PHP_EOL,
-			Blate::quote($abs_path),
+			Helpers::quote($abs_path),
 		));
 
 		$this->lexer->nextIs(Token::T_TAG_CLOSE, null, true);

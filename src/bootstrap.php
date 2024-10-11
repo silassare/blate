@@ -23,6 +23,7 @@ use Blate\Features\BlockRaw;
 use Blate\Features\BlockScoped;
 use Blate\Features\BlockSet;
 use Blate\Features\BlockSlot;
+use Blate\Helpers\Helpers;
 
 Blate::registerBlock(BlockEach::NAME, BlockEach::class);
 Blate::registerBlock(BlockIf::NAME, BlockIf::class);
@@ -35,3 +36,4 @@ Blate::registerBlock(BlockRaw::NAME, BlockRaw::class);
 Blate::registerBlock(BlockExtends::NAME, BlockExtends::class);
 Blate::registerBlock(BlockComment::NAME, BlockComment::class);
 Blate::registerBlock(BlockPhp::NAME, BlockPhp::class);
+Helpers::register();

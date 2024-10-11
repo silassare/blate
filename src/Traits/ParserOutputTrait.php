@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Blate\Traits;
 
 use Blate\Blate;
+use Blate\Helpers\Helpers;
 use Blate\TypedStack;
 use PHPUtils\Store\Store;
 
@@ -100,7 +101,7 @@ trait ParserOutputTrait
 
 	public function write(string $str): static
 	{
-		$code = \PHP_EOL . 'echo ' . Blate::quote($str) . ';';
+		$code = \PHP_EOL . 'echo ' . Helpers::quote($str) . ';';
 
 		if ($this->ts_slots->getActive()) {
 			$this->ts_slots->write($code);

@@ -415,39 +415,6 @@ final class Blate
 	}
 
 	/**
-	 * Quote a string.
-	 *
-	 * @param string $str the string to quote
-	 *
-	 * @return string
-	 */
-	public static function quote(string $str): string
-	{
-		// return '"' . \str_replace(['"', '$'], ['\\"', '\\$'], $str) . '"';
-		return '\'' . \str_replace('\'', '\\\'', $str) . '\'';
-	}
-
-	/**
-	 * Unquote a string.
-	 *
-	 * @param string $str the string to unquote
-	 *
-	 * @return string
-	 */
-	public static function unquote(string $str): string
-	{
-		if (\str_starts_with($str, '\'') && \str_ends_with($str, '\'')) {
-			return \substr($str, 1, -1);
-		}
-
-		if (\str_starts_with($str, '"') && \str_ends_with($str, '"')) {
-			return \substr($str, 1, -1);
-		}
-
-		return $str;
-	}
-
-	/**
 	 * Save the compiled template.
 	 *
 	 * @throws BlateException
