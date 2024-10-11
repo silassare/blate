@@ -18,6 +18,9 @@ namespace Blate;
  */
 class DataContext
 {
+	/**
+	 * @var array<int, array|object>
+	 */
 	private array $stack = [];
 
 	/**

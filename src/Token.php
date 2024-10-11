@@ -92,8 +92,6 @@ class Token implements TokenInterface
 	public const ATTR_EXTENDED_INSTANCE_VAR = 'extended_instance_var';
 	public const ATTR_EXTENDED_CONTEXT_VAR  = 'extended_context_var';
 
-	protected static array $types_names;
-
 	/**
 	 * @var TokenInterface[]
 	 */
@@ -231,18 +229,21 @@ class Token implements TokenInterface
 	 */
 	public static function getTypeName(int $type): string
 	{
-		if (!isset(self::$types_names)) {
+		/** @var array<int, string> $types_names */
+		static $types_names =  [];
+
+		if (empty($types_names)) {
 			$o         = new ReflectionClass(static::class);
 			$constants = $o->getConstants();
 
 			foreach ($constants as $name => $value) {
 				if (\str_starts_with($name, 'T_')) {
-					self::$types_names[$value] = $name;
+					$types_names[$value] = $name;
 				}
 			}
 		}
 
-		return self::$types_names[$type] ?? self::$types_names[self::T_UNKNOWN];
+		return $types_names[$type] ?? $types_names[self::T_UNKNOWN];
 	}
 
 	/**

@@ -103,16 +103,18 @@ class SimpleChain
 				return true;
 			}
 
-			if (\array_key_exists($key, (array) $source)) {
-				$value = $source[$key];
-
-				return true;
-			}
-
 			if (\is_callable([$source, $key])) {
 				$value = static function (...$args) use ($source, $key) {
 					return \call_user_func_array([$source, $key], $args);
 				};
+
+				return true;
+			}
+
+			$as_array = (array) $source;
+
+			if (\array_key_exists($key, $as_array)) {
+				$value = $as_array[$key];
 
 				return true;
 			}

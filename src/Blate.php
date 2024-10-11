@@ -405,9 +405,7 @@ final class Blate
 		$name = $token->getValue();
 
 		if (isset(self::$blocks[$name])) {
-			/**
-			 * @var BlockInterface $class_name
-			 */
+			/** @var class-string<BlockInterface> $class_name */
 			$class_name = self::$blocks[$name];
 
 			return new $class_name($parser, $token);
@@ -478,7 +476,7 @@ final class Blate
 			[
 				self::VERSION,
 				self::VERSION_NAME,
-				$this->src_path,
+				$this->src_path ?? '__none__',
 				\time(),
 				$this->class_name,
 				$this->class_fqn,

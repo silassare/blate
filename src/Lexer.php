@@ -560,13 +560,9 @@ class Lexer implements LexerInterface
 			}
 		);
 
-		$number = $result->getValue();
+		$value = $result->getValue();
 
-		if (!\is_numeric($number)) {
-			throw BlateParserException::withChunk(Message::INVALID_NUMBER, $result);
-		}
-
-		if ('' === $number) {
+		if ('' === $value) {
 			if (!$result->eof()) {
 				throw BlateParserException::withChunk(
 					Message::UNEXPECTED_WHILE_EXPECTING_NUMBER,
@@ -575,6 +571,10 @@ class Lexer implements LexerInterface
 			}
 
 			throw new BlateParserException(Message::UNEXPECTED_EOF_WHILE_EXPECTING_NUMBER);
+		}
+
+		if (!\is_numeric($value)) {
+			throw BlateParserException::withChunk(Message::INVALID_NUMBER, $result);
 		}
 
 		return $result;
