@@ -70,6 +70,14 @@ final class TemplateSyntaxTest extends TestCase
 	/**
 	 * @throws BlateException
 	 */
+	public function testGlobalHelper(): void
+	{
+		$this->runValid('global-helper');
+	}
+
+	/**
+	 * @throws BlateException
+	 */
 	public function testValidExpression(): void
 	{
 		$this->runValid('expression-valid');
