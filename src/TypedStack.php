@@ -49,7 +49,7 @@ class TypedStack
 	}
 
 	/**
-	 * @return \Blate\Interfaces\TokenInterface[]
+	 * @return TokenInterface[]
 	 */
 	public function getAll(): array
 	{

@@ -17,6 +17,7 @@ use Blate\Exceptions\BlateParserException;
 use Blate\Expressions\Expression;
 use Blate\Features\BlockComment;
 use Blate\Features\BlockPhp;
+use Blate\Interfaces\BlockInterface;
 use Blate\Interfaces\TokenInterface;
 use Blate\Traits\ParserOutputTrait;
 use PHPUtils\Store\Store;
@@ -29,7 +30,7 @@ class Parser
 	use ParserOutputTrait;
 
 	/**
-	 * @var \Blate\Interfaces\BlockInterface[]
+	 * @var BlockInterface[]
 	 */
 	protected array $block_to_close_stack = [];
 
@@ -113,7 +114,7 @@ class Parser
 		$this->lexer->nextIs(Token::T_TAG_CLOSE, Blate::TAG_CLOSER, true);
 	}
 
-	private function lastUnclosedBlock(): ?Interfaces\BlockInterface
+	private function lastUnclosedBlock(): ?BlockInterface
 	{
 		$block = \end($this->block_to_close_stack);
 
