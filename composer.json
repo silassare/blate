@@ -33,17 +33,22 @@
 	},
 	"archive": {
 		"exclude": [
-			"/ignore"
+			"/ignore",
+			"/tests"
 		]
 	},
 	"autoload": {
 		"psr-4": {
-			"Blate\\": "src",
-			"Blate\\Tests\\": "tests"
+			"Blate\\": "src/"
 		},
 		"files": [
 			"src/bootstrap.php"
 		]
+	},
+	"autoload-dev": {
+		"psr-4": {
+			"Blate\\Tests\\": "tests/"
+		}
 	},
 	"authors": [
 		{
