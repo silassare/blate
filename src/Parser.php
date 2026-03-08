@@ -24,6 +24,10 @@ use PHPUtils\Store\Store;
 
 /**
  * Class Parser.
+ *
+ * Drives the main template compile pass.  It walks the token stream produced
+ * by the Lexer and dispatches to block/expression handlers, accumulating the
+ * PHP code for the compiled template class body via ParserOutputTrait.
  */
 class Parser
 {
@@ -65,7 +69,15 @@ class Parser
 	}
 
 	/**
+	 * Parses the entire token stream and accumulates PHP code.
+	 *
+	 * Called once per template compile.  Iterates through every token returned
+	 * by the lexer and routes:  raw-data -> write(), {@ ... } -> block open/close/
+	 * break, {= ... } -> unescaped expression, {expr} -> escaped expression.
+	 *
 	 * @return $this
+	 *
+	 * @throws BlateParserException on unexpected tokens or unclosed blocks
 	 */
 	public function parse(): static
 	{
@@ -109,6 +121,11 @@ class Parser
 		return $this;
 	}
 
+	/**
+	 * Asserts that the next (non-whitespace) token is a TAG_CLOSE (the
+	 * template closing brace }) and advances past it.  Used by block handlers
+	 * that have already consumed all their content.
+	 */
 	public function tagClose(): void
 	{
 		$this->lexer->nextIs(Token::T_TAG_CLOSE, Blate::TAG_CLOSER, true);

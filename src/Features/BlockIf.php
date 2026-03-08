@@ -21,6 +21,16 @@ use Blate\Token;
 
 /**
  * Class BlockIf.
+ *
+ * Implements the {@if expr}...{:elseif expr}...{:else}...{/if} block.
+ *
+ * Compile-time output:
+ *   {@if expr}        -> if (expr) {
+ *   {:elseif expr}    -> } elseif (expr) {
+ *   {:else}           -> } else {
+ *   {/if}             -> }
+ *
+ * At most one {:else} is allowed; a second one throws a parser error.
  */
 class BlockIf extends Block
 {

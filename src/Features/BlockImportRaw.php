@@ -20,6 +20,12 @@ use PHPUtils\FS\PathUtils;
 
 /**
  * Class BlockImportRaw.
+ *
+ * Implements the {@import_raw 'path'} inline block.
+ *
+ * Emits a Blate::loadFile() call at render time, which echoes the raw file
+ * contents without any template processing.  Useful for embedding pre-rendered
+ * HTML, CSS, or JavaScript snippets.
  */
 class BlockImportRaw extends Block
 {

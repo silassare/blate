@@ -23,6 +23,14 @@ use PHPUtils\FS\PathUtils;
 
 /**
  * Class BlockImport.
+ *
+ * Implements the {@import 'path' context} inline block.
+ *
+ * Resolves the path relative to the current source, then compiles and renders
+ * the imported template immediately in the current output stream using the
+ * given context expression.
+ *
+ * The imported path cannot be the same file as the current template.
  */
 class BlockImport extends Block
 {

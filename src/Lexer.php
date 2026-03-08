@@ -19,6 +19,13 @@ use Blate\Interfaces\TokenInterface;
 
 /**
  * Class Lexer.
+ *
+ * Tokenizes raw template source text into a flat stack and a parenthesis/bracket
+ * tree of Token objects.  The Lexer is stateful and cursor-based: callers
+ * advance through tokens via move() and look around via lookForward()/lookBackward().
+ *
+ * Infinite-loop protection: if computeToken() is called twice without the
+ * underlying StringReader cursor advancing, a BlateParserException is thrown.
  */
 class Lexer implements LexerInterface
 {
@@ -524,6 +531,14 @@ class Lexer implements LexerInterface
 		}
 	}
 
+	/**
+	 * Reads a valid identifier (T_NAME) from the current position in the input.
+	 *
+	 * An identifier starts with an underscore, dollar sign, or ASCII letter,
+	 * followed by zero or more underscores, dollar signs, ASCII letters, or digits.
+	 *
+	 * @throws BlateParserException on an empty name or unexpected character
+	 */
 	private function eatName(): StringChunk
 	{
 		$result = $this->reader->whileTrue(
@@ -552,6 +567,14 @@ class Lexer implements LexerInterface
 		return $result;
 	}
 
+	/**
+	 * Reads a numeric literal (integer, float, scientific notation) from the input.
+	 *
+	 * Accepts digits, '.', 'e', and 'E'.  Validates the accumulated string
+	 * with is_numeric() after consumption.
+	 *
+	 * @throws BlateParserException on an empty or non-numeric result
+	 */
 	private function eatNumber(): StringChunk
 	{
 		$result = $this->reader->whileTrue(
@@ -580,21 +603,32 @@ class Lexer implements LexerInterface
 		return $result;
 	}
 
+	/**
+	 * Returns true when $c is a whitespace character.
+	 */
 	private function isWhiteSpace(string $c): bool
 	{
 		return \ctype_space($c);
 	}
 
+	/**
+	 * Returns true when $c is an ASCII digit (0-9). */
 	private function isDigit(string $c): bool
 	{
 		return isset($this->digits[$c]);
 	}
 
+	/**
+	 * Returns true when $c is valid as the first character of an identifier (_$a-zA-Z).
+	 */
 	private function isNameFirstChar(string $c): bool
 	{
 		return '_' === $c || '$' === $c || isset($this->alpha_lower[$c]) || isset($this->alpha_upper[$c]);
 	}
 
+	/**
+	 * Returns true when $c is valid as a non-first character of an identifier (_$a-zA-Z0-9).
+	 */
 	private function isNameChar(string $c): bool
 	{
 		return '_' === $c || '$' === $c || isset($this->alpha_lower[$c]) || isset($this->alpha_upper[$c]) || isset($this->digits[$c]);

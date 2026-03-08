@@ -25,6 +25,17 @@ use PHPUtils\FS\PathUtils;
 
 /**
  * Class BlockExtends.
+ *
+ * Implements the {@extends 'path' context}{@slot name}...{/slot}{/extends} block.
+ *
+ * At compile time this block:
+ *   1. Resolves the path of the parent template relative to the current source.
+ *   2. Emits PHP code to load, parse, and instantiate the parent template.
+ *   3. Creates an extends context from the given expression.
+ *   4. Allows only {@slot} children; any other block or non-whitespace content throws.
+ *   5. On close, emits a call to the parent template's build() method.
+ *
+ * The parent class cannot be the same file as the current template.
  */
 class BlockExtends extends Block
 {

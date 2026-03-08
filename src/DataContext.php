@@ -14,9 +14,23 @@ declare(strict_types=1);
 namespace Blate;
 
 use Blate\Helpers\Helpers;
+use LogicException;
 
 /**
  * Class DataContext.
+ *
+ * Runtime variable scope stack for template rendering.
+ *
+ * The stack always has at least two layers:
+ *   [0] helpers layer  -- registered Blate helpers (callables)
+ *   [1] user data      -- the data array/object passed to render()
+ *   [2..n] scope layers -- pushed for each {@each} and {@scoped} block
+ *
+ * Variable resolution (get()) searches layers from top to bottom so that
+ * inner scopes shadow outer ones.
+ *
+ * set() writes to the topmost (innermost) scope layer.
+ * newContext() / popContext() push and pop additional scope layers.
  */
 class DataContext
 {
@@ -102,7 +116,7 @@ class DataContext
 		$n = \count($this->stack);
 
 		if (0 === $n) {
-			throw new \LogicException('DataContext stack is empty.');
+			throw new LogicException('DataContext stack is empty.');
 		}
 
 		$this->stack[$n - 1][$key] = $value;

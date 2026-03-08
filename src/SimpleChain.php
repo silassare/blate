@@ -16,9 +16,24 @@ namespace Blate;
 use ArrayAccess;
 use ArrayObject;
 use Blate\Exceptions\BlateRuntimeException;
+use ReflectionProperty;
 
 /**
  * Class SimpleChain.
+ *
+ * Fluent property/method resolver used at template render time.
+ *
+ * Every template variable expression compiles to a chain of SimpleChain calls:
+ *   {foo.bar}  ->  $context->chain()->get('foo')->get('bar')->val()
+ *
+ * Key resolution order for get():
+ *   1. Method on the source object: $source->$key()
+ *   2. Callable value at key (closure stored in array or object property)
+ *   3. Static property via reflection
+ *   4. Instance property / array key
+ *
+ * val() returns the final resolved value.
+ * call() invokes the current value as a callable with the supplied arguments.
  */
 class SimpleChain
 {
@@ -97,7 +112,7 @@ class SimpleChain
 
 		if (\is_object($source)) {
 			if (\property_exists($source, $key)) {
-				$rp    = new \ReflectionProperty($source, $key);
+				$rp    = new ReflectionProperty($source, $key);
 				$value = $rp->isStatic() ? $rp->getValue() : $source->{$key};
 
 				return true;

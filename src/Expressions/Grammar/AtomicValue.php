@@ -19,14 +19,22 @@ use Blate\Interfaces\TokenInterface;
 
 /**
  * Class AtomicValue.
+ *
+ * Handles literal number (T_DNUMBER) and string (T_STRING) tokens.
+ * The raw token value is emitted directly into the PHP output; PHP itself
+ * handles the literal semantics.
  */
 class AtomicValue implements TokenHandlerInterface
 {
+	/**
+	 * {@inheritDoc}
+	 */
 	public function handle(ParserInterface $parser, TokenInterface $token, bool $is_head): void
 	{
 		$current = $token;
 		$lexer   = $parser->getLexer();
 
+		// Emit the literal as-is; advance to the next token.
 		$parser->write($current);
 		$lexer->move();
 	}

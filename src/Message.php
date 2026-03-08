@@ -19,6 +19,11 @@ use Blate\Interfaces\ChunkInterface;
 
 /**
  * Class Message.
+ *
+ * Centralizes all user-facing error message templates as named constants.
+ * Message strings use {placeholder} tokens replaced at runtime by Message::msg().
+ *
+ * Available placeholders: {line}, {index}, {found}, {expected}, {unexpected}.
  */
 final class Message
 {
@@ -87,7 +92,15 @@ final class Message
 	public const HELPER_ALREADY_REGISTERED =  'Helper "%s" is already registered.';
 
 	/**
-	 * Gets message.
+	 * Interpolates a message template with values from the given chunk's location.
+	 *
+	 * Replaces {line}, {index}, {found}, {expected}, and {unexpected} in the
+	 * message string with the corresponding values extracted from $r.
+	 *
+	 * @param string         $str the message template string
+	 * @param ChunkInterface $r   the chunk (token position + found/expected values)
+	 *
+	 * @return string the interpolated message
 	 */
 	public static function msg(string $str, ChunkInterface $r): string
 	{

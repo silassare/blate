@@ -19,6 +19,12 @@ use Blate\Token;
 
 /**
  * Class BlockComment.
+ *
+ * Implements the {# comment #} template comment block.
+ *
+ * Everything between the { hash and the closing hash } is consumed and
+ * discarded at compile time -- no PHP output is generated.  Useful for
+ * documenting templates without leaving traces in the rendered HTML.
  */
 class BlockComment extends Block
 {

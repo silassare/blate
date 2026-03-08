@@ -18,6 +18,12 @@ use Blate\Token;
 
 /**
  * Class BlockScoped.
+ *
+ * Implements the {@scoped}...{/scoped} isolated-scope block.
+ *
+ * Pushes a new DataContext scope layer on open and pops it on close.
+ * Variables set inside the scoped block (e.g., via {@set}) do not leak
+ * outside it.
  */
 class BlockScoped extends Block
 {

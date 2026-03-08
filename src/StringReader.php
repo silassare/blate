@@ -17,6 +17,13 @@ use Blate\Exceptions\BlateParserException;
 
 /**
  * Class StringReader.
+ *
+ * A cursor-based, character-level reader over a plain PHP string.
+ *
+ * Tracks the current byte offset (cursor) as well as the current line number
+ * and in-line character index for rich error message generation.
+ * State can be saved and restored via saveCurrentState() / restorePreviousState()
+ * to implement lookahead.
  */
 class StringReader
 {
@@ -40,6 +47,9 @@ class StringReader
 		$this->length = \strlen($this->input);
 	}
 
+	/**
+	 * Returns the current cursor position (byte offset).
+	 */
 	public function getCursor(): int
 	{
 		return $this->cursor;
@@ -69,6 +79,9 @@ class StringReader
 		return $this->length;
 	}
 
+	/**
+	 * Returns the raw input string.
+	 */
 	public function getInput(): string
 	{
 		return $this->input;
@@ -164,6 +177,16 @@ class StringReader
 		return $this;
 	}
 
+	/**
+	 * Advances through the input while $fn returns true, returning the consumed chunk.
+	 *
+	 * $fn receives three arguments: (string $char, int $index, string $accumulated).
+	 * The loop stops as soon as $fn returns false or EOF is reached.
+	 *
+	 * @param callable $fn predicate: (string $char, int $index, string $acc): bool
+	 *
+	 * @return StringChunk the consumed text as a StringChunk
+	 */
 	public function whileTrue(callable $fn): StringChunk
 	{
 		$result = new StringChunk($this);

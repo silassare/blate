@@ -21,6 +21,15 @@ use Blate\Token;
 
 /**
  * Class BlockSet.
+ *
+ * Implements the {@set name = expr; name2 = expr2} variable-assignment block.
+ *
+ * Sets one or more template variables in the current DataContext scope.
+ * Multiple assignments in a single tag are delimited by semicolons:
+ *   {@set x = foo; y = bar}
+ *
+ * Compile-time output:
+ *   $context->set('name', expr);
  */
 class BlockSet extends Block
 {

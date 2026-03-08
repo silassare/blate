@@ -24,9 +24,25 @@ use Blate\Token;
 
 /**
  * Class Parenthesis.
+ *
+ * Handles the opening parenthesis (() in expressions.
+ *
+ * Three distinct roles:
+ *   1. Expression grouping at head or after an operator:    (a + b) * c
+ *   2. Function call on a variable name or subscript:       fn(a, b), arr[0](a)
+ *   3. Nested grouping inside another open paren:           ((a + b))
+ *
+ * For function calls (case 2), ->call( is emitted and arguments are parsed
+ * with IN_FUNC_CALL_ARGS=true so commas are allowed, and with ALLOW_EMPTY=true
+ * so zero-argument calls are valid.
  */
 class Parenthesis implements TokenHandlerInterface
 {
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @throws BlateParserException when ( appears in an invalid position
+	 */
 	public function handle(ParserInterface $parser, TokenInterface $token, bool $is_head): void
 	{
 		$current   = $token;
@@ -34,7 +50,7 @@ class Parenthesis implements TokenHandlerInterface
 		$prev      = $lexer->lookBackward(true);
 		$prev_type = $prev?->getType();
 
-		if ($is_head) {// expression start
+		if ($is_head) { // expression start
 			$parser->write($current);
 			$lexer->move();
 			$parser->parse(Utils::whileInChildrenOf($current));

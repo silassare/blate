@@ -20,6 +20,7 @@ use Blate\Interfaces\BlockInterface;
 use Blate\Interfaces\TokenInterface;
 use PHPUtils\FS\PathUtils;
 use PHPUtils\Str;
+use Throwable;
 
 \define('BLATE_ASSETS_DIR', __DIR__ . \DIRECTORY_SEPARATOR . 'assets' . \DIRECTORY_SEPARATOR);
 \define('BLATE_TEMPLATE_RESOLVE_DIR', __DIR__ . \DIRECTORY_SEPARATOR);
@@ -94,7 +95,7 @@ final class Blate
 	 *
 	 * @throws BlateException
 	 */
-	private function __construct(private string $template, protected bool $is_url = true, bool $timed_class_name = false)
+	private function __construct(private string $template, private bool $is_url = true, bool $timed_class_name = false)
 	{
 		if ($this->is_url) {
 			$this->template = PathUtils::resolve(BLATE_TEMPLATE_RESOLVE_DIR, $this->template);
@@ -177,7 +178,7 @@ final class Blate
 					->getClassBody();
 				$this->save();
 			}
-		} catch (BlateException | BlateRuntimeException $t) {
+		} catch (BlateException|BlateRuntimeException $t) {
 			throw $t->templateSource($this->template);
 		}
 
@@ -272,7 +273,7 @@ final class Blate
 
 		try {
 			$instance->build(new DataContext($data, $this));
-		} catch (\Throwable $e) {
+		} catch (Throwable $e) {
 			\ob_end_clean();
 
 			throw $e;

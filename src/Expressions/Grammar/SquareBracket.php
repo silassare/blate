@@ -23,9 +23,24 @@ use Blate\Token;
 
 /**
  * Class SquareBracket.
+ *
+ * Handles the opening square bracket ([) for subscript access.
+ *
+ * Valid contexts (all require an active chain):
+ *   var_name[expr]           -- after T_NAME
+ *   var_name()[expr]         -- after T_PAREN_CLOSE (call result subscript)
+ *   var_name[expr][expr]     -- after T_SQUARE_BRACKET_CLOSE (chained subscript)
+ *
+ * Emits ->get( and then recursively parses the sub-expression until the
+ * matching T_SQUARE_BRACKET_CLOSE is consumed by ExpressionParser.
  */
 class SquareBracket implements TokenHandlerInterface
 {
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @throws BlateParserException when [ appears in an invalid position
+	 */
 	public function handle(ParserInterface $parser, TokenInterface $token, bool $is_head): void
 	{
 		$current   = $token;

@@ -19,6 +19,16 @@ use Blate\Token;
 
 /**
  * Class BlockRaw.
+ *
+ * Implements the {@raw}...{/raw} literal-output block.
+ *
+ * Everything between the opening {@raw} tag and the matching {/raw} close
+ * is written verbatim to the output without any template processing.  Useful
+ * for including snippet that contain brace characters that would otherwise
+ * be interpreted as template tags.
+ *
+ * The close sentinel is scanned directly on the StringReader rather than
+ * through the token tree, so nested brace pairs are not interpreted.
  */
 class BlockRaw extends Block
 {

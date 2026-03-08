@@ -23,6 +23,18 @@ use Blate\Parser;
 
 /**
  * Class Block.
+ *
+ * Abstract base for all built-in block implementations.
+ *
+ * Provides default (no-op or pass-through) implementations of the BlockInterface
+ * lifecycle hooks so that concrete blocks only need to override what they use.
+ *
+ * Default behavior:
+ *   onChildContentFound() -- writes raw content to parser output
+ *   onChildExpressionFound() -- compiles and writes expression to parser output
+ *   onChildBlockFound() -- no-op (override to validate or reject child blocks)
+ *   onClose()             -- no-op
+ *   onBreakPoint()        -- throws BlateParserException (unexpected breakpoint)
  */
 abstract class Block implements BlockInterface
 {

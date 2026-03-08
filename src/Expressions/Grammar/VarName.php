@@ -24,6 +24,21 @@ use Blate\Token;
 
 /**
  * Class VarName.
+ *
+ * Handles T_NAME tokens in expressions.
+ *
+ * Two distinct roles depending on context:
+ *
+ *   Chain head (when token is at expression start or after an operator/comparator/logical/paren/bracket):
+ *     Emits $context->chain()->get('name') and marks the active chain head via Utils::setActiveChain().
+ *     At the end of the chain (no further property access) the ->val() terminator is appended.
+ *
+ *   Chain continuation (when preceded by a dot):
+ *     Emits ->get('name') to extend the current chain.
+ *     The dot handler already consumed the dot token; here we just append the property.
+ *
+ *   Special case: $$ (DATA_CONTEXT_REF) is the raw DataContext reference and
+ *   does not start a chain -- it emits $context directly without ->val().
  */
 class VarName implements TokenHandlerInterface
 {
@@ -44,17 +59,18 @@ class VarName implements TokenHandlerInterface
 			$parser->write('\')');
 			$next = $lexer->lookForward(true);
 			$lexer->move();
-		} elseif ($is_head// expression start: var_name
-				  || (
-				  	$prev
-					  && (
-					  	Token::T_PAREN_OPEN === $prev_type // (var_name)
-					   || Token::T_SQUARE_BRACKET_OPEN === $prev_type // [var_name]
-					   || $prev->isOperator() // operator var_name
-					   || $prev->isLogicalCondition() // condition var_name
-					   || $prev->isComparator() // comparator var_name
-					  )
-				  )
+		} elseif (
+			$is_head // expression start: var_name
+			|| (
+				$prev
+				&& (
+					Token::T_PAREN_OPEN === $prev_type // (var_name)
+					|| Token::T_SQUARE_BRACKET_OPEN === $prev_type // [var_name]
+					|| $prev->isOperator() // operator var_name
+					|| $prev->isLogicalCondition() // condition var_name
+					|| $prev->isComparator() // comparator var_name
+				)
+			)
 		) {
 			if (Utils::getActiveChain($current)) {
 				throw BlateParserException::withToken(Message::UNEXPECTED, $current);

@@ -21,6 +21,20 @@ use Blate\Token;
 
 /**
  * Class BlockEach.
+ *
+ * Implements the {@each val[:key[:idx]] in list}...{/each} iteration block.
+ *
+ * Syntax forms:
+ *   {@each value in list}               -- value only
+ *   {@each value:key in list}           -- value + key
+ *   {@each value:key:index in list}     -- value + key + iteration index
+ *
+ * Compile-time output:
+ *   Creates a new DataContext scope (newContext()), emits a foreach loop that
+ *   sets the named variables on the context, and closes the scope on {/each}.
+ *
+ * Unique PHP variable names are generated via Blate::createVar() to avoid
+ * collisions with user-defined template variables.
  */
 class BlockEach extends Block
 {

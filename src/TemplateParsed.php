@@ -18,16 +18,40 @@ use LogicException;
 
 /**
  * Class TemplateParsed.
+ *
+ * Abstract base class for all compiled template files.
+ *
+ * When a .blate file is compiled, the output is a class that extends this base.
+ * The generated class implements build(DataContext $context): void with the
+ * compiled template body, plus one method per named slot.
+ *
+ * At render time, an extends block calls injectSlot() on the parent template
+ * to override individual slots before calling build().
  */
 abstract class TemplateParsed
 {
 	protected array $injected_slots = [];
 
+	/**
+	 * Checks whether a slot override has been injected for the given slot name.
+	 *
+	 * @param string $name slot name
+	 */
 	public function hasInjectedSlot(string $name): bool
 	{
 		return isset($this->injected_slots[$name]);
 	}
 
+	/**
+	 * Registers a callable as an override for the named slot.
+	 *
+	 * The callable receives a DataContext and is expected to echo the slot content.
+	 *
+	 * @param string   $name the slot name to override
+	 * @param callable $slot the renderer: (DataContext $ctx): void
+	 *
+	 * @return $this
+	 */
 	public function injectSlot(string $name, callable $slot): static
 	{
 		$this->injected_slots[$name] = $slot;
@@ -35,6 +59,14 @@ abstract class TemplateParsed
 		return $this;
 	}
 
+	/**
+	 * Executes the injected slot renderer for the given name.
+	 *
+	 * @param string      $name         the slot name
+	 * @param DataContext $data_context the current render context
+	 *
+	 * @throws LogicException when no slot with the given name has been injected
+	 */
 	public function renderInjectedSlot(string $name, DataContext $data_context): void
 	{
 		if (!$this->hasInjectedSlot($name)) {

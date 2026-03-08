@@ -21,6 +21,20 @@ use ReflectionClass;
 
 /**
  * Class Token.
+ *
+ * Represents a single token produced by the Lexer.
+ *
+ * Each token carries:
+ *   - a type constant (T_NAME, T_OPERATOR, T_TAG_OPEN, ...)
+ *   - a StringChunk (value + source location)
+ *   - optional children (for group-opener tokens such as T_PAREN_OPEN)
+ *   - optional parent token (set when the token is inside a group)
+ *   - a key-value attribute bag used by the expression compiler for
+ *     per-scope active-chain tracking (ATTR_ACTIVE_CHAIN) and by block
+ *     handlers for temporary storage (ATTR_EXTENDED_*)
+ *
+ * Every token gets a unique $ref string derived from a global counter and
+ * its source location, used as an identity key in TypedStack code buffers.
  */
 class Token implements TokenInterface
 {
@@ -161,9 +175,9 @@ class Token implements TokenInterface
 	public function isGroupOpener(): bool
 	{
 		return self::T_TAG_OPEN === $this->type
-			   || self::T_PAREN_OPEN === $this->type
-			   || self::T_SQUARE_BRACKET_OPEN === $this->type
-			   || self::T_CURLY_BRACKET_OPEN === $this->type;
+			|| self::T_PAREN_OPEN === $this->type
+			|| self::T_SQUARE_BRACKET_OPEN === $this->type
+			|| self::T_CURLY_BRACKET_OPEN === $this->type;
 	}
 
 	/**
@@ -172,9 +186,9 @@ class Token implements TokenInterface
 	public function isGroupCloser(): bool
 	{
 		return self::T_TAG_CLOSE === $this->type
-			   || self::T_PAREN_CLOSE === $this->type
-			   || self::T_SQUARE_BRACKET_CLOSE === $this->type
-			   || self::T_CURLY_BRACKET_CLOSE === $this->type;
+			|| self::T_PAREN_CLOSE === $this->type
+			|| self::T_SQUARE_BRACKET_CLOSE === $this->type
+			|| self::T_CURLY_BRACKET_CLOSE === $this->type;
 	}
 
 	/**

@@ -33,7 +33,7 @@ trait BlateExceptionTrait
 	/**
 	 * {@inheritDoc}
 	 */
-	public function __toString()
+	public function __toString(): string
 	{
 		return $this->describe(true, true);
 	}

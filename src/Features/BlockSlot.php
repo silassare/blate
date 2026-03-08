@@ -21,6 +21,22 @@ use Blate\Token;
 
 /**
  * Class BlockSlot.
+ *
+ * Implements the {@slot name}default content{/slot} block.
+ *
+ * Two contexts:
+ *
+ *   Inside an {@extends} block:
+ *     Captures the slot body as a closure injected into the parent template
+ *     instance via injectSlot().  A {:default} breakpoint renders the parent's
+ *     own default content for that slot.
+ *
+ *   Outside an {@extends} block (standalone slot definition):
+ *     Generates a public slot method on the compiled template class.  At render
+ *     time, if an override has been injected (via injectSlot()), the override
+ *     is called; otherwise the default method body is used.
+ *
+ * Slot names must be unique per template to avoid method name conflicts.
  */
 class BlockSlot extends Block
 {
@@ -57,8 +73,10 @@ class BlockSlot extends Block
 		if (!$extends) {
 			$store_key = self::NAME . '.' . $name;
 
-			if ($this->parser->store()
-				->has($store_key)) {
+			if (
+				$this->parser->store()
+					->has($store_key)
+			) {
 				throw BlateParserException::withToken(Message::SLOT_NAME_ALREADY_IN_USE, $this->slot);
 			}
 

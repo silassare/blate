@@ -23,9 +23,25 @@ use Blate\Token;
 
 /**
  * Class Dot.
+ *
+ * Handles the dot (.) property-access operator in expressions.
+ *
+ * The dot itself is NOT written to output.  Its presence signals the VarName
+ * handler (which fires next) to emit ->get('name') instead of starting a
+ * fresh chain with $context->chain()->get('name').
+ *
+ * Valid contexts:
+ *   foo.bar         -- after T_NAME
+ *   foo().bar       -- after T_PAREN_CLOSE
+ *   foo['x'].bar    -- after T_SQUARE_BRACKET_CLOSE
  */
 class Dot implements TokenHandlerInterface
 {
+	/**
+	 * {@inheritDoc}
+	 *
+	 * @throws BlateParserException when dot appears outside a valid chain context
+	 */
 	public function handle(ParserInterface $parser, TokenInterface $token, bool $is_head): void
 	{
 		$current = $token;

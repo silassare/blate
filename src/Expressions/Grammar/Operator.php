@@ -22,9 +22,24 @@ use Blate\Token;
 
 /**
  * Class Operator.
+ *
+ * Handles arithmetic and logical-not operators in expression parsing.
+ *
+ * Dispatch rules:
+ *   T_NOT (!):
+ *     - valid at expression head:               {!flag}
+ *     - valid after any operator:               {a + !b}
+ *     - valid after a comparator:               {a == !b}
+ *     - valid after a logical condition (&&/||): {a && !b}
+ *   T_OPERATOR (+, -, *, /, %, ^):
+ *     Binary form: previous token produced a value (name, number, string, group-closer).
+ *     Unary form (- or + only): at head, after an operator, comparator, or logical condition.
  */
 class Operator implements TokenHandlerInterface
 {
+	/**
+	 * {@inheritDoc}
+	 */
 	public function handle(ParserInterface $parser, TokenInterface $token, bool $is_head): void
 	{
 		$current   = $token;

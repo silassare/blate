@@ -19,6 +19,15 @@ use RuntimeException;
 
 /**
  * Class StringChunk.
+ *
+ * A single contiguous slice of the template source, produced by StringReader.
+ *
+ * Captures the start/end cursor positions and line/index information at the
+ * moment it is created (constructor) and locked (setValue()).  These are used
+ * for rich error messages that point users to the exact location in the source.
+ *
+ * Once setValue() is called the chunk is locked and cannot be modified; any
+ * further setValue() call throws a RuntimeException.
  */
 class StringChunk implements ChunkInterface
 {

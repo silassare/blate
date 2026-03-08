@@ -19,6 +19,14 @@ use Blate\Token;
 
 /**
  * Class BlockPhp.
+ *
+ * Implements the {~ inline PHP ~} block.
+ *
+ * Everything between the opening tilde and the closing tilde-brace is emitted
+ * verbatim into the compiled template's PHP code.  Useful for quick one-liners
+ * that do not merit a custom block implementation.
+ *
+ * Note: the PHP snippet is trusted developer code, not user input.
  */
 class BlockPhp extends Block
 {
