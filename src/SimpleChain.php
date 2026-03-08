@@ -97,7 +97,8 @@ class SimpleChain
 
 		if (\is_object($source)) {
 			if (\property_exists($source, $key)) {
-				$value = $source::${$key} ?? $source->{$key};
+				$rp    = new \ReflectionProperty($source, $key);
+				$value = $rp->isStatic() ? $rp->getValue() : $source->{$key};
 
 				return true;
 			}

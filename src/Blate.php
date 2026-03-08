@@ -177,7 +177,7 @@ final class Blate
 					->getClassBody();
 				$this->save();
 			}
-		} catch (BlateException|BlateRuntimeException $t) {
+		} catch (BlateException | BlateRuntimeException $t) {
 			throw $t->templateSource($this->template);
 		}
 
@@ -269,7 +269,14 @@ final class Blate
 		$instance = $this->getParsedInstance();
 
 		\ob_start();
-		$instance->build(new DataContext($data, $this));
+
+		try {
+			$instance->build(new DataContext($data, $this));
+		} catch (\Throwable $e) {
+			\ob_end_clean();
+
+			throw $e;
+		}
 
 		return \ob_get_clean();
 	}
@@ -468,6 +475,11 @@ final class Blate
 		}
 
 		$f = \fopen($path, 'w');
+
+		if (false === $f) {
+			throw new BlateException(\sprintf(Message::FILE_IS_NOT_WRITABLE, $path));
+		}
+
 		\fwrite($f, $content);
 		\fclose($f);
 	}

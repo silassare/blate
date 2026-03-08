@@ -582,7 +582,7 @@ class Lexer implements LexerInterface
 
 	private function isWhiteSpace(string $c): bool
 	{
-		return (bool) \preg_match('~^\s+$~', $c);
+		return \ctype_space($c);
 	}
 
 	private function isDigit(string $c): bool

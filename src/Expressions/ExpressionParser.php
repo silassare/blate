@@ -189,7 +189,8 @@ class ExpressionParser implements ParserInterface
 			}
 
 			if ($current->getChunk()
-				->eof()) {
+				->eof()
+			) {
 				break;
 			}
 		}
@@ -197,7 +198,8 @@ class ExpressionParser implements ParserInterface
 		if (($latest_expression_token = $this->lexer->lookBackward(true))
 			&& ($latest_expression_token->isOperator()
 				|| $latest_expression_token->isLogicalCondition()
-				|| $current->isComparator())) {
+				|| $latest_expression_token->isComparator())
+		) {
 			throw BlateParserException::withToken(Message::UNEXPECTED_END_OF_EXPRESSION, $latest_expression_token);
 		}
 

@@ -99,8 +99,13 @@ class DataContext
 	 */
 	public function set(mixed $key, mixed $value): self
 	{
-		$n                          = \count($this->stack);
-		$this->stack[$n - 1][$key]  = $value;
+		$n = \count($this->stack);
+
+		if (0 === $n) {
+			throw new \LogicException('DataContext stack is empty.');
+		}
+
+		$this->stack[$n - 1][$key] = $value;
 
 		return $this;
 	}

@@ -97,11 +97,11 @@ class Helpers
 	public static function unquote(string $str): string
 	{
 		if (\str_starts_with($str, '\'') && \str_ends_with($str, '\'')) {
-			return \substr($str, 1, -1);
+			return \str_replace('\\\'', '\'', \substr($str, 1, -1));
 		}
 
 		if (\str_starts_with($str, '"') && \str_ends_with($str, '"')) {
-			return \substr($str, 1, -1);
+			return \str_replace('\\"', '"', \substr($str, 1, -1));
 		}
 
 		return $str;
@@ -118,7 +118,9 @@ class Helpers
 	{
 		$out = '';
 
-		foreach ($data as $attr => $val) {
+		foreach ($data as $raw_attr => $val) {
+			$attr = self::escape((string) $raw_attr);
+
 			if (null !== $val && '' !== $val) {
 				if (\is_bool($val)) {
 					$attr .= ($val ? '' : '="false"');
@@ -192,7 +194,7 @@ class Helpers
 	public static function length(mixed $value): int
 	{
 		if (\is_string($value)) {
-			return \strlen($value);
+			return \mb_strlen($value);
 		}
 
 		if (null === $value || \is_bool($value) || \is_numeric($value)) {
