@@ -11,14 +11,14 @@
 	],
 	"homepage": "https://github.com/silassare/blate#readme",
 	"require": {
-		"php": ">=8.0",
+		"php": ">=8.1",
 		"ext-json": "*",
-		"silassare/php-utils": "@dev"
+		"silassare/php-utils": "^2.0.0"
 	},
 	"require-dev": {
 		"roave/security-advisories": "dev-latest",
 		"oliup/oliup-cs-php": "dev-main",
-		"phpunit/phpunit": "^9",
+		"phpunit/phpunit": "^9.5.9",
 		"vimeo/psalm": "^5.26.1"
 	},
 	"repositories": {
@@ -53,7 +53,6 @@
 	"authors": [
 		{
 			"name": "Emile Silas Sare",
-			"email": "emile.silas@gmail.com",
 			"homepage": "https://github.com/silassare"
 		}
 	],
