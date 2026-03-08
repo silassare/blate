@@ -2,5 +2,11 @@
 /ignore
 /vendor
 **/blate_cache/**
+
+# cs fixer
 .php-cs-fixer.cache
+
+# phpunit
+.phpunit.result.cache
+
 error.full.txt
