@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 use OLIUP\CS\PhpCS;
@@ -8,9 +9,9 @@ use PhpCsFixer\Runner\Parallel\ParallelConfigFactory;
 $finder = Finder::create();
 
 $finder->in([
-    __DIR__ . '/src',
-    __DIR__ . '/tests',
-])->notPath('blate_cache');
+	__DIR__ . '/src',
+	__DIR__ . '/tests',
+])->notPath('snapshots')->notPath('blate_cache');
 
 $header = <<<'EOF'
 Copyright (c) 2021-present, Emile Silas Sare
@@ -31,5 +32,5 @@ $rules = [
 ];
 
 return (new PhpCS())->mergeRules($finder, $rules)
-                    ->setRiskyAllowed(true)
+	->setRiskyAllowed(true)
 	->setParallelConfig(ParallelConfigFactory::detect());

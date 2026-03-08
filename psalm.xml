@@ -9,10 +9,10 @@
 >
     <projectFiles>
         <directory name="src"/>
-        <directory name="tests"/>
         <ignoreFiles>
-            <directory name="tests/samples"/>
             <directory name="vendor"/>
+            <directory name="tests/samples"/>
+            <directory name="tests/snapshots"/>
         </ignoreFiles>
     </projectFiles>
 </psalm>
