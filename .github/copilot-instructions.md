@@ -63,6 +63,9 @@ The cached files live next to their source under `blate_cache/<version>/<hash[0:
 {foo.bar}            -- property access chain
 {helper('arg')}      -- call a registered helper
 {$helper('arg')}     -- force helper lookup (when name shadows a var)
+{expr | fn}          -- pipe filter: fn(expr)
+{expr | fn(a, b)}    -- pipe filter with extra args: fn(expr, a, b)
+{expr | f1 | f2(x)}  -- chained pipes: f2(f1(expr), x)
 {# comment #}        -- template comment (stripped at compile time)
 {~ echo 'php'; ~}    -- inline PHP code
 {@set x = expr; y = expr}
