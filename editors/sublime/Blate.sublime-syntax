@@ -1,0 +1,214 @@
+%YAML 1.2
+---
+# Blate Template Syntax - Sublime Text 3/4
+# https://github.com/silassare/blate
+name: Blate
+file_extensions:
+  - blate
+scope: text.html.blate
+
+contexts:
+  main:
+    - include: blate-comment
+    - include: blate-inline-php
+    - include: blate-block-close
+    - include: blate-block-breakpoint
+    - include: blate-block-open
+    - include: blate-print-raw
+    - include: blate-print-escaped
+    - include: scope:text.html.basic
+
+  # ---------------------------------------------------------------------------
+  # {# comment #}
+  # ---------------------------------------------------------------------------
+  blate-comment:
+    - match: '\{#'
+      scope: punctuation.definition.comment.begin.blate
+      push:
+        - meta_scope: comment.block.blate
+        - match: '#\}'
+          scope: punctuation.definition.comment.end.blate
+          pop: true
+
+  # ---------------------------------------------------------------------------
+  # {~ inline PHP ~}
+  # ---------------------------------------------------------------------------
+  blate-inline-php:
+    - match: '\{~'
+      scope: punctuation.section.embedded.begin.blate
+      push:
+        - meta_scope: meta.embedded.block.php.blate
+        - match: '~\}'
+          scope: punctuation.section.embedded.end.blate
+          pop: true
+        - include: scope:source.php
+
+  # ---------------------------------------------------------------------------
+  # {@blockname expr}
+  # ---------------------------------------------------------------------------
+  blate-block-open:
+    - match: '(\{)(@)'
+      captures:
+        1: punctuation.section.tag.begin.blate
+        2: punctuation.definition.keyword.blate
+      push:
+        - meta_scope: meta.tag.block.open.blate
+        - match: '\}'
+          scope: punctuation.section.tag.end.blate
+          pop: true
+        - match: '\b(if|each|set|switch|repeat|capture|scoped|slot|extends|import_raw|import|raw|php)\b'
+          scope: keyword.control.blate
+        - include: expression
+
+  # ---------------------------------------------------------------------------
+  # {/blockname}
+  # ---------------------------------------------------------------------------
+  blate-block-close:
+    - match: '(\{)(\/)'
+      captures:
+        1: punctuation.section.tag.begin.blate
+        2: punctuation.definition.keyword.blate
+      push:
+        - meta_scope: meta.tag.block.close.blate
+        - match: '\}'
+          scope: punctuation.section.tag.end.blate
+          pop: true
+        - match: '\b[a-zA-Z_][a-zA-Z0-9_]*\b'
+          scope: keyword.control.blate
+
+  # ---------------------------------------------------------------------------
+  # {:breakpoint expr}  e.g. {:else}, {:elseif cond}, {:case 'x'}
+  # ---------------------------------------------------------------------------
+  blate-block-breakpoint:
+    - match: '(\{)(:)'
+      captures:
+        1: punctuation.section.tag.begin.blate
+        2: punctuation.definition.keyword.blate
+      push:
+        - meta_scope: meta.tag.block.breakpoint.blate
+        - match: '\}'
+          scope: punctuation.section.tag.end.blate
+          pop: true
+        - match: '\b(elseif|else|case|default)\b'
+          scope: keyword.control.blate
+        - include: expression
+
+  # ---------------------------------------------------------------------------
+  # {= expr}  -- raw / unescaped print
+  # ---------------------------------------------------------------------------
+  blate-print-raw:
+    - match: '(\{)(=)'
+      captures:
+        1: punctuation.section.tag.begin.blate
+        2: punctuation.definition.tag.blate
+      push:
+        - meta_scope: meta.print.raw.blate
+        - match: '\}'
+          scope: punctuation.section.tag.end.blate
+          pop: true
+        - include: expression
+
+  # ---------------------------------------------------------------------------
+  # {expr}  -- escaped print (catch-all, must come last)
+  # Negative lookahead prevents matching the opening chars of other tag types.
+  # ---------------------------------------------------------------------------
+  blate-print-escaped:
+    - match: '(\{)(?=[^#~@/=:\}\s])'
+      captures:
+        1: punctuation.section.tag.begin.blate
+      push:
+        - meta_scope: meta.print.escaped.blate
+        - match: '\}'
+          scope: punctuation.section.tag.end.blate
+          pop: true
+        - include: expression
+
+  # ---------------------------------------------------------------------------
+  # Expression components (shared by all tag types above)
+  # ---------------------------------------------------------------------------
+  expression:
+    - include: string-single
+    - include: string-double
+    - include: number
+    - include: constant-language
+    - include: data-context
+    - include: helper-lookup
+    - include: keyword-in-as
+    - include: operator
+    - include: pipe
+    - include: dot
+    - include: function-call
+    - include: variable
+
+  string-single:
+    - match: "'"
+      scope: punctuation.definition.string.begin.blate
+      push:
+        - meta_scope: string.quoted.single.blate
+        - match: "\\\\'"
+          scope: constant.character.escape.blate
+        - match: "'"
+          scope: punctuation.definition.string.end.blate
+          pop: true
+
+  string-double:
+    - match: '"'
+      scope: punctuation.definition.string.begin.blate
+      push:
+        - meta_scope: string.quoted.double.blate
+        - match: '\\"'
+          scope: constant.character.escape.blate
+        - match: '"'
+          scope: punctuation.definition.string.end.blate
+          pop: true
+
+  number:
+    - match: '-?\b\d+(\.\d+)?\b'
+      scope: constant.numeric.blate
+
+  constant-language:
+    - match: '\b(null|true|false)\b'
+      scope: constant.language.blate
+
+  # $$ -- reference to the raw DataContext
+  data-context:
+    - match: '\$\$'
+      scope: variable.language.blate
+
+  # $helperName -- forces resolution against the helpers layer only
+  helper-lookup:
+    - match: '(\$)([a-zA-Z_][a-zA-Z0-9_]*)'
+      captures:
+        1: punctuation.definition.variable.blate
+        2: variable.other.constant.blate
+
+  # in / as -- structural keywords inside expressions
+  keyword-in-as:
+    - match: '\b(in|as)\b'
+      scope: keyword.operator.word.blate
+
+  # Binary / comparison / logical operators
+  operator:
+    - match: '\?\?|&&|\|\||[!=]=|[<>]=?|[!+\-*\/]'
+      scope: keyword.operator.blate
+
+  # | pipe filter (single pipe, not ||)
+  pipe:
+    - match: '\|(?!\|)'
+      scope: keyword.operator.pipe.blate
+
+  # . property access
+  dot:
+    - match: '\.'
+      scope: punctuation.accessor.blate
+
+  # identifier( -- function / helper call
+  function-call:
+    - match: '\b([a-zA-Z_][a-zA-Z0-9_]*)(?=\s*\()'
+      captures:
+        1: entity.name.function.blate
+
+  # bare identifier -- variable / property name
+  variable:
+    - match: '\b[a-zA-Z_][a-zA-Z0-9_]*\b'
+      scope: variable.other.blate

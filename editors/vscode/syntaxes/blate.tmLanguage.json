@@ -1,0 +1,234 @@
+{
+	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+	"name": "Blate",
+	"scopeName": "text.html.blate",
+	"fileTypes": ["blate"],
+	"patterns": [
+		{ "include": "#blate-comment" },
+		{ "include": "#blate-inline-php" },
+		{ "include": "#blate-block-close" },
+		{ "include": "#blate-block-breakpoint" },
+		{ "include": "#blate-block-open" },
+		{ "include": "#blate-print-raw" },
+		{ "include": "#blate-print-escaped" },
+		{ "include": "text.html.basic" }
+	],
+	"repository": {
+		"blate-comment": {
+			"name": "comment.block.blate",
+			"begin": "\\{#",
+			"beginCaptures": {
+				"0": { "name": "punctuation.definition.comment.begin.blate" }
+			},
+			"end": "#\\}",
+			"endCaptures": {
+				"0": { "name": "punctuation.definition.comment.end.blate" }
+			}
+		},
+
+		"blate-inline-php": {
+			"name": "meta.embedded.block.php.blate",
+			"begin": "\\{~",
+			"beginCaptures": {
+				"0": { "name": "punctuation.section.embedded.begin.blate" }
+			},
+			"end": "~\\}",
+			"endCaptures": {
+				"0": { "name": "punctuation.section.embedded.end.blate" }
+			},
+			"contentName": "source.php",
+			"patterns": [{ "include": "source.php" }]
+		},
+
+		"blate-block-open": {
+			"name": "meta.tag.block.open.blate",
+			"begin": "(\\{)(@)",
+			"beginCaptures": {
+				"1": { "name": "punctuation.section.tag.begin.blate" },
+				"2": { "name": "punctuation.definition.keyword.blate" }
+			},
+			"end": "\\}",
+			"endCaptures": {
+				"0": { "name": "punctuation.section.tag.end.blate" }
+			},
+			"patterns": [
+				{
+					"match": "\\b(if|each|set|switch|repeat|capture|scoped|slot|extends|import_raw|import|raw|php)\\b",
+					"name": "keyword.control.blate"
+				},
+				{ "include": "#expression" }
+			]
+		},
+
+		"blate-block-close": {
+			"name": "meta.tag.block.close.blate",
+			"begin": "(\\{)(\\/)",
+			"beginCaptures": {
+				"1": { "name": "punctuation.section.tag.begin.blate" },
+				"2": { "name": "punctuation.definition.keyword.blate" }
+			},
+			"end": "\\}",
+			"endCaptures": {
+				"0": { "name": "punctuation.section.tag.end.blate" }
+			},
+			"patterns": [
+				{
+					"match": "\\b[a-zA-Z_][a-zA-Z0-9_]*\\b",
+					"name": "keyword.control.blate"
+				}
+			]
+		},
+
+		"blate-block-breakpoint": {
+			"name": "meta.tag.block.breakpoint.blate",
+			"begin": "(\\{)(:)",
+			"beginCaptures": {
+				"1": { "name": "punctuation.section.tag.begin.blate" },
+				"2": { "name": "punctuation.definition.keyword.blate" }
+			},
+			"end": "\\}",
+			"endCaptures": {
+				"0": { "name": "punctuation.section.tag.end.blate" }
+			},
+			"patterns": [
+				{
+					"match": "\\b(elseif|else|case|default)\\b",
+					"name": "keyword.control.blate"
+				},
+				{ "include": "#expression" }
+			]
+		},
+
+		"blate-print-raw": {
+			"name": "meta.print.raw.blate",
+			"begin": "(\\{)(=)",
+			"beginCaptures": {
+				"1": { "name": "punctuation.section.tag.begin.blate" },
+				"2": { "name": "punctuation.definition.tag.blate" }
+			},
+			"end": "\\}",
+			"endCaptures": {
+				"0": { "name": "punctuation.section.tag.end.blate" }
+			},
+			"patterns": [{ "include": "#expression" }]
+		},
+
+		"blate-print-escaped": {
+			"name": "meta.print.escaped.blate",
+			"begin": "(\\{)(?=[^#~@\\/=:\\}\\s])",
+			"beginCaptures": {
+				"1": { "name": "punctuation.section.tag.begin.blate" }
+			},
+			"end": "\\}",
+			"endCaptures": {
+				"0": { "name": "punctuation.section.tag.end.blate" }
+			},
+			"patterns": [{ "include": "#expression" }]
+		},
+
+		"expression": {
+			"patterns": [
+				{ "include": "#string-single" },
+				{ "include": "#string-double" },
+				{ "include": "#number" },
+				{ "include": "#constant-language" },
+				{ "include": "#data-context" },
+				{ "include": "#helper-lookup" },
+				{ "include": "#keyword-in-as" },
+				{ "include": "#operator" },
+				{ "include": "#pipe" },
+				{ "include": "#dot" },
+				{ "include": "#function-call" },
+				{ "include": "#variable" }
+			]
+		},
+
+		"string-single": {
+			"name": "string.quoted.single.blate",
+			"begin": "'",
+			"beginCaptures": {
+				"0": { "name": "punctuation.definition.string.begin.blate" }
+			},
+			"end": "'",
+			"endCaptures": {
+				"0": { "name": "punctuation.definition.string.end.blate" }
+			},
+			"patterns": [
+				{ "match": "\\\\'", "name": "constant.character.escape.blate" }
+			]
+		},
+
+		"string-double": {
+			"name": "string.quoted.double.blate",
+			"begin": "\"",
+			"beginCaptures": {
+				"0": { "name": "punctuation.definition.string.begin.blate" }
+			},
+			"end": "\"",
+			"endCaptures": {
+				"0": { "name": "punctuation.definition.string.end.blate" }
+			},
+			"patterns": [
+				{ "match": "\\\\\"", "name": "constant.character.escape.blate" }
+			]
+		},
+
+		"number": {
+			"name": "constant.numeric.blate",
+			"match": "-?\\b\\d+(\\.\\d+)?\\b"
+		},
+
+		"constant-language": {
+			"name": "constant.language.blate",
+			"match": "\\b(null|true|false)\\b"
+		},
+
+		"data-context": {
+			"name": "variable.language.blate",
+			"match": "\\$\\$"
+		},
+
+		"helper-lookup": {
+			"comment": "$helperName -- forces resolution against the helpers layer only",
+			"match": "(\\$)([a-zA-Z_][a-zA-Z0-9_]*)",
+			"captures": {
+				"1": { "name": "punctuation.definition.variable.blate" },
+				"2": { "name": "variable.other.constant.blate" }
+			}
+		},
+
+		"keyword-in-as": {
+			"name": "keyword.operator.word.blate",
+			"match": "\\b(in|as)\\b"
+		},
+
+		"operator": {
+			"name": "keyword.operator.blate",
+			"match": "\\?\\?|&&|\\|\\||[!=]=|[<>]=?|[!+\\-*\\/]"
+		},
+
+		"pipe": {
+			"comment": "| filter -- single pipe, not ||",
+			"name": "keyword.operator.pipe.blate",
+			"match": "\\|(?!\\|)"
+		},
+
+		"dot": {
+			"name": "punctuation.accessor.blate",
+			"match": "\\."
+		},
+
+		"function-call": {
+			"comment": "identifier immediately followed by '(' -- a function/helper call",
+			"match": "\\b([a-zA-Z_][a-zA-Z0-9_]*)(?=\\s*\\()",
+			"captures": {
+				"1": { "name": "entity.name.function.blate" }
+			}
+		},
+
+		"variable": {
+			"name": "variable.other.blate",
+			"match": "\\b[a-zA-Z_][a-zA-Z0-9_]*\\b"
+		}
+	}
+}

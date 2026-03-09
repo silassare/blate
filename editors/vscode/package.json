@@ -1,0 +1,44 @@
+{
+	"name": "blate",
+	"displayName": "Blate Template",
+	"description": "Syntax highlighting for Blate template files (.blate)",
+	"version": "1.0.0",
+	"publisher": "silassare",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/silassare/blate"
+	},
+	"engines": {
+		"vscode": "^1.60.0"
+	},
+	"categories": [
+		"Programming Languages"
+	],
+	"contributes": {
+		"languages": [
+			{
+				"id": "blate",
+				"aliases": [
+					"Blate",
+					"blate"
+				],
+				"extensions": [
+					".blate"
+				],
+				"configuration": "./language-configuration.json"
+			}
+		],
+		"grammars": [
+			{
+				"language": "blate",
+				"scopeName": "text.html.blate",
+				"path": "./syntaxes/blate.tmLanguage.json",
+				"embeddedLanguages": {
+					"source.php": "php",
+					"text.html.basic": "html"
+				}
+			}
+		]
+	}
+}

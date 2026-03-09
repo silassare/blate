@@ -42,6 +42,7 @@ file, so there is no parsing overhead at runtime.
   - [Date](#date)
 - [Custom Blocks](#custom-blocks)
 - [Custom Helpers](#custom-helpers)
+- [Editor Support](#editor-support)
 
 ---
 
@@ -567,3 +568,118 @@ Use in templates:
 
 The `$` prefix and pipe-filter syntax always resolve against the helpers layer
 only, so a `slugify` key in the template data cannot intercept the call.
+
+---
+
+## Editor Support
+
+Syntax-highlighting files for `.blate` templates live in the [`editors/`](editors/)
+directory. Installation instructions per editor are below and also in
+[`editors/README.md`](editors/README.md).
+
+### VS Code
+
+**Local install (development / personal use):**
+
+```sh
+cp -r editors/vscode ~/.vscode/extensions/blate
+```
+
+Restart VS Code (or run `Developer: Reload Window`). `.blate` files are detected
+and highlighted automatically.
+
+**Package and install as a `.vsix`:**
+
+```sh
+npm install -g @vscode/vsce
+cd editors/vscode
+vsce package            # produces blate-1.0.0.vsix
+code --install-extension blate-1.0.0.vsix
+```
+
+**Publish to the VS Code Marketplace:**
+
+1. Create a publisher account at <https://marketplace.visualstudio.com/manage>.
+2. Generate a Personal Access Token (PAT) with _Marketplace - Manage_ scope.
+3. Run:
+
+```sh
+cd editors/vscode
+vsce login silassare    # prompts for PAT
+vsce publish
+```
+
+---
+
+### IntelliJ / PhpStorm / WebStorm
+
+The VS Code extension directory doubles as a TextMate bundle that JetBrains IDEs
+accept directly via the **TextMate Bundles** plugin (bundled since 2023.2):
+
+1. `Settings > Editor > TextMate Bundles > +`
+2. Select the `editors/vscode/` directory.
+3. Click **OK** and restart the IDE.
+
+`.blate` files are recognised and highlighted without any further configuration.
+
+---
+
+### Sublime Text 3 / 4
+
+```sh
+# macOS
+cp editors/sublime/Blate.sublime-syntax \
+  "$HOME/Library/Application Support/Sublime Text/Packages/User/"
+
+# Linux
+cp editors/sublime/Blate.sublime-syntax \
+  "$HOME/.config/sublime-text/Packages/User/"
+
+# Windows (PowerShell)
+Copy-Item editors\sublime\Blate.sublime-syntax `
+  "$env:APPDATA\Sublime Text\Packages\User\"
+```
+
+Sublime Text detects `.blate` files automatically after the file is in place
+(no restart required).
+
+**Publish to Package Control:**
+
+1. Fork the [package_control_channel](https://github.com/wbond/package_control_channel) repository.
+2. Add an entry pointing to this repository under `repository/b.json`.
+3. Open a pull request.
+
+---
+
+### Vim / Neovim
+
+**Manual install:**
+
+```sh
+# Vim
+cp editors/vim/syntax/blate.vim   ~/.vim/syntax/
+cp editors/vim/ftdetect/blate.vim ~/.vim/ftdetect/
+
+# Neovim
+cp editors/vim/syntax/blate.vim   ~/.config/nvim/syntax/
+cp editors/vim/ftdetect/blate.vim ~/.config/nvim/ftdetect/
+```
+
+**Via a plugin manager (recommended):**
+
+Add to your plugin manager config, pointing to this repository. For example:
+
+```vim
+" vim-plug
+Plug 'silassare/blate', { 'rtp': 'editors/vim' }
+```
+
+```lua
+-- lazy.nvim
+{ 'silassare/blate', config = false, opts = {}, dir = 'editors/vim' }
+-- or directly:
+{ dir = '/path/to/blate/editors/vim' }
+```
+
+PHP syntax inside `{~ ... ~}` blocks is highlighted automatically when
+`$VIMRUNTIME/syntax/php.vim` is present (standard Vim/Neovim distribution).
