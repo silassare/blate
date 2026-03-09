@@ -52,6 +52,8 @@ The cached files live next to their source under `blate_cache/<version>/<hash[0:
 | `src/Expressions/`                 | Expression parser + grammar rules (`Grammar/VarName.php`, `Operator.php`, etc.)                                      |
 | `src/bootstrap.php`                | Registers all built-in blocks and helpers at autoload time                                                           |
 | `src/assets/output.php.sample`     | Scaffold for compiled template files                                                                                 |
+| `src/Lsp/BlateLspServer.php`       | LSP server implementation (diagnostics, completions, hover) over stdio                                               |
+| `editors/lsp/server.php`           | LSP entry point: bootstraps Composer and starts `BlateLspServer`                                                     |
 
 ---
 
@@ -110,18 +112,56 @@ Built-in helpers are in `src/Helpers/Helpers.php` and registered in `bootstrap.p
 
 ## Developer Workflows
 
-```sh
-# run tests
-./run_test
-# or
-./vendor/bin/phpunit --testdox --do-not-cache-result
+A `Makefile` at the project root wraps all common tasks:
 
-# static analysis + code style fix
-./csfix
-# which runs:
+```sh
+make install      # composer install
+make test         # run PHPUnit test suite
+make psalm        # run Psalm static analysis
+make cs           # check code style (no auto-fix)
+make fix          # psalm + oliup-cs fix
+make ext          # build VS Code extension -> out/extension.js (installs then removes node_modules)
+make ext-watch    # watch-mode build for the VS Code extension
+make ext-clean    # remove editors/vscode/out and editors/vscode/node_modules
+```
+
+The underlying commands are also available directly:
+
+```sh
+./vendor/bin/phpunit --testdox --do-not-cache-result
 ./vendor/bin/psalm --no-cache
 ./vendor/bin/oliup-cs fix
 ```
+
+---
+
+## Editor Support
+
+Editor integrations live under `editors/`:
+
+| Path                     | What it is                                     |
+| ------------------------ | ---------------------------------------------- |
+| `editors/lsp/server.php` | LSP server entry point (spawns BlateLspServer) |
+| `editors/vscode/`        | VS Code extension (syntax + LSP client)        |
+| `editors/sublime/`       | Sublime Text syntax definition                 |
+| `editors/vim/`           | Vim/Neovim ftdetect + syntax file              |
+
+### LSP Server
+
+`src/Lsp/BlateLspServer.php` implements the Language Server Protocol over stdio.
+The entry point `editors/lsp/server.php` bootstraps Composer and starts it.
+The `bin/blate-lsp` wrapper provides a convenient CLI entry point.
+
+### VS Code Extension
+
+- Source: `editors/vscode/src/extension.ts` (TypeScript)
+- Output: `editors/vscode/out/extension.js` (single esbuild bundle, committed)
+- Build: `esbuild.js` - platform=node, external=['vscode'], format=cjs; supports `--watch` and `--minify` flags
+- No `tsconfig.json` (esbuild transpiles TS natively; tsc is not used)
+- Runtime deps: none (`dependencies: {}`); `vscode-languageclient` is bundled at build time
+- Dev deps: `esbuild ^0.25`, `vscode-languageclient ^9.0.1`, `@types/node ^20`, `@types/vscode ^1.60`
+- The extension spawns `php <editors/lsp/server.php>` via stdio; the PHP executable is configurable via the `blate.phpExecutable` VS Code setting (default: `php`)
+- `out/extension.js` is a committed build artifact - run `make ext` after any change to `src/extension.ts`
 
 ---
 
