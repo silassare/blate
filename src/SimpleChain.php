@@ -24,7 +24,10 @@ use ReflectionProperty;
  * Fluent property/method resolver used at template render time.
  *
  * Every template variable expression compiles to a chain of SimpleChain calls:
- *   {foo.bar}  ->  $context->chain()->get('foo')->get('bar')->val()
+ *   {foo.bar}  ->  $context->chain('L:I')->get('L:I', 'foo')->get('L:I', 'bar')->val()
+ *
+ * The 'L:I' strings are template source locations (line:index) baked in at
+ * compile time and used to enrich runtime exceptions with suspect locations.
  *
  * Key resolution order for get():
  *   1. Method on the source object: $source->$key()
@@ -41,7 +44,7 @@ class SimpleChain
 
 	private bool $is_head = true;
 
-	public function __construct(private DataContext $data_context) {}
+	public function __construct(private DataContext $data_context, private string $location = '') {}
 
 	public function val(): mixed
 	{
@@ -49,13 +52,14 @@ class SimpleChain
 	}
 
 	/**
-	 * @param $key
+	 * @param string $location compile-time source location 'line:index'
+	 * @param mixed  $key
 	 *
 	 * @return $this
 	 *
 	 * @throws BlateRuntimeException
 	 */
-	public function get($key): self
+	public function get(string $location, mixed $key): self
 	{
 		if ($this->is_head) {
 			$this->is_head = false;
@@ -64,12 +68,13 @@ class SimpleChain
 			$source = $this->current;
 
 			if (!self::has($source, $key, $val)) {
-				throw new BlateRuntimeException(\sprintf(Message::CHAIN_UNDEFINED_KEY, $key, \get_debug_type($source)));
+				throw (new BlateRuntimeException(\sprintf(Message::CHAIN_UNDEFINED_KEY, $key, \get_debug_type($source))))
+					->suspectLocation($this->buildSuspectLocation($location));
 			}
 		}
 
 		if ($val instanceof DataContext) {
-			return $val->chain();
+			return $val->chain($location);
 		}
 
 		$this->current = $val;
@@ -78,16 +83,18 @@ class SimpleChain
 	}
 
 	/**
-	 * @param mixed ...$args
+	 * @param string $location compile-time source location 'line:index'
+	 * @param mixed  ...$args
 	 *
 	 * @return $this
 	 *
 	 * @throws BlateRuntimeException
 	 */
-	public function call(...$args): static
+	public function call(string $location, mixed ...$args): static
 	{
 		if (!\is_callable($this->current)) {
-			throw new BlateRuntimeException(\sprintf(Message::CHAIN_VALUE_NOT_A_CALLABLE, \get_debug_type($this->current)));
+			throw (new BlateRuntimeException(\sprintf(Message::CHAIN_VALUE_NOT_A_CALLABLE, \get_debug_type($this->current))))
+				->suspectLocation($this->buildSuspectLocation($location));
 		}
 
 		$this->current = \call_user_func_array($this->current, $args);
@@ -136,5 +143,23 @@ class SimpleChain
 		}
 
 		return false;
+	}
+
+	/**
+	 * Parses a compiled-in 'line:index' location string into a suspect-location array.
+	 *
+	 * @param string $location 'line:index' encoded at compile time
+	 *
+	 * @return array{file: string, line: int, start: int}
+	 */
+	private function buildSuspectLocation(string $location): array
+	{
+		$parts = \explode(':', $location, 2);
+
+		return [
+			'file'  => $this->data_context->getBlate()->getSrcPath() ?? 'inline',
+			'line'  => (int) ($parts[0] ?? 0),
+			'start' => (int) ($parts[1] ?? 0),
+		];
 	}
 }

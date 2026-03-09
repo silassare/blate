@@ -46,10 +46,13 @@ class Operator implements TokenHandlerInterface
 		$lexer     = $parser->getLexer();
 		$prev      = $lexer->lookBackward(true);
 		$prev_type = $prev?->getType();
+		$value     = $current->getValue();
 
 		if (Token::T_NOT === $current->getType()) {
-			if ($is_head // !expression
-				|| $prev?->isOperator() // + !expression
+			// T_NOT (!) valid at head or after any operator, comparator, or logical condition.
+			if (
+				$is_head
+				|| ($prev && ($prev->isOperator() || $prev->isComparator() || $prev->isLogicalCondition()))
 			) {
 				$parser->write($current);
 				$lexer->move();
@@ -57,6 +60,14 @@ class Operator implements TokenHandlerInterface
 				throw BlateParserException::withToken(Message::UNEXPECTED, $current);
 			}
 		} elseif ($prev && ($prev->isGroupCloser() || Token::T_DNUMBER === $prev_type || Token::T_STRING === $prev_type || Token::T_NAME === $prev_type)) {
+			// Binary operator: the previous token produced a value.
+			$parser->write($current);
+			$lexer->move();
+		} elseif (('-' === $value || '+' === $value)
+			&& ($is_head || ($prev && ($prev->isOperator() || $prev->isComparator() || $prev->isLogicalCondition())))
+		) {
+			// Unary + or -: at head ({-5}), after a binary operator ({a + -b}),
+			// or after a comparator/logical ({a > -1}, {a && -b}).
 			$parser->write($current);
 			$lexer->move();
 		} else {

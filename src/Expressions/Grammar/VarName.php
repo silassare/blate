@@ -15,7 +15,6 @@ namespace Blate\Expressions\Grammar;
 
 use Blate\Blate;
 use Blate\Exceptions\BlateParserException;
-use Blate\Expressions\Utils;
 use Blate\Interfaces\ParserInterface;
 use Blate\Interfaces\TokenHandlerInterface;
 use Blate\Interfaces\TokenInterface;
@@ -30,7 +29,7 @@ use Blate\Token;
  * Two distinct roles depending on context:
  *
  *   Chain head (when token is at expression start or after an operator/comparator/logical/paren/bracket):
- *     Emits $context->chain()->get('name') and marks the active chain head via Utils::setActiveChain().
+ *     Emits $context->chain()->get('name') and marks the active chain head via $parser->setActiveChain().
  *     At the end of the chain (no further property access) the ->val() terminator is appended.
  *
  *   Chain continuation (when preceded by a dot):
@@ -54,7 +53,9 @@ class VarName implements TokenHandlerInterface
 		$is_ref              = false;
 
 		if (Token::T_DOT === $prev_type) { // foo.bar
-			$parser->write('->get(\'');
+			$dot_loc     = $current->getChunk()->getLocation();
+			$dot_loc_str = $dot_loc['line'] . ':' . $dot_loc['index'];
+			$parser->write('->get(\'' . $dot_loc_str . '\', \'');
 			$parser->write($current->getValue());
 			$parser->write('\')');
 			$next = $lexer->lookForward(true);
@@ -72,11 +73,11 @@ class VarName implements TokenHandlerInterface
 				)
 			)
 		) {
-			if (Utils::getActiveChain($current)) {
+			if ($parser->getActiveChain($current)) {
 				throw BlateParserException::withToken(Message::UNEXPECTED, $current);
 			}
 
-			Utils::setActiveChain($current, $current);
+			$parser->setActiveChain($current, $current);
 
 			$var_name            = $current->getValue();
 			$is_ref              = (Blate::DATA_CONTEXT_REF === $var_name);
@@ -84,7 +85,9 @@ class VarName implements TokenHandlerInterface
 			if ($is_ref) {
 				$parser->write(Blate::DATA_CONTEXT_VAR);
 			} else {
-				$parser->write(Blate::DATA_CONTEXT_VAR . '->chain()->get(\'');
+				$head_loc     = $current->getChunk()->getLocation();
+				$head_loc_str = $head_loc['line'] . ':' . $head_loc['index'];
+				$parser->write(Blate::DATA_CONTEXT_VAR . '->chain(\'' . $head_loc_str . '\')->get(\'' . $head_loc_str . '\', \'');
 				$parser->write($var_name);
 				$parser->write('\')');
 			}
@@ -96,9 +99,16 @@ class VarName implements TokenHandlerInterface
 		}
 
 		if ($is_ref) {
-			Utils::setActiveChain($current, null);
-		} elseif (!$next || $next->isComparator() || $next->isLogicalCondition() || $next->isOperator() || $next->isGroupCloser()) {
-			Utils::setActiveChain($current, null);
+			$parser->setActiveChain($current, null);
+		} elseif (
+			!$next
+			|| $next->isComparator()
+			|| $next->isLogicalCondition()
+			|| $next->isOperator()
+			|| $next->isGroupCloser()
+			|| Token::T_PIPE === $next->getType() // pipe filter terminates the chain
+		) {
+			$parser->setActiveChain($current, null);
 			$parser->write('->val()');
 		}
 	}

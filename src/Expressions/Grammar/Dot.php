@@ -14,7 +14,6 @@ declare(strict_types=1);
 namespace Blate\Expressions\Grammar;
 
 use Blate\Exceptions\BlateParserException;
-use Blate\Expressions\Utils;
 use Blate\Interfaces\ParserInterface;
 use Blate\Interfaces\TokenHandlerInterface;
 use Blate\Interfaces\TokenInterface;
@@ -46,7 +45,7 @@ class Dot implements TokenHandlerInterface
 	{
 		$current = $token;
 
-		if (!Utils::getActiveChain($current)) {
+		if (!$parser->getActiveChain($current)) {
 			throw BlateParserException::withToken(Message::UNEXPECTED, $current);
 		}
 

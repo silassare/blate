@@ -85,6 +85,15 @@ trait BlateExceptionTrait
 			$str .= PHP_EOL . $this->chunk->getLocationString(true);
 		}
 
+		// Show template source location for runtime chain errors (set via suspectLocation()).
+		$suspect = $this->data['_suspect'] ?? null;
+
+		if (null !== $suspect && 'location' === ($suspect['type'] ?? null)) {
+			$loc = $suspect['location'];
+			$str .= PHP_EOL . 'Template: ' . ($loc['file'] ?? 'unknown');
+			$str .= PHP_EOL . 'Line: ' . ($loc['line'] ?? 0) . ', Column: ' . ($loc['start'] ?? 0);
+		}
+
 		if ($include_debug_data) {
 			$str .= PHP_EOL . 'Debug data: ' . \json_encode($this->getData(), JSON_PRETTY_PRINT);
 		}

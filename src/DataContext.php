@@ -84,11 +84,13 @@ class DataContext
 	}
 
 	/**
+	 * @param string $location compile-time source location 'line:index'
+	 *
 	 * @return SimpleChain
 	 */
-	public function chain(): SimpleChain
+	public function chain(string $location = ''): SimpleChain
 	{
-		return new SimpleChain($this);
+		return new SimpleChain($this, $location);
 	}
 
 	public function get(mixed $key): mixed

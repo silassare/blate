@@ -19,6 +19,21 @@ namespace Blate\Interfaces;
 interface ParserInterface
 {
 	/**
+	 * Returns the active chain head for the scope containing the given token.
+	 */
+	public function getActiveChain(TokenInterface $token): ?TokenInterface;
+
+	/**
+	 * Sets the active chain head for the scope containing the given token.
+	 */
+	public function setActiveChain(TokenInterface $token, ?TokenInterface $chain_head): void;
+
+	/**
+	 * Returns a predicate that is true while the current token is a direct child of the given parent.
+	 */
+	public function whileInChildrenOf(TokenInterface $parent): callable;
+
+	/**
 	 * Returns lexer.
 	 */
 	public function getLexer(): LexerInterface;

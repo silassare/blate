@@ -15,7 +15,6 @@ namespace Blate\Expressions\Grammar;
 
 use Blate\Exceptions\BlateParserException;
 use Blate\Expressions\ExpressionParser;
-use Blate\Expressions\Utils;
 use Blate\Interfaces\ParserInterface;
 use Blate\Interfaces\TokenHandlerInterface;
 use Blate\Interfaces\TokenInterface;
@@ -53,25 +52,44 @@ class Parenthesis implements TokenHandlerInterface
 		if ($is_head) { // expression start
 			$parser->write($current);
 			$lexer->move();
-			$parser->parse(Utils::whileInChildrenOf($current));
+			$parser->parse($parser->whileInChildrenOf($current));
 		} else {
 			switch ($prev_type) {
 				case Token::T_PAREN_OPEN: // ((expression))
 					$parser->write($current);
 					$lexer->move();
-					$parser->parse(Utils::whileInChildrenOf($current));
+					$parser->parse($parser->whileInChildrenOf($current));
 
 					break;
 
 				case Token::T_NAME: // var_name(arg1, arg2)
 				case Token::T_SQUARE_BRACKET_CLOSE: // var_name[expression](arg1, arg2)
-					if (!Utils::getActiveChain($current)) {
+					if (!$parser->getActiveChain($current)) {
 						throw BlateParserException::withToken(Message::UNEXPECTED, $current);
 					}
 
-					$parser->write('->call(');
-					$lexer->move();
-					$parser->parse(Utils::whileInChildrenOf($current), [
+					$call_loc     = $current->getChunk()->getLocation();
+					$call_loc_str = $call_loc['line'] . ':' . $call_loc['index'];
+
+					$lexer->move(); // consume (
+
+					// Peek at the first significant token inside () to decide whether
+					// args follow, so we can conditionally emit ', ' after the location.
+					$peek = $lexer->current();
+
+					if (null !== $peek && Token::T_WHITESPACE === $peek->getType()) {
+						$peek = $lexer->lookForward(true);
+					}
+
+					$has_args = null !== $peek && Token::T_PAREN_CLOSE !== $peek->getType();
+
+					if ($has_args) {
+						$parser->write('->call(\'' . $call_loc_str . '\', ');
+					} else {
+						$parser->write('->call(\'' . $call_loc_str . '\'');
+					}
+
+					$parser->parse($parser->whileInChildrenOf($current), [
 						ExpressionParser::IN_FUNC_CALL_ARGS => true,
 						ExpressionParser::ALLOW_EMPTY       => true,
 					]);
@@ -82,7 +100,7 @@ class Parenthesis implements TokenHandlerInterface
 					if ($prev && ($prev->isOperator() || $prev->isLogicalCondition() || $prev->isComparator())) {
 						$parser->write($current);
 						$lexer->move();
-						$parser->parse(Utils::whileInChildrenOf($current));
+						$parser->parse($parser->whileInChildrenOf($current));
 					} else {
 						throw BlateParserException::withToken(Message::UNEXPECTED, $current);
 					}

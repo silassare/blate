@@ -28,20 +28,59 @@ use Blate\Token;
 
 /**
  * Class ExpressionParser.
+ *
+ * Walks lexer tokens and dispatches to grammar handler objects to build
+ * a PHP expression string from a Blate template expression.
+ *
+ * Options flags (pass in the $options array to parse()):
+ *   IN_FUNC_CALL_ARGS -- allow commas as argument separators
+ *   ALLOW_EMPTY       -- allow an empty expression (for zero-arg function calls)
  */
 class ExpressionParser implements ParserInterface
 {
+	/** Passed in $options to allow T_COMMA as argument separator. */
 	public const IN_FUNC_CALL_ARGS = 1;
-	public const ALLOW_EMPTY       = 2;
+
+	/** Passed in $options to allow an empty expression (e.g., zero-argument function calls). */
+	public const ALLOW_EMPTY = 2;
 
 	protected string $output = '';
+
+	protected ExpressionContext $expressionContext;
 
 	/**
 	 * ExpressionParser constructor.
 	 *
 	 * @param LexerInterface $lexer
 	 */
-	public function __construct(protected LexerInterface $lexer) {}
+	public function __construct(protected LexerInterface $lexer)
+	{
+		$this->expressionContext = new ExpressionContext();
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function getActiveChain(TokenInterface $token): ?TokenInterface
+	{
+		return $this->expressionContext->getActiveChain($token);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function setActiveChain(TokenInterface $token, ?TokenInterface $chain_head): void
+	{
+		$this->expressionContext->setActiveChain($token, $chain_head);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public function whileInChildrenOf(TokenInterface $parent): callable
+	{
+		return $this->expressionContext->whileInChildrenOf($parent);
+	}
 
 	/**
 	 * {@inheritDoc}
@@ -76,7 +115,19 @@ class ExpressionParser implements ParserInterface
 	/**
 	 * {@inheritDoc}
 	 *
-	 * @throws BlateParserException
+	 * Parses tokens from the lexer until $while_true returns false or EOF is
+	 * reached, emitting the corresponding PHP expression into $this->output.
+	 *
+	 * The parse terminates with an error if:
+	 * - the last significant token was an operator/comparator/logical (dangling operator)
+	 * - a group opener (e.g., '(') was never closed within this parse scope
+	 * - no value token was produced and ALLOW_EMPTY is not set
+	 *
+	 * @param null|callable $while_true predicate that receives the current token and must
+	 *                                  return false to stop; null means parse until EOF
+	 * @param null|array    $options    bitmask flags: IN_FUNC_CALL_ARGS, ALLOW_EMPTY
+	 *
+	 * @throws BlateParserException on unexpected tokens, dangling operators, or unclosed groups
 	 */
 	public function parse(?callable $while_true = null, ?array $options = []): static
 	{
@@ -116,11 +167,18 @@ class ExpressionParser implements ParserInterface
 				case Token::T_SQUARE_BRACKET_CLOSE:
 					$to_close = \array_pop($close_stack);
 					if ($to_close && $current->isGroupCloserOf($to_close)) {
-						if (Utils::getActiveChain($current)) {
+						if ($this->getActiveChain($current)) {
 							$this->write(')');
 							$next = $this->lexer->lookForward(true);
-							if (!$next || $next->isComparator() || $next->isLogicalCondition() || $next->isOperator() || $next->isGroupCloser()) {
-								Utils::setActiveChain($current, null);
+							if (
+								!$next
+								|| $next->isComparator()
+								|| $next->isLogicalCondition()
+								|| $next->isOperator()
+								|| $next->isGroupCloser()
+								|| Token::T_PIPE === $next->getType() // pipe filter terminates the chain
+							) {
+								$this->setActiveChain($current, null);
 								$this->write('->val()');
 							}
 						} else {
