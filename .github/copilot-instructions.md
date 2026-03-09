@@ -110,6 +110,30 @@ Built-in helpers are in `src/Helpers/Helpers.php` and registered in `bootstrap.p
 
 ---
 
+## Disabling Blocks and Helpers
+
+Any registered block or helper can be disabled at runtime without removing its
+registration. It can be fully restored with a single enable call.
+
+```php
+// Blocks - disabled block causes BLOCK_UNDEFINED parse error in any template
+// that references it.
+Blate::disableBlock('php');        // prevent {~ ... ~} inline PHP
+Blate::enableBlock('php');
+Blate::isBlockEnabled('php');      // bool
+
+// Helpers - disabled helper is excluded from the DataContext helpers layer;
+// helper-only lookups ({$name()} and pipe filters) fail at render time.
+Blate::disableHelper('json');      // accepts name with or without '$' prefix
+Blate::enableHelper('json');
+Blate::isHelperEnabled('json');    // bool
+```
+
+`Message::BLOCK_NOT_REGISTERED` is thrown when disabling an unregistered block.
+`Message::HELPER_NOT_FOUND` is thrown when disabling an unregistered helper.
+
+---
+
 ## Developer Workflows
 
 A `Makefile` at the project root wraps all common tasks:

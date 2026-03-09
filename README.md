@@ -42,7 +42,9 @@ file, so there is no parsing overhead at runtime.
   - [Date](#date)
 - [Custom Blocks](#custom-blocks)
 - [Custom Helpers](#custom-helpers)
+- [Disabling Blocks and Helpers](#disabling-blocks-and-helpers)
 - [Editor Support](#editor-support)
+- [Comparison: Blate vs Twig vs Blade](#comparison-blate-vs-twig-vs-blade)
 
 ---
 
@@ -571,6 +573,50 @@ only, so a `slugify` key in the template data cannot intercept the call.
 
 ---
 
+## Disabling Blocks and Helpers
+
+Any registered block or helper can be disabled at runtime without unregistering
+it. Disabled blocks and helpers retain their registration and can be fully
+restored with a single call.
+
+### Blocks
+
+A disabled block behaves as if it is not registered: any template that
+references it will fail at **compile time** with an `Unknown block name` error.
+
+```php
+// Disallow inline PHP blocks in user-supplied templates
+Blate::disableBlock('php');
+
+// Restore
+Blate::enableBlock('php');
+
+// Query
+Blate::isBlockEnabled('php'); // false while disabled
+```
+
+### Helpers
+
+A disabled helper is excluded from the runtime helpers layer. Helper-only
+lookups (`{$name()}` and pipe filters) will fail at **render time** with a
+`Helper "name" is not registered` error. Plain-name lookups (`{name()}`) may
+still resolve through user data if a matching key exists there.
+
+```php
+// Remove a helper from template context
+Blate::disableHelper('json');
+
+// Restore
+Blate::enableHelper('json');
+
+// Query (the '$' prefix is accepted but optional)
+Blate::isHelperEnabled('json'); // false while disabled
+```
+
+Both methods accept the helper name with or without the leading `$` prefix.
+
+---
+
 ## Editor Support
 
 Syntax-highlighting files for `.blate` templates live in the [`editors/`](editors/)
@@ -683,3 +729,69 @@ Plug 'silassare/blate', { 'rtp': 'editors/vim' }
 
 PHP syntax inside `{~ ... ~}` blocks is highlighted automatically when
 `$VIMRUNTIME/syntax/php.vim` is present (standard Vim/Neovim distribution).
+
+---
+
+## Comparison: Blate vs Twig vs Blade
+
+All three engines use the same fundamental strategy: compile to native PHP once,
+cache on disk, and `include` the cached file on subsequent requests. Hot-path
+render performance is functionally equivalent across all three.
+
+### Compilation pipeline
+
+| Aspect             | Blate                                     | Blade (Laravel)                       | Twig                                   |
+| ------------------ | ----------------------------------------- | ------------------------------------- | -------------------------------------- |
+| Compiled output    | PHP class extending `TemplateParsed`      | Plain PHP file with echo/control-flow | PHP class extending `Twig\Template`    |
+| Cache key          | content hash + file path + engine version | file path + mtime                     | source hash                            |
+| Cache invalidation | file change OR engine version bump        | file change                           | file change                            |
+| Compile overhead   | Minimal - single-pass lexer + parser      | Medium - multiple compiler passes     | Highest - full AST with visitor passes |
+
+Blate has the lightest compile step of the three because it is a single-pass
+lexer/parser with no component resolver or service-container lookup.
+
+### Security
+
+All three engines auto-escape HTML output by default, which is the most
+important XSS protection:
+
+|                               | Blate                            | Blade                 | Twig                                              |
+| ----------------------------- | -------------------------------- | --------------------- | ------------------------------------------------- |
+| Auto-escape                   | `{expr}` -> `htmlspecialchars()` | `{{ }}` -> `e()`      | `{{ }}` -> `twig_escape_filter()`                 |
+| Raw / unescaped output        | `{= expr}`                       | `{!! !!}`             | `{{ expr\|raw }}`                                 |
+| Inline PHP in templates       | Yes - `{~ ... ~}`                | Yes - `@php`          | **No**                                            |
+| Sandbox for untrusted authors | **No**                           | **No**                | **Yes** - restricts accessible methods/properties |
+| Disable built-in blocks       | Yes - `Blate::disableBlock()`    | No built-in mechanism | Partial via extension                             |
+| Disable helpers               | Yes - `Blate::disableHelper()`   | No built-in mechanism | Partial via extension                             |
+
+**Twig** is the only engine with a proper sandbox, making it suitable for
+cases where template authors are untrusted (e.g., user-editable templates).
+Blate and Blade both allow escaping to full PHP when needed, which is powerful
+but means a malicious template author has full server access.
+
+Blate's `disableBlock()` / `disableHelper()` API provides a lighter-weight
+alternative: you can strip dangerous blocks like `{@php}` or restrict the
+helper surface without a full sandbox.
+
+### Summary
+
+|                               | Blate             | Blade                       | Twig                             |
+| ----------------------------- | ----------------- | --------------------------- | -------------------------------- |
+| Hot render speed              | Fast              | Fast                        | Fast                             |
+| Cold compile speed            | **Fastest**       | Medium                      | Slowest                          |
+| Memory footprint              | Smallest          | Medium (Laravel-tied)       | Medium                           |
+| Auto-escaping                 | Yes               | Yes                         | Yes                              |
+| Sandbox for untrusted authors | No                | No                          | **Yes**                          |
+| Disable blocks/helpers        | **Yes**           | No                          | Partial                          |
+| Framework coupling            | None - standalone | Laravel only                | Framework-agnostic               |
+| Feature richness              | Focused           | Rich (Livewire, components) | Rich (macros, extensions, tests) |
+
+**Choose Blate when** you want a fast, lightweight, framework-agnostic engine
+with a composable security surface, and templates are written by trusted
+developers.
+
+**Choose Twig when** templates may be written by untrusted users, or you
+need the sandbox and the extension ecosystem.
+
+**Choose Blade when** you are already in Laravel and need native integration
+with components, Livewire, etc.
