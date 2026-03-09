@@ -26,6 +26,10 @@ use ReflectionProperty;
  * Every template variable expression compiles to a chain of SimpleChain calls:
  *   {foo.bar}  ->  $context->chain('L:I')->get('L:I', 'foo')->get('L:I', 'bar')->val()
  *
+ * Helpers resolved via {$name} or pipe filters use getHelper() instead of get():
+ *   {$upper(x)}   ->  $context->chain('L:I')->getHelper('L:I', 'upper')->call('L:I', x)->val()
+ *   {x | upper}   ->  $context->chain('L:I')->getHelper('L:I', 'upper')->call('L:I', x)->val()
+ *
  * The 'L:I' strings are template source locations (line:index) baked in at
  * compile time and used to enrich runtime exceptions with suspect locations.
  *
@@ -34,6 +38,9 @@ use ReflectionProperty;
  *   2. Callable value at key (closure stored in array or object property)
  *   3. Static property via reflection
  *   4. Instance property / array key
+ *
+ * getHelper() only consults the helpers layer (DataContext::stack[0]) and throws
+ * BlateRuntimeException if the helper is not registered.
  *
  * val() returns the final resolved value.
  * call() invokes the current value as a callable with the supplied arguments.
@@ -75,6 +82,33 @@ class SimpleChain
 
 		if ($val instanceof DataContext) {
 			return $val->chain($location);
+		}
+
+		$this->current = $val;
+
+		return $this;
+	}
+
+	/**
+	 * Resolves a helper by name, looking only in the helpers layer (immune to user-data shadowing).
+	 *
+	 * Used by the $name syntax and by pipe filters.
+	 *
+	 * @param string $location compile-time source location 'line:index'
+	 * @param mixed  $key      the helper name
+	 *
+	 * @return $this
+	 *
+	 * @throws BlateRuntimeException when the helper is not registered
+	 */
+	public function getHelper(string $location, mixed $key): self
+	{
+		$this->is_head = false;
+		$val           = $this->data_context->getHelper($key);
+
+		if (null === $val) {
+			throw (new BlateRuntimeException(\sprintf(Message::HELPER_NOT_FOUND, $key)))
+				->suspectLocation($this->buildSuspectLocation($location));
 		}
 
 		$this->current = $val;

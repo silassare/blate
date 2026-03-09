@@ -81,9 +81,17 @@ class VarName implements TokenHandlerInterface
 
 			$var_name            = $current->getValue();
 			$is_ref              = (Blate::DATA_CONTEXT_REF === $var_name);
+			$is_helper_ref       = !$is_ref && \str_starts_with($var_name, Blate::HELPER_PREFIX_CHAR);
 
 			if ($is_ref) {
 				$parser->write(Blate::DATA_CONTEXT_VAR);
+			} elseif ($is_helper_ref) {
+				$actual_name  = \substr($var_name, \strlen(Blate::HELPER_PREFIX_CHAR)); // strip leading prefix
+				$head_loc     = $current->getChunk()->getLocation();
+				$head_loc_str = $head_loc['line'] . ':' . $head_loc['index'];
+				$parser->write(Blate::DATA_CONTEXT_VAR . '->chain(\'' . $head_loc_str . '\')->getHelper(\'' . $head_loc_str . '\', \'');
+				$parser->write($actual_name);
+				$parser->write('\')');
 			} else {
 				$head_loc     = $current->getChunk()->getLocation();
 				$head_loc_str = $head_loc['line'] . ':' . $head_loc['index'];

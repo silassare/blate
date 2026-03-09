@@ -129,6 +129,12 @@ class Expression
 		}
 
 		$fn_name = $fn_token->getValue();
+
+		// Strip optional leading prefix (allowed for clarity, e.g. {expr | $upper}).
+		if (\str_starts_with($fn_name, Blate::HELPER_PREFIX_CHAR)) {
+			$fn_name = \substr($fn_name, \strlen(Blate::HELPER_PREFIX_CHAR));
+		}
+
 		$lexer->move(); // consume the function name
 
 		// Skip optional whitespace before an opening '('.
@@ -159,10 +165,10 @@ class Expression
 			}
 		}
 
-		// Build: $context->chain('L:I')->get('L:I', 'fn')->call('L:I', <piped>[, extra_args])->val()
+		// Build: $context->chain('L:I')->getHelper('L:I', 'fn')->call('L:I', <piped>[, extra_args])->val()
 		$fn_loc     = $fn_token->getChunk()->getLocation();
 		$fn_loc_str = $fn_loc['line'] . ':' . $fn_loc['index'];
-		$call       = Blate::DATA_CONTEXT_VAR . '->chain(\'' . $fn_loc_str . '\')->get(\'' . $fn_loc_str . '\', \'' . $fn_name . '\')->call(\'' . $fn_loc_str . '\', ' . $piped;
+		$call       = Blate::DATA_CONTEXT_VAR . '->chain(\'' . $fn_loc_str . '\')->getHelper(\'' . $fn_loc_str . '\', \'' . $fn_name . '\')->call(\'' . $fn_loc_str . '\', ' . $piped;
 
 		if ('' !== $extra_args) {
 			$call .= ', ' . $extra_args;

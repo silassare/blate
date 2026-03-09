@@ -69,6 +69,8 @@ final class Message
 
 	public const CHAIN_UNDEFINED_KEY = 'Can\'t get "%s" from "%s".';
 
+	public const HELPER_NOT_FOUND = 'Helper "%s" is not registered.';
+
 	public const FILE_IS_NOT_READABLE = 'Unable to read file at : %s';
 
 	public const FILE_IS_NOT_WRITABLE = 'File "%s" is not writable.';

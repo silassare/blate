@@ -624,18 +624,18 @@ class Lexer implements LexerInterface
 	}
 
 	/**
-	 * Returns true when $c is valid as the first character of an identifier (_$a-zA-Z).
+	 * Returns true when $c is valid as the first character of an identifier.
 	 */
 	private function isNameFirstChar(string $c): bool
 	{
-		return '_' === $c || '$' === $c || isset($this->alpha_lower[$c]) || isset($this->alpha_upper[$c]);
+		return '_' === $c || Blate::HELPER_PREFIX_CHAR === $c || isset($this->alpha_lower[$c]) || isset($this->alpha_upper[$c]);
 	}
 
 	/**
-	 * Returns true when $c is valid as a non-first character of an identifier (_$a-zA-Z0-9).
+	 * Returns true when $c is valid as a non-first character of an identifier.
 	 */
 	private function isNameChar(string $c): bool
 	{
-		return '_' === $c || '$' === $c || isset($this->alpha_lower[$c]) || isset($this->alpha_upper[$c]) || isset($this->digits[$c]);
+		return '_' === $c || Blate::HELPER_PREFIX_CHAR === $c || isset($this->alpha_lower[$c]) || isset($this->alpha_upper[$c]) || isset($this->digits[$c]);
 	}
 }

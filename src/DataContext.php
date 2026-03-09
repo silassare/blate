@@ -111,6 +111,24 @@ class DataContext
 	}
 
 	/**
+	 * Resolves a key exclusively from the helpers layer (stack[0]).
+	 *
+	 * Unlike get(), this method ignores all scope layers and user data,
+	 * making it immune to user-data shadowing. Used by the $name syntax
+	 * and by pipe filters.
+	 *
+	 * @param mixed $key the helper name to look up
+	 *
+	 * @return mixed the helper callable, or null if not registered
+	 */
+	public function getHelper(mixed $key): mixed
+	{
+		$found = SimpleChain::has($this->stack[0], $key, $value);
+
+		return $found ? $value : null;
+	}
+
+	/**
 	 * @return $this
 	 */
 	public function set(mixed $key, mixed $value): self

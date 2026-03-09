@@ -39,85 +39,99 @@ use Blate\Token;
  */
 class BlockRepeat extends Block
 {
-	public const NAME = 'repeat';
+    public const NAME = 'repeat';
 
-	private ?string $count_var = null;
+    private ?string $count_var = null;
 
-	private ?string $index_var = null;
+    private ?string $index_var = null;
 
-	/**
-	 * {@inheritDoc}
-	 */
-	public function getName(): string
-	{
-		return self::NAME;
-	}
+    /**
+     * {@inheritDoc}
+     */
+    public function getName(): string
+    {
+        return self::NAME;
+    }
 
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @throws BlateParserException
-	 */
-	public function onOpen(): void
-	{
-		$this->lexer->nextIs(Token::T_WHITESPACE);
+    /**
+     * {@inheritDoc}
+     *
+     * @throws BlateParserException
+     */
+    public function onOpen(): void
+    {
+        $this->lexer->nextIs(Token::T_WHITESPACE);
 
-		$count_expr = (new Expression())->getWhileTrue(
-			$this->lexer,
-			static function (TokenInterface $t): bool {
-				return Token::T_TAG_CLOSE !== $t->getType()
-					&& !(Token::T_NAME === $t->getType() && 'as' === $t->getValue());
-			}
-		);
+        $count_expr = (new Expression())->getWhileTrue(
+            $this->lexer,
+            static function (TokenInterface $t): bool {
+                return Token::T_TAG_CLOSE !== $t->getType()
+                    && !(Token::T_NAME === $t->getType() && 'as' === $t->getValue());
+            }
+        );
 
-		$loop_idx_name = null;
-		$current       = $this->lexer->current();
+        $count_expr = \trim($count_expr);
 
-		if ($current && Token::T_NAME === $current->getType() && 'as' === $current->getValue()) {
-			$this->lexer->move();
-			$idx_token     = $this->lexer->nextIs(Token::T_NAME, null, true);
-			$loop_idx_name = $idx_token->getValue();
-			$this->lexer->nextIs(Token::T_TAG_CLOSE, null, true);
-		}
+        // When the expression boundary is the 'as' keyword (T_NAME), the chain
+        // resolver cannot append ->val() automatically because it only does so for
+        // group-closers, operators, comparators, and T_PIPE. Append it here if
+        // the compiled expression is an unterminated SimpleChain call.
+        if (
+            \str_ends_with($count_expr, ')')
+            && !\str_ends_with($count_expr, '->val()')
+            && \str_contains($count_expr, '->chain(')
+        ) {
+            $count_expr .= '->val()';
+        }
 
-		$this->count_var = Blate::createVar();
-		$this->index_var = Blate::createVar();
+        $loop_idx_name = null;
+        $current       = $this->lexer->current();
 
-		$code = \sprintf(
-			"%s = (int)(%s);\nfor (%s = 0; %s < %s; %s++) {\n",
-			$this->count_var,
-			\trim($count_expr),
-			$this->index_var,
-			$this->index_var,
-			$this->count_var,
-			$this->index_var
-		);
+        if ($current && Token::T_NAME === $current->getType() && 'as' === $current->getValue()) {
+            $this->lexer->move();
+            $idx_token     = $this->lexer->nextIs(Token::T_NAME, null, true);
+            $loop_idx_name = $idx_token->getValue();
+            $this->lexer->nextIs(Token::T_TAG_CLOSE, null, true);
+        }
 
-		if (null !== $loop_idx_name) {
-			$code .= \sprintf(
-				"%s->set('%s', %s);\n",
-				Blate::DATA_CONTEXT_VAR,
-				$loop_idx_name,
-				$this->index_var
-			);
-		}
+        $this->count_var = Blate::createVar();
+        $this->index_var = Blate::createVar();
 
-		$this->parser->writeCode($code);
-	}
+        $code = \sprintf(
+            "%s = (int)(%s);\nfor (%s = 0; %s < %s; %s++) {\n",
+            $this->count_var,
+            $count_expr,
+            $this->index_var,
+            $this->index_var,
+            $this->count_var,
+            $this->index_var
+        );
 
-	/**
-	 * {@inheritDoc}
-	 */
-	public function onClose(): void
-	{
-		$this->parser->writeCode('}');
-	}
+        if (null !== $loop_idx_name) {
+            $code .= \sprintf(
+                "%s->set('%s', %s);\n",
+                Blate::DATA_CONTEXT_VAR,
+                $loop_idx_name,
+                $this->index_var
+            );
+        }
 
-	/**
-	 * {@inheritDoc}
-	 */
-	public function requireClose(): bool
-	{
-		return true;
-	}
+        $this->parser->writeCode($code);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function onClose(): void
+    {
+        $this->parser->writeCode('}');
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function requireClose(): bool
+    {
+        return true;
+    }
 }

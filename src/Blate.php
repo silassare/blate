@@ -58,6 +58,8 @@ final class Blate
 
 	public const DATA_CONTEXT_REF = '$$';
 
+	public const HELPER_PREFIX_CHAR = '$';
+
 	public const SLOT_METHOD_PREFIX = 'slot_';
 
 	public const BLOCK_NAME_PATTERN = '~^[a-z_][a-z0-9_]*$~i';
@@ -393,19 +395,27 @@ final class Blate
 	 * });
 	 * ```
 	 *
-	 * The helper can be used in the template like this:
+	 * The helper can be invoked from a template in several ways:
 	 *
 	 * ```
 	 * {hello('world')}
 	 * ```
-	 *
-	 * or if the current scope has a variable named `hello`:
+	 * Resolves `hello` through the full context stack (scope layers, then user data,
+	 * then the helpers layer). A user-data key named `hello` will shadow the helper.
 	 *
 	 * ```
 	 * {$hello('world')}
 	 * ```
+	 * The `$` prefix forces helper-only resolution: only the helpers layer is
+	 * consulted, so user data can never shadow the helper. Use this form when
+	 * the data supplied to the template comes from untrusted sources.
 	 *
-	 * The above will output: `Hello world`.
+	 * ```
+	 * {expr | hello}
+	 * ```
+	 * Pipe-filter names always use helper-only resolution (equivalent to `$hello`).
+	 *
+	 * All three forms produce the same output: `Hello world`.
 	 *
 	 * @param string   $name   the helper name
 	 * @param callable $helper the helper callable
@@ -421,8 +431,8 @@ final class Blate
 				->suspectCallable(self::$helpers[$name]);
 		}
 
-		self::$helpers[$name]       = $helper;
-		self::$helpers['$' . $name] = $helper;
+		self::$helpers[$name]                            = $helper;
+		self::$helpers[self::HELPER_PREFIX_CHAR . $name] = $helper;
 	}
 
 	/**
