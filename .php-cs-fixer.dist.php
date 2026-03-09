@@ -11,7 +11,7 @@ $finder = Finder::create();
 $finder->in([
 	__DIR__ . '/src',
 	__DIR__ . '/tests',
-])->notPath('snapshots')->notPath('blate_cache');
+])->notPath('.cache')->notPath('blate_cache');
 
 $header = <<<'EOF'
 Copyright (c) 2021-present, Emile Silas Sare

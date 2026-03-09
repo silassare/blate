@@ -10,3 +10,4 @@
 .phpunit.result.cache
 
 error.full.txt
+tests/.cache

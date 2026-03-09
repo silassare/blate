@@ -21,6 +21,7 @@
     <testsuites>
         <testsuite name="Blate Test Suite">
             <directory>tests/</directory>
+			<exclude>tests/.cache</exclude>
         </testsuite>
     </testsuites>
 
