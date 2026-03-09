@@ -1,0 +1,2 @@
+// error: {:case} used after {:default}
+{@switch x}{:default}other{:case 'a'}a{/switch}

@@ -1,0 +1,6 @@
+Unexpected block breakpoint "foo" on line 2 at index 14.
+
+1|// error: unknown breakpoint in switch
+2|{@switch x}{:foo}bar{/switch}
+               ^
+3|

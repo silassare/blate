@@ -1,0 +1,2 @@
+{@each item in items}[{item}]{:else}empty{/each}
+{@each item in empty_list}[{item}]{:else}no items{/each}

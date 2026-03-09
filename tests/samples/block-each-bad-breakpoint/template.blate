@@ -1,0 +1,2 @@
+// error: unknown breakpoint in each
+{@each item in items}{:foo}bar{/each}

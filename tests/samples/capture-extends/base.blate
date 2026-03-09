@@ -1,0 +1,1 @@
+<b>{@slot content}default{/slot}</b>

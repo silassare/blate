@@ -1,0 +1,2 @@
+// error: if never closed
+{@if flag}yes

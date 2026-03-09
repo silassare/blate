@@ -1,0 +1,17 @@
+{upper(str)}
+{lower(str)}
+{ucfirst('hello world')}
+{trim('  hello  ')}
+{truncate(str, 5)}
+{substr(str, 1, 3)}
+{replace(str, 'World', 'Blate')}
+{startsWith(str, 'Hello') | if('yes','no')}
+{endsWith(str, 'World') | if('yes','no')}
+{contains(str, 'ello') | if('yes','no')}
+{split('a-b-c', '-') | join('+')}
+{pad('hi', 5, '-')}
+{pad('hi', 5, '-', 'left')}
+{repeat('ab', 3)}
+{sprintf('%05d', 42)}
+{stripTags('<b>bold</b> <i>text</i>')}
+{nl2br("line1\nline2") | stripTags}

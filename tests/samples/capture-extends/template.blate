@@ -1,0 +1,1 @@
+{@capture box}{@extends './base.blate' $$}{@slot content}{label}{/slot}{/extends}{/capture}[{= box}]

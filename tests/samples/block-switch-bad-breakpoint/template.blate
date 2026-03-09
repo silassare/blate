@@ -1,0 +1,2 @@
+// error: unknown breakpoint in switch
+{@switch x}{:foo}bar{/switch}

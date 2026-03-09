@@ -1,0 +1,11 @@
+{default(val, 'missing')}
+{default(absent, 'fallback')}
+{if(flag, 'yes', 'no')}
+{if(!flag, 'yes', 'no')}
+{cast('42', 'int') | type}
+{cast(1, 'bool') | if('true','false')}
+{has(obj, 'name') | if('yes','no')}
+{has(obj, 'gone') | if('yes','no')}
+{type(42)}
+{type(42, 'int') | if('yes','no')}
+{type('hello', 'int') | if('yes','no')}

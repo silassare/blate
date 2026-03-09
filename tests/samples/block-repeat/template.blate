@@ -1,0 +1,3 @@
+{@repeat 3}x{/repeat}
+{@repeat 3 as i}{i}{/repeat}
+{@repeat count as n}{n}:{/repeat}

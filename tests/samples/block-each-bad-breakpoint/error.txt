@@ -1,0 +1,6 @@
+Unexpected block breakpoint "foo" on line 2 at index 24.
+
+1|// error: unknown breakpoint in each
+2|{@each item in items}{:foo}bar{/each}
+                         ^
+3|

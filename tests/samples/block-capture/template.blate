@@ -1,0 +1,2 @@
+{@capture msg}Hello, {name}!{/capture}{msg}
+{@capture tag}<em>{title}</em>{/capture}{= tag}

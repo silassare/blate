@@ -1,0 +1,5 @@
+Unexpected block breakpoint "case" on line 1 at index 13.
+
+1|// error: {:case} used after {:default}
+              ^
+2|{@switch x}{:default}other{:case 'a'}a{/switch}

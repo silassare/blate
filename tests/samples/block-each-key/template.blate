@@ -1,0 +1,1 @@
+{@each val:key in map}{key}={val} {/each}

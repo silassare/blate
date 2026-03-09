@@ -1,0 +1,6 @@
+Block "if" opened on line 2 index 3 was never closed.
+
+1|// error: if never closed
+2|{@if flag}yes
+    ^
+3|
