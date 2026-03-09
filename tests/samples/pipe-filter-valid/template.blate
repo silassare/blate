@@ -1,0 +1,3 @@
+{name | length}
+{list | join(', ')}
+{list | join(' ') | length}

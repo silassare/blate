@@ -83,6 +83,22 @@ final class TemplateSyntaxTest extends TestCase
 		$this->runValid('expression-valid');
 	}
 
+	/**
+	 * @throws BlateException
+	 */
+	public function testValidExpressionUnary(): void
+	{
+		$this->runValid('expression-unary-valid');
+	}
+
+	/**
+	 * @throws BlateException
+	 */
+	public function testPipeFilterValid(): void
+	{
+		$this->runValid('pipe-filter-valid');
+	}
+
 	public function testBlockUndefined(): void
 	{
 		$this->runInvalid('block-undefined');

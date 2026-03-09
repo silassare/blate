@@ -1,0 +1,13 @@
+
+		public function build(DataContext $context): void
+		{
+			
+echo $context->noHTML(-5);
+echo $context->noHTML(+5);
+echo $context->noHTML($context->chain('1:10')->get('1:10', 'a')->val() > -1);
+echo $context->noHTML($context->chain('1:18')->get('1:18', 'a')->val() && !$context->chain('1:24')->get('1:24', 'b')->val());
+echo $context->noHTML($context->chain('1:27')->get('1:27', 'a')->val() == !$context->chain('1:33')->get('1:33', 'b')->val());
+echo $context->noHTML($context->chain('1:36')->get('1:36', 'a')->val() + -$context->chain('1:41')->get('1:41', 'b')->val());
+echo '
+';
+		}
