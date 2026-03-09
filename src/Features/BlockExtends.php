@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Blate\Features;
 
-use Blate\Blate;
 use Blate\Exceptions\BlateParserException;
 use Blate\Expressions\Expression;
 use Blate\Helpers\Helpers;
@@ -104,9 +103,9 @@ class BlockExtends extends Block
 		$this->lexer->nextIs(Token::T_WHITESPACE);
 
 		$context               = (new Expression())->get($this->lexer);
-		$extended_blate_var    = Blate::createVar();
-		$extended_instance_var = Blate::createVar();
-		$extended_context_var  = Blate::createVar();
+		$extended_blate_var    = $this->parser->createVar();
+		$extended_instance_var = $this->parser->createVar();
+		$extended_context_var  = $this->parser->createVar();
 
 		$this->extends->setAttribute(Token::ATTR_EXTENDED_BLATE_VAR, $extended_instance_var);
 		$this->extends->setAttribute(Token::ATTR_EXTENDED_INSTANCE_VAR, $extended_instance_var);

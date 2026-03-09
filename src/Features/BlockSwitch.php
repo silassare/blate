@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Blate\Features;
 
-use Blate\Blate;
 use Blate\Exceptions\BlateParserException;
 use Blate\Expressions\Expression;
 use Blate\Interfaces\TokenInterface;
@@ -70,7 +69,7 @@ class BlockSwitch extends Block
 	{
 		$this->lexer->nextIs(Token::T_WHITESPACE);
 		$expression        = (new Expression())->get($this->lexer);
-		$this->switch_var  = Blate::createVar();
+		$this->switch_var  = $this->parser->createVar();
 		$this->parser->writeCode($this->switch_var . ' = ' . $expression . ';');
 	}
 

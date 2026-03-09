@@ -36,7 +36,7 @@ use Blate\Token;
  *   Creates a new DataContext scope (newContext()), emits a foreach loop that
  *   sets the named variables on the context, and closes the scope on {/each}.
  *
- * Unique PHP variable names are generated via Blate::createVar() to avoid
+ * Unique PHP variable names are generated via Parser::createVar() to avoid
  * collisions with user-defined template variables.
  */
 class BlockEach extends Block
@@ -90,12 +90,12 @@ class BlockEach extends Block
 
 		$list_access = (new Expression())->get($this->lexer);
 
-		$value_var = Blate::createVar();
-		$key_var   = Blate::createVar();
-		$index_var = Blate::createVar();
+		$value_var = $this->parser->createVar();
+		$key_var   = $this->parser->createVar();
+		$index_var = $this->parser->createVar();
 		$code      = '';
 
-		$this->had_var = Blate::createVar();
+		$this->had_var = $this->parser->createVar();
 		$this->parser->writeCode($this->had_var . ' = false;');
 		$this->parser->newDataContext();
 

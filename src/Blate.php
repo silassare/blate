@@ -346,7 +346,12 @@ final class Blate
 	}
 
 	/**
-	 * Create a new variable name.
+	 * Create a new variable name using a process-level static counter.
+	 *
+	 * NOTE: all built-in block implementations now call Parser::createVar()
+	 * instead, which uses a per-instance counter safe for concurrent use in
+	 * persistent runtimes (Swoole, RoadRunner, PHP Fibers).  This static
+	 * method is kept for backward compatibility with external callers.
 	 *
 	 * @return string
 	 */
@@ -509,18 +514,27 @@ final class Blate
 	}
 
 	/**
-	 * Write a file.
+	 * Write a file atomically using a temp file + rename.
+	 *
+	 * Writing directly to the target with fopen('w') truncates it immediately,
+	 * which means a concurrent process doing include() on the same path could
+	 * read a partially-written PHP file and trigger a fatal parse error.
+	 * rename() is atomic on POSIX systems, so the target is either the old
+	 * content or the new complete content -- never a partial write.
 	 *
 	 * @throws BlateException
 	 */
 	private function writeFile(string $path, string $content): void
 	{
+		$dir = \dirname($path);
+
 		// make sure that file is writable at this location,
-		if (!\file_exists(\dirname($path)) || !\is_writable(\dirname($path))) {
+		if (!\file_exists($dir) || !\is_writable($dir)) {
 			throw new BlateException(\sprintf(Message::FILE_IS_NOT_WRITABLE, $path));
 		}
 
-		$f = \fopen($path, 'w');
+		$tmp = $path . '.' . \uniqid('', true) . '.tmp';
+		$f   = \fopen($tmp, 'w');
 
 		if (false === $f) {
 			throw new BlateException(\sprintf(Message::FILE_IS_NOT_WRITABLE, $path));
@@ -528,5 +542,6 @@ final class Blate
 
 		\fwrite($f, $content);
 		\fclose($f);
+		\rename($tmp, $path);
 	}
 }

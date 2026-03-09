@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Blate\Features;
 
-use Blate\Blate;
 use Blate\Exceptions\BlateParserException;
 use Blate\Expressions\Expression;
 use Blate\Helpers\Helpers;
@@ -64,9 +63,9 @@ class BlockImport extends Block
 		$this->lexer->nextIs(Token::T_WHITESPACE);
 
 		$context      = (new Expression())->get($this->lexer);
-		$blate_var    = Blate::createVar();
-		$instance_var = Blate::createVar();
-		$context_var  = Blate::createVar();
+		$blate_var    = $this->parser->createVar();
+		$instance_var = $this->parser->createVar();
+		$context_var  = $this->parser->createVar();
 
 		$this->parser->writeCode(\sprintf(
 			'

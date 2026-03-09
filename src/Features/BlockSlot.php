@@ -68,7 +68,7 @@ class BlockSlot extends Block
 			->getActive();
 		$this->slot            = $name_token;
 		$slots                 = $this->parser->slots();
-		$this->slot_inject_arg = Blate::createVar();
+		$this->slot_inject_arg = $this->parser->createVar();
 
 		if (!$extends) {
 			$store_key = self::NAME . '.' . $name;

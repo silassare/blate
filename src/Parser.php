@@ -41,6 +41,15 @@ class Parser
 	protected Lexer $lexer;
 
 	/**
+	 * Per-instance counter for generated PHP variable names.
+	 *
+	 * Keeping this per-instance (rather than as a process-level static) ensures
+	 * that two concurrent template compilations in the same process -- e.g. in
+	 * Swoole, RoadRunner, or PHP Fibers -- never produce clashing variable names.
+	 */
+	private int $var_counter = 0;
+
+	/**
 	 * @param Blate $blate
 	 */
 	public function __construct(protected Blate $blate)
@@ -66,6 +75,20 @@ class Parser
 	public function getLexer(): Lexer
 	{
 		return $this->lexer;
+	}
+
+	/**
+	 * Create a unique PHP variable name for use in compiled template code.
+	 *
+	 * All built-in block implementations call this method (not the static
+	 * Blate::createVar()) so that each compile pass uses its own counter and
+	 * concurrent compilations cannot produce clashing names.
+	 *
+	 * @return string e.g. "$_bv_0", "$_bv_1", ...
+	 */
+	public function createVar(): string
+	{
+		return '$_bv_' . ($this->var_counter++);
 	}
 
 	/**

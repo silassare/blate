@@ -216,7 +216,10 @@ class Helpers
 	}
 
 	/**
-	 * Escape a value using full HTML entities (htmlentities).
+	 * Escape a value for safe HTML output (htmlspecialchars).
+	 *
+	 * Encodes <, >, &, ", ' only. This is correct and sufficient for XSS
+	 * prevention in UTF-8 documents without corrupting multibyte characters.
 	 *
 	 * @param mixed $untrusted The value to escape
 	 *
@@ -224,29 +227,66 @@ class Helpers
 	 */
 	public static function escapeHtml(mixed $untrusted): string
 	{
-		return \htmlentities((string) $untrusted, \ENT_QUOTES, 'UTF-8');
+		return \htmlspecialchars((string) $untrusted, \ENT_QUOTES | \ENT_SUBSTITUTE, 'UTF-8');
 	}
 
 	/**
 	 * Generate an HTML attributes string from an associative array.
 	 *
+	 * Default mode ($raw = false) -- HTML boolean attribute semantics:
+	 *   - null / false / '' : attribute is omitted entirely (absent = false in HTML)
+	 *   - true              : standalone boolean attribute, e.g. disabled, checked
+	 *   - other             : attr="escaped-value"
+	 *
+	 * Raw mode ($raw = true) -- for data-* / ARIA / custom attributes where
+	 * false and null carry meaningful string values, not absent-flag semantics:
+	 *   - null  -> attr=""
+	 *   - false -> attr="false"
+	 *   - true  -> attr="true" (NOT a standalone flag)
+	 *   - other -> attr="escaped-value"
+	 *
+	 * Example (template syntax, pass 1 for raw mode since boolean literals
+	 * resolve as variable names in expressions):
+	 *   {= attrs(boolAttrs)}        -> disabled id="btn"
+	 *   {= attrs(dataAttrs, 1)}     -> data-active="false" data-count=""
+	 *
 	 * @param array<string, null|bool|int|string> $data
+	 * @param bool|int                            $raw  When truthy, disables HTML boolean
+	 *                                                  semantics: false -> "false",
+	 *                                                  null -> "", true -> "true".
+	 *                                                  Pass 1 from templates (boolean
+	 *                                                  literals resolve as variable names).
 	 *
 	 * @return string
 	 */
-	public static function attrs(array $data): string
+	public static function attrs(array $data, bool|int $raw = false): string
 	{
 		$out = '';
 
 		foreach ($data as $raw_attr => $val) {
 			$attr = self::escape((string) $raw_attr);
 
-			if (null !== $val && '' !== $val) {
-				if (\is_bool($val)) {
-					$attr .= ($val ? '' : '="false"');
-				} else {
+			if ($raw) {
+				// Raw coercion: emit every attribute, map PHP booleans/null to
+				// their string representation. false !== null so they differ.
+				$str_val = match (true) {
+					null === $val  => '',
+					false === $val => 'false',
+					true === $val  => 'true',
+					default        => (string) $val,
+				};
+				$attr .= '="' . self::escape($str_val) . '"';
+			} else {
+				// HTML boolean attribute semantics: presence = true, absence = false.
+				// Omit the attribute entirely when value is null, '' or false.
+				if (null === $val || '' === $val || false === $val) {
+					continue;
+				}
+
+				if (true !== $val) {
 					$attr .= '="' . self::escape($val) . '"';
 				}
+				// bool true -> standalone attribute (no value suffix)
 			}
 
 			$out .= ($out ? ' ' . $attr : $attr);
@@ -451,12 +491,15 @@ class Helpers
 	/**
 	 * Encode a value as a JSON string.
 	 *
+	 * The default flags include JSON_HEX_TAG and JSON_HEX_AMP so that
+	 * the output is safe to embed inside HTML <script> blocks.
+	 *
 	 * @param mixed $value The value to encode
-	 * @param int   $flags JSON encoding flags (default: 0)
+	 * @param int   $flags JSON encoding flags
 	 *
 	 * @return string
 	 */
-	public static function json(mixed $value, int $flags = 0): string
+	public static function json(mixed $value, int $flags = \JSON_HEX_TAG | \JSON_HEX_AMP | \JSON_THROW_ON_ERROR): string
 	{
 		return (string) \json_encode($value, $flags);
 	}
