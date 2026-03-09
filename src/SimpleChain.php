@@ -48,6 +48,7 @@ use ReflectionProperty;
 class SimpleChain
 {
 	private mixed $current;
+	private mixed $current_key =  '';
 
 	private bool $is_head = true;
 
@@ -76,7 +77,7 @@ class SimpleChain
 
 			if (!self::has($source, $key, $val)) {
 				throw (new BlateRuntimeException(\sprintf(Message::CHAIN_UNDEFINED_KEY, $key, \get_debug_type($source))))
-					->suspectLocation($this->buildSuspectLocation($location));
+					->suspectLocation($this->buildSuspectLocation($location, $key));
 			}
 		}
 
@@ -85,6 +86,7 @@ class SimpleChain
 		}
 
 		$this->current = $val;
+		$this->current_key = $key;
 
 		return $this;
 	}
@@ -108,10 +110,11 @@ class SimpleChain
 
 		if (null === $val) {
 			throw (new BlateRuntimeException(\sprintf(Message::HELPER_NOT_FOUND, $key)))
-				->suspectLocation($this->buildSuspectLocation($location));
+				->suspectLocation($this->buildSuspectLocation($location, $key));
 		}
 
 		$this->current = $val;
+		$this->current_key = $key;
 
 		return $this;
 	}
@@ -128,7 +131,7 @@ class SimpleChain
 	{
 		if (!\is_callable($this->current)) {
 			throw (new BlateRuntimeException(\sprintf(Message::CHAIN_VALUE_NOT_A_CALLABLE, \get_debug_type($this->current))))
-				->suspectLocation($this->buildSuspectLocation($location));
+				->suspectLocation($this->buildSuspectLocation($location, $this->current_key));
 		}
 
 		$this->current = \call_user_func_array($this->current, $args);
@@ -183,10 +186,11 @@ class SimpleChain
 	 * Parses a compiled-in 'line:index' location string into a suspect-location array.
 	 *
 	 * @param string $location 'line:index' encoded at compile time
+	 * @param mixed  $key      the key being accessed
 	 *
-	 * @return array{file: string, line: int, start: int}
+	 * @return array{file: string, line: int, start: int, end: int}
 	 */
-	private function buildSuspectLocation(string $location): array
+	private function buildSuspectLocation(string $location, mixed $key): array
 	{
 		$parts = \explode(':', $location, 2);
 
@@ -194,6 +198,7 @@ class SimpleChain
 			'file'  => $this->data_context->getBlate()->getSrcPath() ?? 'inline',
 			'line'  => (int) ($parts[0] ?? 0),
 			'start' => (int) ($parts[1] ?? 0),
+			'end'   => (int) ($parts[1] ?? 0) + \strlen((string) $key),
 		];
 	}
 }

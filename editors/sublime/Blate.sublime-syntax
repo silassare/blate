@@ -13,6 +13,7 @@ contexts:
     - include: blate-inline-php
     - include: blate-block-close
     - include: blate-block-breakpoint
+    - include: blate-raw-block
     - include: blate-block-open
     - include: blate-print-raw
     - include: blate-print-escaped
@@ -42,6 +43,25 @@ contexts:
           scope: punctuation.section.embedded.end.blate
           pop: true
         - include: scope:source.php
+
+  # ---------------------------------------------------------------------------
+  # {@raw}...{/raw} - literal content, no inner Blate parsing
+  # ---------------------------------------------------------------------------
+  blate-raw-block:
+    - match: '(\{)(@raw)(\})'
+      captures:
+        1: punctuation.section.tag.begin.blate
+        2: keyword.control.blate
+        3: punctuation.section.tag.end.blate
+      push:
+        - meta_scope: meta.block.raw.blate
+        - match: '(\{)(\/raw)(\})'
+          captures:
+            1: punctuation.section.tag.begin.blate
+            2: keyword.control.blate
+            3: punctuation.section.tag.end.blate
+          pop: true
+        # No patterns - content is literal text, not highlighted as Blate
 
   # ---------------------------------------------------------------------------
   # {@blockname expr}
@@ -113,7 +133,7 @@ contexts:
   # Negative lookahead prevents matching the opening chars of other tag types.
   # ---------------------------------------------------------------------------
   blate-print-escaped:
-    - match: '(\{)(?=[^#~@/=:\}\s])'
+    - match: '(\{)(\s*)(?=[^#~@/=:\}])'
       captures:
         1: punctuation.section.tag.begin.blate
       push:

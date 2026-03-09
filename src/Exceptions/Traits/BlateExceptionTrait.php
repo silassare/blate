@@ -75,6 +75,16 @@ trait BlateExceptionTrait
 	}
 
 	/**
+	 * Gets the chunk associated with this exception, if any.
+	 *
+	 * @return null|ChunkInterface
+	 */
+	public function getChunk(): ?ChunkInterface
+	{
+		return $this->chunk;
+	}
+
+	/**
 	 * Pretty error string.
 	 */
 	public function describe(bool $include_debug_data = false, bool $include_stack_trace = false): string

@@ -1,7 +1,7 @@
 {
 	"name": "blate",
 	"displayName": "Blate Template",
-	"description": "Syntax highlighting for Blate template files (.blate)",
+	"description": "Syntax highlighting and Language Server for Blate template files (.blate)",
 	"version": "1.0.0",
 	"publisher": "silassare",
 	"license": "MIT",
@@ -15,6 +15,10 @@
 	"categories": [
 		"Programming Languages"
 	],
+	"activationEvents": [
+		"onLanguage:blate"
+	],
+	"main": "./out/extension.js",
 	"contributes": {
 		"languages": [
 			{
@@ -39,6 +43,28 @@
 					"text.html.basic": "html"
 				}
 			}
-		]
+		],
+		"configuration": {
+			"title": "Blate",
+			"properties": {
+				"blate.phpExecutable": {
+					"type": "string",
+					"default": "php",
+					"description": "Path to the PHP executable used to run the Blate language server."
+				}
+			}
+		}
+	},
+	"scripts": {
+		"compile": "node esbuild.js",
+		"watch": "node esbuild.js --watch",
+		"vscode:prepublish": "node esbuild.js --minify"
+	},
+	"dependencies": {},
+	"devDependencies": {
+		"@types/node": "^20.0.0",
+		"@types/vscode": "^1.60.0",
+		"esbuild": "^0.25.0",
+		"vscode-languageclient": "^9.0.1"
 	}
 }

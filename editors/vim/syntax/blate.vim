@@ -49,6 +49,15 @@ else
 endif
 highlight default link blatePhpBlock Special
 
+" --- {@raw}...{/raw} (literal content -- no inner Blate parsing) -------------
+" Must be defined BEFORE blateBlockOpen so it takes priority at {@ positions.
+syntax region blateRawBlock
+      \ start="{@raw}"  end="{/raw}"
+      \ contains=blateRawTag keepend extend
+syntax match blateRawTag contained "{@raw}\|{/raw}"
+highlight default link blateRawBlock Normal
+highlight default link blateRawTag Statement
+
 " --- {@blockname ...} ---------------------------------------------------------
 syntax region blateBlockOpen
       \ start="{@"  end="}"

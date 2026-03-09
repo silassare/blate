@@ -215,7 +215,7 @@ final class Blate
 					->getClassBody();
 				$this->save();
 			}
-		} catch (BlateException|BlateRuntimeException $t) {
+		} catch (BlateException | BlateRuntimeException $t) {
 			throw $t->templateSource($this->template);
 		}
 
@@ -448,6 +448,16 @@ final class Blate
 	public static function getHelpers(): array
 	{
 		return self::$helpers;
+	}
+
+	/**
+	 * Get the registered blocks.
+	 *
+	 * @return array<string, class-string<BlockInterface>>
+	 */
+	public static function getBlocks(): array
+	{
+		return self::$blocks;
 	}
 
 	/**

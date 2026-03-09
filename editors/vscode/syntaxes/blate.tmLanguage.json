@@ -8,6 +8,7 @@
 		{ "include": "#blate-inline-php" },
 		{ "include": "#blate-block-close" },
 		{ "include": "#blate-block-breakpoint" },
+		{ "include": "#blate-raw-block" },
 		{ "include": "#blate-block-open" },
 		{ "include": "#blate-print-raw" },
 		{ "include": "#blate-print-escaped" },
@@ -38,6 +39,23 @@
 			},
 			"contentName": "source.php",
 			"patterns": [{ "include": "source.php" }]
+		},
+
+		"blate-raw-block": {
+			"comment": "{@raw}...{/raw} - literal content, no inner Blate parsing",
+			"name": "meta.block.raw.blate",
+			"begin": "(\\{)(@raw)(\\})",
+			"beginCaptures": {
+				"1": { "name": "punctuation.section.tag.begin.blate" },
+				"2": { "name": "keyword.control.blate" },
+				"3": { "name": "punctuation.section.tag.end.blate" }
+			},
+			"end": "(\\{)(\\/raw)(\\})",
+			"endCaptures": {
+				"1": { "name": "punctuation.section.tag.begin.blate" },
+				"2": { "name": "keyword.control.blate" },
+				"3": { "name": "punctuation.section.tag.end.blate" }
+			}
 		},
 
 		"blate-block-open": {
@@ -115,7 +133,7 @@
 
 		"blate-print-escaped": {
 			"name": "meta.print.escaped.blate",
-			"begin": "(\\{)(?=[^#~@\\/=:\\}\\s])",
+			"begin": "(\\{)(\\s*)(?=[^#~@\\/=:\\}])",
 			"beginCaptures": {
 				"1": { "name": "punctuation.section.tag.begin.blate" }
 			},

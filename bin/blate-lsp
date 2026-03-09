@@ -1,0 +1,5 @@
+#!/usr/bin/env sh
+# Blate Language Server - thin shell wrapper.
+# Usage: blate-lsp
+# Invoke with: php bin/blate-lsp
+exec php "$(dirname "$0")/../editors/lsp/server.php" "$@"
