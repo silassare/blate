@@ -98,6 +98,8 @@ class Token implements TokenInterface
 
 	public const T_TILDE = 29;
 
+	public const T_NULL_COALESCE = 30;
+
 	public const ATTR_IN_TREE = 'in_tree';
 
 	public const ATTR_ACTIVE_CHAIN = 'active_chain';
@@ -233,7 +235,7 @@ class Token implements TokenInterface
 	public function isLogicalCondition(): bool
 	{
 		return match ($this->type) {
-			self::T_COND_AND, self::T_COND_OR => true,
+			self::T_COND_AND, self::T_COND_OR, self::T_NULL_COALESCE => true,
 			default => false,
 		};
 	}

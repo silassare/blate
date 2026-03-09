@@ -12,6 +12,7 @@
 declare(strict_types=1);
 
 use Blate\Blate;
+use Blate\Features\BlockCapture;
 use Blate\Features\BlockComment;
 use Blate\Features\BlockEach;
 use Blate\Features\BlockExtends;
@@ -20,9 +21,11 @@ use Blate\Features\BlockImport;
 use Blate\Features\BlockImportRaw;
 use Blate\Features\BlockPhp;
 use Blate\Features\BlockRaw;
+use Blate\Features\BlockRepeat;
 use Blate\Features\BlockScoped;
 use Blate\Features\BlockSet;
 use Blate\Features\BlockSlot;
+use Blate\Features\BlockSwitch;
 use Blate\Helpers\Helpers;
 
 Blate::registerBlock(BlockEach::NAME, BlockEach::class);
@@ -36,4 +39,7 @@ Blate::registerBlock(BlockRaw::NAME, BlockRaw::class);
 Blate::registerBlock(BlockExtends::NAME, BlockExtends::class);
 Blate::registerBlock(BlockComment::NAME, BlockComment::class);
 Blate::registerBlock(BlockPhp::NAME, BlockPhp::class);
+Blate::registerBlock(BlockCapture::NAME, BlockCapture::class);
+Blate::registerBlock(BlockRepeat::NAME, BlockRepeat::class);
+Blate::registerBlock(BlockSwitch::NAME, BlockSwitch::class);
 Helpers::register();

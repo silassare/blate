@@ -20,8 +20,8 @@ use Blate\Blate;
  * file that was distributed with this source code.
  */
 
-require_once __DIR__ . '../../vendor/autoload.php';
+require_once __DIR__ . '/../vendor/autoload.php';
 
 require_once __DIR__ . '/Utils/define.php';
 
-Blate::setCacheDir(__DIR__ . '/cache');
+Blate::setCacheDir(__DIR__ . '/../cache');

@@ -16,18 +16,21 @@ namespace Blate\Features;
 use Blate\Blate;
 use Blate\Exceptions\BlateParserException;
 use Blate\Expressions\Expression;
+use Blate\Interfaces\TokenInterface;
 use Blate\Message;
 use Blate\Token;
 
 /**
  * Class BlockEach.
  *
- * Implements the {@each val[:key[:idx]] in list}...{/each} iteration block.
+ * Implements the {@each val[:key[:idx]] in list}...{:else}...{/each} iteration block.
  *
  * Syntax forms:
  *   {@each value in list}               -- value only
  *   {@each value:key in list}           -- value + key
  *   {@each value:key:index in list}     -- value + key + iteration index
+ *
+ * An optional {:else} branch renders when the list is empty.
  *
  * Compile-time output:
  *   Creates a new DataContext scope (newContext()), emits a foreach loop that
@@ -39,6 +42,12 @@ use Blate\Token;
 class BlockEach extends Block
 {
 	public const NAME = 'each';
+
+	public const BREAKPOINT_ELSE = 'else';
+
+	private string $had_var = '';
+
+	private bool $else_found = false;
 
 	/**
 	 * {@inheritDoc}
@@ -86,6 +95,8 @@ class BlockEach extends Block
 		$index_var = Blate::createVar();
 		$code      = '';
 
+		$this->had_var = Blate::createVar();
+		$this->parser->writeCode($this->had_var . ' = false;');
 		$this->parser->newDataContext();
 
 		if (isset($key_access_name, $index_access_name)) {
@@ -93,12 +104,14 @@ class BlockEach extends Block
 				'
 %s = 0;
 foreach (%s as %s => %s) {
+	%s = true;
 	%s->set(\'%s\',%s)->set(\'%s\',%s)->set(\'%s\',%s++);
 ',
 				$index_var,
 				$list_access,
 				$key_var,
 				$value_var,
+				$this->had_var,
 				Blate::DATA_CONTEXT_VAR,
 				$key_access_name->getValue(),
 				$key_var,
@@ -111,11 +124,13 @@ foreach (%s as %s => %s) {
 			$code .= \sprintf(
 				'
 foreach (%s as %s => %s) {
+	%s = true;
 	%s->set(\'%s\',%s)->set(\'%s\',%s);
 ',
 				$list_access,
 				$key_var,
 				$value_var,
+				$this->had_var,
 				Blate::DATA_CONTEXT_VAR,
 				$key_access_name->getValue(),
 				$key_var,
@@ -126,10 +141,12 @@ foreach (%s as %s => %s) {
 			$code .= \sprintf(
 				'
 foreach (%s as %s) {
+	%s = true;
 	%s->set(\'%s\',%s);
 ',
 				$list_access,
 				$value_var,
+				$this->had_var,
 				Blate::DATA_CONTEXT_VAR,
 				$value_access_name->getValue(),
 				$value_var
@@ -142,12 +159,29 @@ foreach (%s as %s) {
 	/**
 	 * {@inheritDoc}
 	 */
+	public function onBreakPoint(TokenInterface $token): void
+	{
+		if (self::BREAKPOINT_ELSE !== $token->getValue()) {
+			throw BlateParserException::withToken(Message::BLOCK_BREAKPOINT_UNEXPECTED, $token);
+		}
+
+		$this->else_found = true;
+		$this->parser->writeCode("}\n");
+		$this->parser->popDataContext();
+		$this->parser->writeCode('if (!' . $this->had_var . ") {\n");
+		$this->parser->tagClose();
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
 	public function onClose(): void
 	{
-		$this->parser->writeCode('
-}
-');
-		$this->parser->popDataContext();
+		$this->parser->writeCode("}\n");
+
+		if (!$this->else_found) {
+			$this->parser->popDataContext();
+		}
 	}
 
 	/**

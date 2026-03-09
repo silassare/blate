@@ -470,6 +470,11 @@ class Lexer implements LexerInterface
 			$reader->move();
 			$chunk->setValue($c);
 			$type = Token::T_AT;
+		} elseif ('?' === $c && '?' === $reader->next()) {
+			$reader->move();
+			$reader->move();
+			$chunk->setValue('??');
+			$type = Token::T_NULL_COALESCE;
 		} else {
 			$reader->move();
 			$chunk->setValue($c);

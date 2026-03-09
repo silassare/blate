@@ -57,12 +57,20 @@ class Helpers
 		Blate::registerHelper('nl2br', [static::class, 'nl2br']);
 		Blate::registerHelper('url', [static::class, 'url']);
 		Blate::registerHelper('json', [static::class, 'json']);
+		Blate::registerHelper('startsWith', [static::class, 'startsWith']);
+		Blate::registerHelper('endsWith', [static::class, 'endsWith']);
+		Blate::registerHelper('contains', [static::class, 'contains']);
+		Blate::registerHelper('repeat', [static::class, 'repeat']);
+		Blate::registerHelper('pad', [static::class, 'pad']);
+		Blate::registerHelper('sprintf', [static::class, '_sprintf']);
+		Blate::registerHelper('stripTags', [static::class, 'stripTags']);
 
 		// Array
 		Blate::registerHelper('join', [static::class, 'join']);
 		Blate::registerHelper('keys', [static::class, 'keys']);
 		Blate::registerHelper('values', [static::class, 'values']);
 		Blate::registerHelper('length', [static::class, 'length']);
+		Blate::registerHelper('count', [static::class, 'length']);
 		Blate::registerHelper('first', [static::class, 'first']);
 		Blate::registerHelper('last', [static::class, 'last']);
 		Blate::registerHelper('slice', [static::class, 'slice']);
@@ -71,12 +79,24 @@ class Helpers
 		Blate::registerHelper('flatten', [static::class, 'flatten']);
 		Blate::registerHelper('chunk', [static::class, 'chunk']);
 		Blate::registerHelper('merge', [static::class, 'merge']);
+		Blate::registerHelper('sort', [static::class, 'sort']);
+		Blate::registerHelper('sortBy', [static::class, 'sortBy']);
+		Blate::registerHelper('range', [static::class, '_range']);
+		Blate::registerHelper('min', [static::class, '_min']);
+		Blate::registerHelper('max', [static::class, '_max']);
+		Blate::registerHelper('sum', [static::class, 'sum']);
+		Blate::registerHelper('avg', [static::class, 'avg']);
+		Blate::registerHelper('shuffle', [static::class, 'shuffle']);
+		Blate::registerHelper('filter', [static::class, 'filter']);
 
 		// Number
 		Blate::registerHelper('number', [static::class, 'number']);
 		Blate::registerHelper('abs', [static::class, 'abs']);
 		Blate::registerHelper('round', [static::class, 'round']);
 		Blate::registerHelper('clamp', [static::class, 'clamp']);
+		Blate::registerHelper('floor', [static::class, 'floor']);
+		Blate::registerHelper('ceil', [static::class, 'ceil']);
+		Blate::registerHelper('random', [static::class, 'random']);
 
 		// Date
 		Blate::registerHelper('now', [static::class, 'now']);
@@ -441,6 +461,112 @@ class Helpers
 		return (string) \json_encode($value, $flags);
 	}
 
+	/**
+	 * Check if a string starts with a given prefix.
+	 *
+	 * @param string $str    The input string
+	 * @param string $prefix The prefix to check
+	 *
+	 * @return bool
+	 */
+	public static function startsWith(string $str, string $prefix): bool
+	{
+		return \str_starts_with($str, $prefix);
+	}
+
+	/**
+	 * Check if a string ends with a given suffix.
+	 *
+	 * @param string $str    The input string
+	 * @param string $suffix The suffix to check
+	 *
+	 * @return bool
+	 */
+	public static function endsWith(string $str, string $suffix): bool
+	{
+		return \str_ends_with($str, $suffix);
+	}
+
+	/**
+	 * Check if a string or array contains a given value.
+	 *
+	 * For strings: checks if $needle appears as a substring (case-sensitive).
+	 * For arrays: checks strict membership with in_array.
+	 *
+	 * @param array|string $haystack The string or array to search
+	 * @param mixed        $needle   The value to search for
+	 *
+	 * @return bool
+	 */
+	public static function contains(array|string $haystack, mixed $needle): bool
+	{
+		if (\is_string($haystack)) {
+			return \str_contains($haystack, (string) $needle);
+		}
+
+		return \in_array($needle, $haystack, true);
+	}
+
+	/**
+	 * Repeat a string a given number of times.
+	 *
+	 * @param string $str   The string to repeat
+	 * @param int    $times The number of repetitions
+	 *
+	 * @return string
+	 */
+	public static function repeat(string $str, int $times): string
+	{
+		return \str_repeat($str, $times);
+	}
+
+	/**
+	 * Pad a string to a certain length.
+	 *
+	 * @param string $str     The input string
+	 * @param int    $length  The target length
+	 * @param string $pad_str The padding character(s) (default: ' ')
+	 * @param string $side    Where to apply padding: 'right' (default), 'left', or 'both'
+	 *
+	 * @return string
+	 */
+	public static function pad(string $str, int $length, string $pad_str = ' ', string $side = 'right'): string
+	{
+		$type = match ($side) {
+			'left'  => \STR_PAD_LEFT,
+			'both'  => \STR_PAD_BOTH,
+			default => \STR_PAD_RIGHT,
+		};
+
+		return \str_pad($str, $length, $pad_str, $type);
+	}
+
+	/**
+	 * Format a string using sprintf-style placeholders.
+	 *
+	 * @param string $format  The format string
+	 * @param mixed  ...$args The values to insert
+	 *
+	 * @return string
+	 */
+	public static function _sprintf(string $format, mixed ...$args): string
+	{
+		return \sprintf($format, ...$args);
+	}
+
+	/**
+	 * Strip HTML and PHP tags from a string.
+	 *
+	 * @param string       $str     The input string
+	 * @param array|string $allowed Tags to keep, e.g. '<p><br>' or ['p', 'br'] (optional)
+	 *
+	 * @return string
+	 */
+	public static function stripTags(string $str, array|string $allowed = ''): string
+	{
+		return \strip_tags($str, $allowed);
+	}
+
 	// =========================================================================
 	// Array
 	// =========================================================================
@@ -627,6 +753,138 @@ class Helpers
 		return \array_merge(...\array_values($arrays));
 	}
 
+	/**
+	 * Sort an array in ascending order and re-index from zero.
+	 *
+	 * @param array $data The input array
+	 *
+	 * @return array
+	 */
+	public static function sort(array $data): array
+	{
+		\sort($data);
+
+		return $data;
+	}
+
+	/**
+	 * Sort an array of associative arrays by the value of a given key.
+	 *
+	 * @param array  $data The input array
+	 * @param string $key  The key to sort by
+	 *
+	 * @return array
+	 */
+	public static function sortBy(array $data, string $key): array
+	{
+		\usort($data, static fn ($a, $b) => ($a[$key] ?? null) <=> ($b[$key] ?? null));
+
+		return $data;
+	}
+
+	/**
+	 * Create an array of integers (or floats) in the given range.
+	 *
+	 * @param float|int $start The first value
+	 * @param float|int $end   The last value (inclusive)
+	 * @param float|int $step  The increment between values (default: 1)
+	 *
+	 * @return array
+	 */
+	public static function _range(float|int $start, float|int $end, float|int $step = 1): array
+	{
+		return \range($start, $end, $step);
+	}
+
+	/**
+	 * Return the minimum value in an array.
+	 *
+	 * @param array $data The input array (must not be empty)
+	 *
+	 * @return mixed
+	 */
+	public static function _min(array $data): mixed
+	{
+		return \min($data);
+	}
+
+	/**
+	 * Return the maximum value in an array.
+	 *
+	 * @param array $data The input array (must not be empty)
+	 *
+	 * @return mixed
+	 */
+	public static function _max(array $data): mixed
+	{
+		return \max($data);
+	}
+
+	/**
+	 * Return the sum of all values in an array.
+	 *
+	 * @param array $data The input array
+	 *
+	 * @return float|int
+	 */
+	public static function sum(array $data): float|int
+	{
+		return \array_sum($data);
+	}
+
+	/**
+	 * Return the arithmetic mean of all values in an array.
+	 *
+	 * Returns 0.0 for an empty array.
+	 *
+	 * @param array $data The input array
+	 *
+	 * @return float
+	 */
+	public static function avg(array $data): float
+	{
+		$count = \count($data);
+
+		return $count > 0 ? (float) (\array_sum($data) / $count) : 0.0;
+	}
+
+	/**
+	 * Shuffle an array and return it.
+	 *
+	 * The original array is not modified; a shuffled copy is returned.
+	 *
+	 * @param array $data The input array
+	 *
+	 * @return array
+	 */
+	public static function shuffle(array $data): array
+	{
+		\shuffle($data);
+
+		return $data;
+	}
+
+	/**
+	 * Filter an array by value.
+	 *
+	 * When $value is omitted, falsy elements are removed (like array_filter with no callback).
+	 * When $value is provided, only elements strictly equal to $value are kept.
+	 * The returned array is re-indexed from zero.
+	 *
+	 * @param array $data  The input array
+	 * @param mixed $value The value to match (optional)
+	 *
+	 * @return array
+	 */
+	public static function filter(array $data, mixed $value = null): array
+	{
+		if (\func_num_args() < 2) {
+			return \array_values(\array_filter($data));
+		}
+
+		return \array_values(\array_filter($data, static fn ($item) => $item === $value));
+	}
+
 	// =========================================================================
 	// Number
 	// =========================================================================
@@ -683,6 +941,45 @@ class Helpers
 	public static function clamp(float|int $value, float|int $min, float|int $max): float|int
 	{
 		return \max($min, \min($max, $value));
+	}
+
+	/**
+	 * Round a number down to the nearest integer.
+	 *
+	 * @param float|int $value The number to floor
+	 *
+	 * @return float
+	 */
+	public static function floor(float|int $value): float
+	{
+		return \floor((float) $value);
+	}
+
+	/**
+	 * Round a number up to the nearest integer.
+	 *
+	 * @param float|int $value The number to ceil
+	 *
+	 * @return float
+	 */
+	public static function ceil(float|int $value): float
+	{
+		return \ceil((float) $value);
+	}
+
+	/**
+	 * Return a cryptographically secure random integer.
+	 *
+	 * When called with no arguments, returns a random integer between 0 and PHP_INT_MAX.
+	 *
+	 * @param int $min The lower bound (inclusive, default: 0)
+	 * @param int $max The upper bound (inclusive, default: PHP_INT_MAX)
+	 *
+	 * @return int
+	 */
+	public static function random(int $min = 0, int $max = \PHP_INT_MAX): int
+	{
+		return \random_int($min, $max);
 	}
 
 	// =========================================================================
