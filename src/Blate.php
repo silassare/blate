@@ -68,6 +68,8 @@ final class Blate
 
 	private static array $checked_classes = [];
 
+	private static ?string $cache_dir = null;
+
 	/**
 	 * @var array<string, class-string<BlockInterface>>
 	 */
@@ -103,7 +105,6 @@ final class Blate
 			$this->src_path = $this->template;
 
 			$path_info = \pathinfo($this->template);
-			$dst_dir   = $path_info['dirname'];
 
 			// change only if:
 			// - file content change
@@ -113,12 +114,22 @@ final class Blate
 		} else {
 			$this->input = $this->template;
 
-			$dst_dir       = BLATE_TEMPLATE_RESOLVE_DIR;
 			$out_file_name = 'blate_' . ($hash = \md5($this->template . self::VERSION));
 		}
 
-		$sub1    = \substr($hash, 0, 2);
-		$sub2    = \substr($hash, 2, 2);
+		$sub1 = \substr($hash, 0, 2);
+		$sub2 = \substr($hash, 2, 2);
+
+		// When a global cache dir is configured, all compiled files go there.
+		// Otherwise fall back to a blate_cache/ sibling of the template file.
+		if (null !== self::$cache_dir) {
+			$dst_dir = self::$cache_dir;
+		} elseif ($this->is_url) {
+			$dst_dir = $path_info['dirname'];
+		} else {
+			$dst_dir = BLATE_TEMPLATE_RESOLVE_DIR;
+		}
+
 		$dst_dir .= \DIRECTORY_SEPARATOR . self::COMPILE_DIR_NAME . \DIRECTORY_SEPARATOR . $sub1 . \DIRECTORY_SEPARATOR . $sub2;
 
 		$this->dst_path = $dst_dir . \DIRECTORY_SEPARATOR . $out_file_name . '.php';
@@ -130,6 +141,30 @@ final class Blate
 		}
 
 		$this->class_fqn = '\Blate\\' . $this->class_name;
+	}
+
+	/**
+	 * Set the global cache directory.
+	 *
+	 * When set, all compiled templates are stored under this directory
+	 * (instead of a blate_cache/ folder next to each template file).
+	 * Pass null to revert to the default per-template-directory behaviour.
+	 *
+	 * @param null|string $dir Absolute path to the desired cache root, or null to reset
+	 */
+	public static function setCacheDir(?string $dir): void
+	{
+		self::$cache_dir = null !== $dir ? \rtrim($dir, '/\\') : null;
+	}
+
+	/**
+	 * Get the configured global cache directory, or null if none is set.
+	 *
+	 * @return null|string
+	 */
+	public static function getCacheDir(): ?string
+	{
+		return self::$cache_dir;
 	}
 
 	/**
