@@ -1,0 +1,5 @@
+&lt;script&gt;alert(&quot;xss&quot;)&lt;/script&gt; &amp; &#039;world&#039;
+Héllo café
+disabled id="btn1"
+data-active="false" data-count="" data-label="hello"
+["\u003C\/script\u003E","\u0026"]

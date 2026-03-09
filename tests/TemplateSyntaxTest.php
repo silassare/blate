@@ -381,6 +381,32 @@ final class TemplateSyntaxTest extends TestCase
 		$this->runValid('helpers-misc');
 	}
 
+	/**
+	 * HTML helpers: escapeHtml, escape, attrs, json.
+	 *
+	 * escapeHtml MUST use htmlspecialchars (not htmlentities) so that multibyte
+	 * UTF-8 characters such as accented letters are preserved as-is and not
+	 * corrupted into named HTML entities (e.g. e-acute -> &eacute;).  Only the
+	 * five HTML-sensitive ASCII characters (<, >, &, ", ') must be encoded.
+	 *
+	 * attrs() default mode follows HTML boolean attribute semantics:
+	 *   - false / null / '' -> omit the attribute entirely (absent = false)
+	 *   - true              -> standalone attribute with no value (e.g. disabled)
+	 * attrs() raw mode (pass 1 in template expressions, true in PHP) emits all
+	 * values as strings for data-* / ARIA / custom attributes:
+	 *   - false -> attr="false"   null -> attr=""   true -> attr="true"
+	 *
+	 * json() default flags include JSON_HEX_TAG and JSON_HEX_AMP so that
+	 * angle brackets and ampersands are unicode-escaped, making the output safe
+	 * to embed directly inside HTML <script> blocks without XSS risk.
+	 *
+	 * @throws BlateException
+	 */
+	public function testHelpersHtml(): void
+	{
+		$this->runValid('helpers-html');
+	}
+
 	// =========================================================================
 	// Forbidden patterns: parse-time errors
 	// =========================================================================
@@ -617,7 +643,7 @@ final class TemplateSyntaxTest extends TestCase
 				$parser->parse();
 				$output = $parser->getClassBody();
 			}
-		} catch (BlateException | BlateRuntimeException $e) {
+		} catch (BlateException|BlateRuntimeException $e) {
 			$error = $e->describe(false, false);
 			\file_put_contents($full_error_file, $e->describe(false, true));
 		}
@@ -655,7 +681,7 @@ final class TemplateSyntaxTest extends TestCase
 				$inject = include $inject_file;
 				$bl->runGet($inject);
 			}
-		} catch (BlateException | BlateRuntimeException $e) {
+		} catch (BlateException|BlateRuntimeException $e) {
 			$error = $e->describe(false, false);
 			\file_put_contents($full_error_file, $e->describe(false, true));
 		}

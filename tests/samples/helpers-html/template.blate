@@ -1,0 +1,5 @@
+{= xss | escapeHtml}
+{multibyte}
+{= attrs(booleans)}
+{= attrs(custom, 1)}
+{= xss_array | json}
