@@ -618,6 +618,90 @@ final class TemplateSyntaxTest extends TestCase
 	}
 
 	// =========================================================================
+	// Block and helper disable / enable
+	// =========================================================================
+
+	/**
+	 * disableBlock() causes compile-time failure; enableBlock() restores it.
+	 *
+	 * @throws BlateException|BlateRuntimeException
+	 */
+	public function testDisableEnableBlock(): void
+	{
+		Blate::disableBlock('if');
+
+		$caught = false;
+
+		try {
+			Blate::fromString('{@if 1}yes{/if}')->parse(true);
+		} catch (BlateException | BlateRuntimeException $e) {
+			$caught = true;
+		} finally {
+			Blate::enableBlock('if');
+		}
+
+		self::assertTrue($caught, 'Parsing a disabled block must throw a BlateException.');
+
+		// Block is now re-enabled - parse and render must succeed.
+		$out = Blate::fromString('{@if 1}yes{/if}')->runGet([]);
+		self::assertSame('yes', $out);
+	}
+
+	/**
+	 * isBlockEnabled() reflects the current disabled / enabled state.
+	 */
+	public function testIsBlockEnabled(): void
+	{
+		self::assertTrue(Blate::isBlockEnabled('if'));
+		Blate::disableBlock('if');
+		self::assertFalse(Blate::isBlockEnabled('if'));
+		Blate::enableBlock('if');
+		self::assertTrue(Blate::isBlockEnabled('if'));
+	}
+
+	/**
+	 * disableHelper() excludes the helper from runtime context; helper-only
+	 * calls ({$name()}) fail at render time. enableHelper() restores it.
+	 *
+	 * @throws BlateException
+	 */
+	public function testDisableEnableHelper(): void
+	{
+		Blate::disableHelper('upper');
+
+		// Parse must still succeed - helpers are resolved at render time only.
+		$bl = Blate::fromString('{$upper(name)}')->parse(true);
+
+		$caught = false;
+
+		try {
+			$bl->runGet(['name' => 'hello']);
+		} catch (BlateRuntimeException $e) {
+			$caught = true;
+		} finally {
+			Blate::enableHelper('upper');
+		}
+
+		self::assertTrue($caught, 'Using a disabled helper must throw a BlateRuntimeException.');
+
+		// Helper is now re-enabled - render must succeed.
+		$out = Blate::fromString('{$upper(name)}')->runGet(['name' => 'hello']);
+		self::assertSame('HELLO', $out);
+	}
+
+	/**
+	 * isHelperEnabled() reflects the current disabled / enabled state.
+	 */
+	public function testIsHelperEnabled(): void
+	{
+		self::assertTrue(Blate::isHelperEnabled('upper'));
+		Blate::disableHelper('upper');
+		self::assertFalse(Blate::isHelperEnabled('upper'));
+		Blate::enableHelper('upper');
+		self::assertTrue(Blate::isHelperEnabled('upper'));
+	}
+
+	// =========================================================================
 	// Infrastructure
 	// =========================================================================
 
@@ -643,7 +727,7 @@ final class TemplateSyntaxTest extends TestCase
 				$parser->parse();
 				$output = $parser->getClassBody();
 			}
-		} catch (BlateException|BlateRuntimeException $e) {
+		} catch (BlateException | BlateRuntimeException $e) {
 			$error = $e->describe(false, false);
 			\file_put_contents($full_error_file, $e->describe(false, true));
 		}
@@ -681,7 +765,7 @@ final class TemplateSyntaxTest extends TestCase
 				$inject = include $inject_file;
 				$bl->runGet($inject);
 			}
-		} catch (BlateException|BlateRuntimeException $e) {
+		} catch (BlateException | BlateRuntimeException $e) {
 			$error = $e->describe(false, false);
 			\file_put_contents($full_error_file, $e->describe(false, true));
 		}
