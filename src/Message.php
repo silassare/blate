@@ -87,6 +87,8 @@ final class Message
 
 	public const IMPORT_PATH_IS_SELF = 'A template shouldn\'t import itself, "{found}" found on line {line} at index {index}.';
 
+	public const BLOCK_NOT_REGISTERED = 'Block "%s" is not registered.';
+
 	public const INVALID_BLOCK_NAME =  'Invalid block name "%s", block name should match pattern: "%s"';
 
 	public const INVALID_HELPER_NAME =  'Invalid helper name "%s", helper name should match pattern: "%s"';

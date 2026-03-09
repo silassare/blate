@@ -82,6 +82,16 @@ final class Blate
 	 */
 	private static array $helpers = [];
 
+	/**
+	 * @var array<string, true>
+	 */
+	private static array $disabled_blocks = [];
+
+	/**
+	 * @var array<string, true>
+	 */
+	private static array $disabled_helpers = [];
+
 	private string $input;
 
 	private string $output = '';
@@ -215,7 +225,7 @@ final class Blate
 					->getClassBody();
 				$this->save();
 			}
-		} catch (BlateException|BlateRuntimeException $t) {
+		} catch (BlateException | BlateRuntimeException $t) {
 			throw $t->templateSource($this->template);
 		}
 
@@ -390,6 +400,47 @@ final class Blate
 	}
 
 	/**
+	 * Disable a registered block.
+	 *
+	 * A disabled block behaves as if it is not registered: any template that
+	 * references it will fail at compile time with a BLOCK_UNDEFINED error.
+	 * The block class and registration are preserved; call enableBlock() to
+	 * fully restore it.
+	 *
+	 * @param string $name the block name
+	 */
+	public static function disableBlock(string $name): void
+	{
+		if (!isset(self::$blocks[$name])) {
+			throw new BlateRuntimeException(\sprintf(Message::BLOCK_NOT_REGISTERED, $name));
+		}
+
+		self::$disabled_blocks[$name] = true;
+	}
+
+	/**
+	 * Re-enable a previously disabled block.
+	 *
+	 * @param string $name the block name
+	 */
+	public static function enableBlock(string $name): void
+	{
+		unset(self::$disabled_blocks[$name]);
+	}
+
+	/**
+	 * Returns true when the block is registered and not disabled.
+	 *
+	 * @param string $name the block name
+	 *
+	 * @return bool
+	 */
+	public static function isBlockEnabled(string $name): bool
+	{
+		return isset(self::$blocks[$name]) && !isset(self::$disabled_blocks[$name]);
+	}
+
+	/**
 	 * Register a helper.
 	 *
 	 * The helper name must match the pattern: {@see Blate::HELPER_NAME_PATTERN}.
@@ -441,13 +492,70 @@ final class Blate
 	}
 
 	/**
+	 * Disable a registered helper.
+	 *
+	 * A disabled helper is excluded from the helpers layer of DataContext.
+	 * Plain-name lookups ({name()}) may still resolve through user data;
+	 * helper-only lookups ({$name()} and pipe filters) will fail at render
+	 * time with a HELPER_NOT_FOUND error. Call enableHelper() to restore it.
+	 *
+	 * @param string $name the helper name (with or without the '$' prefix)
+	 */
+	public static function disableHelper(string $name): void
+	{
+		$canonical = \ltrim($name, self::HELPER_PREFIX_CHAR);
+
+		if (!isset(self::$helpers[$canonical])) {
+			throw new BlateRuntimeException(\sprintf(Message::HELPER_NOT_FOUND, $canonical));
+		}
+
+		self::$disabled_helpers[$canonical] = true;
+	}
+
+	/**
+	 * Re-enable a previously disabled helper.
+	 *
+	 * @param string $name the helper name (with or without the '$' prefix)
+	 */
+	public static function enableHelper(string $name): void
+	{
+		unset(self::$disabled_helpers[\ltrim($name, self::HELPER_PREFIX_CHAR)]);
+	}
+
+	/**
+	 * Returns true when the helper is registered and not disabled.
+	 *
+	 * @param string $name the helper name (with or without the '$' prefix)
+	 *
+	 * @return bool
+	 */
+	public static function isHelperEnabled(string $name): bool
+	{
+		$canonical = \ltrim($name, self::HELPER_PREFIX_CHAR);
+
+		return isset(self::$helpers[$canonical]) && !isset(self::$disabled_helpers[$canonical]);
+	}
+
+	/**
 	 * Get the registered helpers.
+	 *
+	 * Disabled helpers are excluded from the returned array.
 	 *
 	 * @return array<string, callable>
 	 */
 	public static function getHelpers(): array
 	{
-		return self::$helpers;
+		if (empty(self::$disabled_helpers)) {
+			return self::$helpers;
+		}
+
+		$prefix = self::HELPER_PREFIX_CHAR;
+
+		return \array_filter(
+			self::$helpers,
+			static fn(string $key): bool => !isset(self::$disabled_helpers[\ltrim($key, $prefix)]),
+			\ARRAY_FILTER_USE_KEY
+		);
 	}
 
 	/**
@@ -472,7 +580,7 @@ final class Blate
 	{
 		$name = $token->getValue();
 
-		if (isset(self::$blocks[$name])) {
+		if (isset(self::$blocks[$name]) && !isset(self::$disabled_blocks[$name])) {
 			/** @var class-string<BlockInterface> $class_name */
 			$class_name = self::$blocks[$name];
 
