@@ -33,7 +33,8 @@
 	},
 	"archive": {
 		"exclude": [
-			"/tests"
+			"/tests",
+			"/editors/vscode/node_modules"
 		]
 	},
 	"autoload": {
