@@ -215,7 +215,7 @@ final class Blate
 					->getClassBody();
 				$this->save();
 			}
-		} catch (BlateException | BlateRuntimeException $t) {
+		} catch (BlateException|BlateRuntimeException $t) {
 			throw $t->templateSource($this->template);
 		}
 

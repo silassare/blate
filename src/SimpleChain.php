@@ -85,7 +85,7 @@ class SimpleChain
 			return $val->chain($location);
 		}
 
-		$this->current = $val;
+		$this->current     = $val;
 		$this->current_key = $key;
 
 		return $this;
@@ -113,7 +113,7 @@ class SimpleChain
 				->suspectLocation($this->buildSuspectLocation($location, $key));
 		}
 
-		$this->current = $val;
+		$this->current     = $val;
 		$this->current_key = $key;
 
 		return $this;
