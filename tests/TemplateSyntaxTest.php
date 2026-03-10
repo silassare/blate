@@ -694,6 +694,17 @@ final class TemplateSyntaxTest extends TestCase
 		self::assertSame('v2', $out);
 	}
 
+	/**
+	 * registerGlobalVar() rejects names that are not valid Blate identifiers.
+	 *
+	 * @throws BlateException
+	 */
+	public function testGlobalVarsInvalidName(): void
+	{
+		$this->expectException(BlateRuntimeException::class);
+		Blate::registerGlobalVar('123invalid', 'x');
+	}
+
 	// =========================================================================
 	// Block and helper disable / enable
 	// =========================================================================

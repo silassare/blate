@@ -64,6 +64,8 @@ final class Blate
 
 	public const HELPER_NAME_PATTERN = '~^[a-z_][a-z0-9$_]*$~i';
 
+	public const VAR_NAME_PATTERN = '~^[a-z_][a-z0-9$_]*$~i';
+
 	private static int $var_counter = 0;
 
 	private static array $checked_classes = [];
@@ -601,9 +603,16 @@ final class Blate
 	/**
 	 * Register a global variable.
 	 *
+	 * The name must be a valid Blate identifier matching VAR_NAME_PATTERN
+	 * (`~^[a-z_][a-z0-9$_]*$~i`), i.e. a letter or underscore followed by
+	 * letters, digits, `$`, or underscores.
+	 *
 	 * @param string $name     the variable name
 	 * @param mixed  $value    the variable value
 	 * @param bool   $editable whether the variable is editable (default: false)
+	 *
+	 * @throws BlateRuntimeException when the name is not a valid identifier (Message::INVALID_VAR_NAME)
+	 * @throws BlateRuntimeException when a constant global is re-registered (Message::GLOBAL_VAR_IS_NOT_EDITABLE)
 	 */
 	public static function registerGlobalVar(string $name, mixed $value, bool $editable = false): void
 	{
@@ -611,6 +620,10 @@ final class Blate
 
 		if ($is_const) {
 			throw new BlateRuntimeException(\sprintf(Message::GLOBAL_VAR_IS_NOT_EDITABLE, $name));
+		}
+
+		if (!\preg_match(self::VAR_NAME_PATTERN, $name)) {
+			throw new BlateRuntimeException(\sprintf(Message::INVALID_VAR_NAME, $name, self::VAR_NAME_PATTERN));
 		}
 
 		if (!$editable) {

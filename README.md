@@ -605,6 +605,10 @@ Example code: {@if condition}...{/if}
 
 ### Registering custom globals
 
+Names must be valid Blate identifiers: a letter or underscore followed by
+letters, digits, `$`, or underscores (`APP_NAME`, `requestId`, `_debug`).
+An invalid name throws a `BlateRuntimeException` at registration time.
+
 ```php
 // Read-only constant (default) - throws if registered again
 Blate::registerGlobalVar('APP_NAME', 'My App');

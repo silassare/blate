@@ -97,6 +97,8 @@ final class Message
 
 	public const GLOBAL_VAR_IS_NOT_EDITABLE = 'Global variable "%s" is not editable.';
 
+	public const INVALID_VAR_NAME = 'Invalid variable name "%s", variable name should match pattern: "%s"';
+
 	/**
 	 * Interpolates a message template with values from the given chunk's location.
 	 *
