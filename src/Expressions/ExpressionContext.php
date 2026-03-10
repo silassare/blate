@@ -22,7 +22,7 @@ use Blate\Token;
  * Holds the chain-head tracking state for a single expression parse.
  *
  * The expression compiler emits chain calls such as:
- *   {foo.bar}  ->  $context->chain()->get('foo')->get('bar')->val()
+ *   {foo.bar}  ->  $context->chain('L:I')->get('L:I', 'foo')->get('L:I', 'bar')->val()
  *
  * To know when to terminate a chain with ->val(), the compiler tracks
  * the "active chain head" -- the token that started the current chain.

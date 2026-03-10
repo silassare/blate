@@ -26,8 +26,8 @@ use Blate\Token;
  * Handles the dot (.) property-access operator in expressions.
  *
  * The dot itself is NOT written to output.  Its presence signals the VarName
- * handler (which fires next) to emit ->get('name') instead of starting a
- * fresh chain with $context->chain()->get('name').
+ * handler (which fires next) to emit ->get('L:I', 'name') instead of starting a
+ * fresh chain with $context->chain('L:I')->get('L:I', 'name').
  *
  * Valid contexts:
  *   foo.bar         -- after T_NAME

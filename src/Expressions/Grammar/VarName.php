@@ -29,11 +29,11 @@ use Blate\Token;
  * Two distinct roles depending on context:
  *
  *   Chain head (when token is at expression start or after an operator/comparator/logical/paren/bracket):
- *     Emits $context->chain()->get('name') and marks the active chain head via $parser->setActiveChain().
+ *     Emits $context->chain('L:I')->get('L:I', 'name') and marks the active chain head via $parser->setActiveChain().
  *     At the end of the chain (no further property access) the ->val() terminator is appended.
  *
  *   Chain continuation (when preceded by a dot):
- *     Emits ->get('name') to extend the current chain.
+ *     Emits ->get('L:I', 'name') to extend the current chain.
  *     The dot handler already consumed the dot token; here we just append the property.
  *
  *   Special case: $$ (DATA_CONTEXT_REF) is the raw DataContext reference and

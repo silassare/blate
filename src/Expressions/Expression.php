@@ -101,8 +101,8 @@ class Expression
 	 * Consumes: optional whitespace, the filter function name, and optional (extra args...).
 	 *
 	 * The piped value is injected as the first argument:
-	 *   {expr | fn}        -> $context->chain()->get('fn')->call(expr)->val()
-	 *   {expr | fn(a, b)}  -> $context->chain()->get('fn')->call(expr, a, b)->val()
+	 *   {expr | fn}        -> $context->chain('L:I')->getHelper('L:I', 'fn')->call('L:I', expr)->val()
+	 *   {expr | fn(a, b)}  -> $context->chain('L:I')->getHelper('L:I', 'fn')->call('L:I', expr, a, b)->val()
 	 *
 	 * @param LexerInterface $lexer the active lexer
 	 * @param string         $piped the already-compiled left-hand expression
