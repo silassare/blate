@@ -618,6 +618,83 @@ final class TemplateSyntaxTest extends TestCase
 	}
 
 	// =========================================================================
+	// Global variables
+	// =========================================================================
+
+	/**
+	 * BRACE_OPEN / BRACE_CLOSE built-in global vars produce literal { and }.
+	 *
+	 * @throws BlateException
+	 */
+	public function testGlobalVarsBrace(): void
+	{
+		$this->runValid('global-vars-brace');
+	}
+
+	/**
+	 * BLATE_VERSION built-in global var exposes the engine version string.
+	 *
+	 * @throws BlateException
+	 */
+	public function testGlobalVarsVersion(): void
+	{
+		$this->runValid('global-vars-version');
+	}
+
+	/**
+	 * Custom global var registered with registerGlobalVar() is visible in templates.
+	 *
+	 * @throws BlateException
+	 */
+	public function testGlobalVarsCustom(): void
+	{
+		Blate::registerGlobalVar('SITE_NAME', 'My App', true);
+		$this->runValid('global-vars-custom');
+	}
+
+	/**
+	 * User data shadows a global var with the same name.
+	 *
+	 * @throws BlateException
+	 */
+	public function testGlobalVarsShadow(): void
+	{
+		$this->runValid('global-vars-shadow');
+	}
+
+	/**
+	 * registerGlobalVar() with $editable=false prevents re-registration.
+	 */
+	public function testGlobalVarsConstant(): void
+	{
+		Blate::registerGlobalVar('MY_CONST', 'first', false);
+
+		$caught = false;
+
+		try {
+			Blate::registerGlobalVar('MY_CONST', 'second', false);
+		} catch (BlateRuntimeException $e) {
+			$caught = true;
+		}
+
+		self::assertTrue($caught, 'Re-registering a constant global var must throw BlateRuntimeException.');
+	}
+
+	/**
+	 * registerGlobalVar() with $editable=true allows updating the value.
+	 *
+	 * @throws BlateException
+	 */
+	public function testGlobalVarsEditable(): void
+	{
+		Blate::registerGlobalVar('EDITABLE_VAR', 'v1', true);
+		Blate::registerGlobalVar('EDITABLE_VAR', 'v2', true);
+
+		$out = Blate::fromString('{EDITABLE_VAR}')->runGet([]);
+		self::assertSame('v2', $out);
+	}
+
+	// =========================================================================
 	// Block and helper disable / enable
 	// =========================================================================
 
@@ -634,7 +711,7 @@ final class TemplateSyntaxTest extends TestCase
 
 		try {
 			Blate::fromString('{@if 1}yes{/if}')->parse(true);
-		} catch (BlateException | BlateRuntimeException $e) {
+		} catch (BlateException|BlateRuntimeException $e) {
 			$caught = true;
 		} finally {
 			Blate::enableBlock('if');
@@ -727,7 +804,7 @@ final class TemplateSyntaxTest extends TestCase
 				$parser->parse();
 				$output = $parser->getClassBody();
 			}
-		} catch (BlateException | BlateRuntimeException $e) {
+		} catch (BlateException|BlateRuntimeException $e) {
 			$error = $e->describe(false, false);
 			\file_put_contents($full_error_file, $e->describe(false, true));
 		}
@@ -765,7 +842,7 @@ final class TemplateSyntaxTest extends TestCase
 				$inject = include $inject_file;
 				$bl->runGet($inject);
 			}
-		} catch (BlateException | BlateRuntimeException $e) {
+		} catch (BlateException|BlateRuntimeException $e) {
 			$error = $e->describe(false, false);
 			\file_put_contents($full_error_file, $e->describe(false, true));
 		}
