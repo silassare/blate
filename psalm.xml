@@ -11,7 +11,6 @@
         <ignoreFiles>
             <directory name="vendor"/>
             <directory name="tests/samples"/>
-            <directory name="tests/.cache"/>
         </ignoreFiles>
     </projectFiles>
 </psalm>
