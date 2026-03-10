@@ -21,10 +21,11 @@ use LogicException;
  *
  * Runtime variable scope stack for template rendering.
  *
- * The stack always has at least two layers:
- *   [0] helpers layer  -- registered Blate helpers (callables)
- *   [1] user data      -- the data array/object passed to render()
- *   [2..n] scope layers -- pushed for each {@each} and {@scoped} block
+ * The stack always has at least three layers:
+ *   [0] helpers layer   -- registered Blate helpers (callables)
+ *   [1] global vars     -- values registered via Blate::registerGlobalVar()
+ *   [2] user data       -- the data array/object passed to render()
+ *   [3..n] scope layers -- pushed for each {@each} and {@scoped} block
  *
  * Variable resolution (get()) searches layers from top to bottom so that
  * inner scopes shadow outer ones.
@@ -51,6 +52,7 @@ class DataContext
 			$this->stack = [...$data->stack];
 		} else {
 			$this->stack[] = Blate::getHelpers();
+			$this->stack[] = Blate::getGlobalVars();
 			$this->stack[] = $data;
 		}
 	}

@@ -28,6 +28,7 @@ use Blate\Features\BlockSlot;
 use Blate\Features\BlockSwitch;
 use Blate\Helpers\Helpers;
 
+// = Blocks
 Blate::registerBlock(BlockEach::NAME, BlockEach::class);
 Blate::registerBlock(BlockIf::NAME, BlockIf::class);
 Blate::registerBlock(BlockScoped::NAME, BlockScoped::class);
@@ -42,4 +43,12 @@ Blate::registerBlock(BlockPhp::NAME, BlockPhp::class);
 Blate::registerBlock(BlockCapture::NAME, BlockCapture::class);
 Blate::registerBlock(BlockRepeat::NAME, BlockRepeat::class);
 Blate::registerBlock(BlockSwitch::NAME, BlockSwitch::class);
+
+// = Global variables
+Blate::registerGlobalVar('BLATE_VERSION', Blate::VERSION, false);
+Blate::registerGlobalVar('BLATE_VERSION_NAME', Blate::VERSION_NAME, false);
+Blate::registerGlobalVar('BRACE_OPEN', '{', false);
+Blate::registerGlobalVar('BRACE_CLOSE', '}', false);
+
+// = Helpers
 Helpers::register();

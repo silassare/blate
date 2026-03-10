@@ -42,6 +42,7 @@ file, so there is no parsing overhead at runtime.
   - [Date](#date)
 - [Custom Blocks](#custom-blocks)
 - [Custom Helpers](#custom-helpers)
+- [Global Variables](#global-variables)
 - [Disabling Blocks and Helpers](#disabling-blocks-and-helpers)
 - [Editor Support](#editor-support)
 - [Comparison: Blate vs Twig vs Blade](#comparison-blate-vs-twig-vs-blade)
@@ -168,8 +169,10 @@ argument. Multiple pipes are chained left to right:
 {tags | join(', ')}                -- join(tags, ', ')
 ```
 
-Pipe-filter names always resolve against the helpers layer only, so a user-data
-key with the same name cannot shadow the helper.
+Pipe-filter names always resolve against the helpers layer only — a callable
+stored in user data cannot be used as a pipe filter, even if its key matches.
+Use `{foo | upper}` only for registered helpers; to call a user-data callable
+directly, use `{upper(foo)}` (full-stack lookup) or pass it through a helper.
 
 ### Property Access
 
@@ -400,9 +403,8 @@ There are three ways to invoke a helper named `upper`:
 ```
 
 The `$` prefix and pipe filters both bypass the variable scope stack and consult
-only the registered helpers layer. Use them whenever template data comes from
-untrusted sources, to prevent a malicious `upper` key in the data from hijacking
-the helper call.
+only the registered helpers layer. A callable stored in user data can never be
+invoked as a pipe filter; only registered helpers are resolved in that position.
 
 ---
 
@@ -570,6 +572,56 @@ Use in templates:
 
 The `$` prefix and pipe-filter syntax always resolve against the helpers layer
 only, so a `slugify` key in the template data cannot intercept the call.
+
+---
+
+## Global Variables
+
+Global variables are values registered once at application bootstrap time and
+available in every template without being part of the per-render data. They
+sit between the helpers layer and the user data in the resolution stack, so
+user data can shadow them when needed.
+
+### Built-in globals
+
+| Name                 | Value              | Notes                 |
+| -------------------- | ------------------ | --------------------- |
+| `BRACE_OPEN`         | `{`                | Literal opening brace |
+| `BRACE_CLOSE`        | `}`                | Literal closing brace |
+| `BLATE_VERSION`      | e.g. `1.1.0`       | Engine version string |
+| `BLATE_VERSION_NAME` | e.g. `Blate 1.1.0` | Engine display name   |
+
+Outputting a literal brace without `{@raw}`:
+
+```blate
+Example code: {BRACE_OPEN}@if condition{BRACE_CLOSE}...{BRACE_OPEN}/if{BRACE_CLOSE}
+```
+
+Outputs:
+
+```
+Example code: {@if condition}...{/if}
+```
+
+### Registering custom globals
+
+```php
+// Read-only constant (default) - throws if registered again
+Blate::registerGlobalVar('APP_NAME', 'My App');
+
+// Editable - can be updated between renders
+Blate::registerGlobalVar('REQUEST_ID', '', editable: true);
+Blate::registerGlobalVar('REQUEST_ID', $requestId, editable: true);
+```
+
+Use in templates exactly like any other variable:
+
+```blate
+<title>{APP_NAME}</title>
+<footer>Powered by Blate {BLATE_VERSION}</footer>
+```
+
+User data with the same name takes priority over the global variable.
 
 ---
 

@@ -39,21 +39,21 @@ The cached files live next to their source under `blate_cache/<version>/<hash[0:
 
 ## Key Files
 
-| File                               | Role                                                                                                                 |
-| ---------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
-| `src/Blate.php`                    | Main entry: factory (`fromPath`/`fromString`), cache management, block/helper registry                               |
-| `src/Lexer.php`                    | Tokenizes raw template text into `Token` objects                                                                     |
-| `src/Parser.php`                   | Walks tokens, dispatches to `BlockInterface` implementations, emits PHP code                                         |
-| `src/Traits/ParserOutputTrait.php` | PHP codegen helpers (`writeCode`, `write`, `writeExpression`, `getClassBody`) used by `Parser`                       |
-| `src/DataContext.php`              | Runtime scope stack - wraps user data with a helpers layer; supports `newContext()`/`popContext()` for scoped blocks |
-| `src/SimpleChain.php`              | Fluent path resolver used at runtime: `{foo.bar}` -> `$context->chain()->get('foo')->get('bar')->val()`              |
-| `src/TemplateParsed.php`           | Abstract base for compiled templates; handles slot injection for `extends`                                           |
-| `src/Features/Block*.php`          | Built-in block implementations (`BlockIf`, `BlockEach`, `BlockSlot`, `BlockExtends`, etc.)                           |
-| `src/Expressions/`                 | Expression parser + grammar rules (`Grammar/VarName.php`, `Operator.php`, etc.)                                      |
-| `src/bootstrap.php`                | Registers all built-in blocks and helpers at autoload time                                                           |
-| `src/assets/output.php.sample`     | Scaffold for compiled template files                                                                                 |
-| `src/Lsp/BlateLspServer.php`       | LSP server implementation (diagnostics, completions, hover) over stdio                                               |
-| `editors/lsp/server.php`           | LSP entry point: bootstraps Composer and starts `BlateLspServer`                                                     |
+| File                               | Role                                                                                                                                         |
+| ---------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| `src/Blate.php`                    | Main entry: factory (`fromPath`/`fromString`), cache management, block/helper registry                                                       |
+| `src/Lexer.php`                    | Tokenizes raw template text into `Token` objects                                                                                             |
+| `src/Parser.php`                   | Walks tokens, dispatches to `BlockInterface` implementations, emits PHP code                                                                 |
+| `src/Traits/ParserOutputTrait.php` | PHP codegen helpers (`writeCode`, `write`, `writeExpression`, `getClassBody`) used by `Parser`                                               |
+| `src/DataContext.php`              | Runtime scope stack - wraps user data with a global-vars layer and a helpers layer; supports `newContext()`/`popContext()` for scoped blocks |
+| `src/SimpleChain.php`              | Fluent path resolver used at runtime: `{foo.bar}` -> `$context->chain()->get('foo')->get('bar')->val()`                                      |
+| `src/TemplateParsed.php`           | Abstract base for compiled templates; handles slot injection for `extends`                                                                   |
+| `src/Features/Block*.php`          | Built-in block implementations (`BlockIf`, `BlockEach`, `BlockSlot`, `BlockExtends`, etc.)                                                   |
+| `src/Expressions/`                 | Expression parser + grammar rules (`Grammar/VarName.php`, `Operator.php`, etc.)                                                              |
+| `src/bootstrap.php`                | Registers all built-in blocks and helpers at autoload time                                                                                   |
+| `src/assets/output.php.sample`     | Scaffold for compiled template files                                                                                                         |
+| `src/Lsp/BlateLspServer.php`       | LSP server implementation (diagnostics, completions, hover) over stdio                                                                       |
+| `editors/lsp/server.php`           | LSP entry point: bootstraps Composer and starts `BlateLspServer`                                                                             |
 
 ---
 
@@ -63,9 +63,9 @@ The cached files live next to their source under `blate_cache/<version>/<hash[0:
 {varName}            -- print, auto-escaped (htmlspecialchars)
 {= varName}          -- print, raw/unescaped
 {foo.bar}            -- property access chain
-{helper('arg')}      -- call a registered helper
-{$helper('arg')}     -- force helper lookup (when name shadows a var)
-{expr | fn}          -- pipe filter: fn(expr)
+{helper('arg')}      -- call a helper; user data with key 'helper' shadows it
+{$helper('arg')}     -- helper-only lookup: always resolves to the registered helper
+{expr | fn}          -- pipe filter: fn(expr); fn is helper-only lookup (same as $fn); user-data callables cannot be used here
 {expr | fn(a, b)}    -- pipe filter with extra args: fn(expr, a, b)
 {expr | f1 | f2(x)}  -- chained pipes: f2(f1(expr), x)
 {# comment #}        -- template comment (stripped at compile time)
@@ -79,6 +79,9 @@ The cached files live next to their source under `blate_cache/<version>/<hash[0:
 {@import 'path/to/partial' context}
 {@import_raw 'path/to/file'}
 {@raw}...literal braces...{/raw}
+{BRACE_OPEN}          -- literal { via built-in global var (no raw block needed)
+{BRACE_CLOSE}         -- literal } via built-in global var
+{BLATE_VERSION}       -- engine version string (built-in global var)
 $$                   -- reference to the raw DataContext inside expressions
 ```
 
@@ -107,6 +110,33 @@ Blate::registerHelper('myHelper', function (mixed $value): string {
 ```
 
 Built-in helpers are in `src/Helpers/Helpers.php` and registered in `bootstrap.php`.
+
+---
+
+## Global Variables
+
+Global variables are registered once at bootstrap and available in every template
+without being part of the per-render data. They sit between the helpers layer and
+user data in the `DataContext` resolution stack; user data shadows them.
+
+Built-in globals (registered in `bootstrap.php`):
+
+| Name                 | Value                 |
+| -------------------- | --------------------- |
+| `BRACE_OPEN`         | `{`                   |
+| `BRACE_CLOSE`        | `}`                   |
+| `BLATE_VERSION`      | `Blate::VERSION`      |
+| `BLATE_VERSION_NAME` | `Blate::VERSION_NAME` |
+
+```php
+// Read-only constant (default) - throws GLOBAL_VAR_IS_NOT_EDITABLE if registered again
+Blate::registerGlobalVar('APP_NAME', 'My App');
+
+// Editable - can be updated between renders
+Blate::registerGlobalVar('REQUEST_ID', $requestId, editable: true);
+```
+
+`Blate::getGlobalVars()` returns all registered globals (used by `DataContext` and the LSP completion provider).
 
 ---
 
@@ -210,4 +240,4 @@ Each test case under `tests/samples/<name>/` contains:
 - Error messages are centralized in `src/Message.php` as named constants with `{placeholder}` tokens.
 - Exception hierarchy: `BlateException` (base, checked-like) -> `BlateRuntimeException` -> `BlateParserException`.
 - `BlateParserException::withToken(Message::CONSTANT, $token)` is the standard way to throw parse errors.
-- Template variable resolution at runtime goes through `DataContext->chain()->get(key)`, never direct array access.
+- Template variable resolution at runtime goes through `DataContext->chain('L:I')->get('L:I', key)`, never direct array access.

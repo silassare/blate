@@ -95,6 +95,8 @@ final class Message
 
 	public const HELPER_ALREADY_REGISTERED =  'Helper "%s" is already registered.';
 
+	public const GLOBAL_VAR_IS_NOT_EDITABLE = 'Global variable "%s" is not editable.';
+
 	/**
 	 * Interpolates a message template with values from the given chunk's location.
 	 *

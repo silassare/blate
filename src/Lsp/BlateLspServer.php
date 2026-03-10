@@ -455,8 +455,12 @@ class BlateLspServer
 				return $this->helperCompletions();
 
 			default:
-				// General expression context: variables + helpers.
-				return \array_merge($this->helperCompletions(), $this->variableCompletions($content));
+				// General expression context: variables + helpers + global vars.
+				return \array_merge(
+					$this->helperCompletions(),
+					$this->globalVarCompletions(),
+					$this->variableCompletions($content)
+				);
 		}
 	}
 
@@ -602,6 +606,27 @@ class BlateLspServer
 	}
 
 	/**
+	 * Completion items for registered global variables.
+	 *
+	 * @return list<array<string, mixed>>
+	 */
+	private function globalVarCompletions(): array
+	{
+		$items = [];
+
+		foreach (\array_keys(Blate::getGlobalVars()) as $name) {
+			$items[] = [
+				'label'      => $name,
+				'kind'       => 21,  // CompletionItemKind.Constant
+				'detail'     => 'Blate global variable',
+				'insertText' => $name,
+			];
+		}
+
+		return $items;
+	}
+
+	/**
 	 * Completion items for registered helpers.
 	 *
 	 * @return list<array<string, mixed>>
@@ -700,6 +725,21 @@ class BlateLspServer
 
 		if ('' === $word) {
 			return null;
+		}
+
+		// Provide hover for registered global variables.
+		$globals = Blate::getGlobalVars();
+
+		if (\array_key_exists($word, $globals)) {
+			$value = $globals[$word];
+			$repr  = \is_string($value) ? '"' . \addslashes($value) . '"' : \json_encode($value);
+
+			return [
+				'contents' => [
+					'kind'  => 'markdown',
+					'value' => '**' . $word . '** _(Blate global variable)_' . "\n\n" . '`' . $repr . '`',
+				],
+			];
 		}
 
 		// Only provide hover for registered helpers.

@@ -32,11 +32,9 @@ final class Blate
 {
 	public const VERSION = '1.1.0';
 
-	public const VERSION_NAME = 'Blate php-' . self::VERSION;
+	public const VERSION_NAME = 'Blate ' . self::VERSION;
 
 	public const COMPILE_DIR_NAME = 'blate_cache' . \DIRECTORY_SEPARATOR . self::VERSION;
-
-	public const ESCAPE_CHAR = '\\';
 
 	public const TAG_OPENER = '{';
 
@@ -81,6 +79,16 @@ final class Blate
 	 * @var array<string, callable>
 	 */
 	private static array $helpers = [];
+
+	/**
+	 * @var array<string, mixed>
+	 */
+	private static array $GLOBAL_VARS = [];
+
+	/**
+	 * @var array<string, true>
+	 */
+	private static array $GLOBAL_VARS_CONSTANT = [];
 
 	/**
 	 * @var array<string, true>
@@ -225,7 +233,7 @@ final class Blate
 					->getClassBody();
 				$this->save();
 			}
-		} catch (BlateException | BlateRuntimeException $t) {
+		} catch (BlateException|BlateRuntimeException $t) {
 			throw $t->templateSource($this->template);
 		}
 
@@ -457,7 +465,7 @@ final class Blate
 	 * {hello('world')}
 	 * ```
 	 * Resolves `hello` through the full context stack (scope layers, then user data,
-	 * then the helpers layer). A user-data key named `hello` will shadow the helper.
+	 * then global vars, then the helpers layer). A user-data key named `hello` will shadow the helper.
 	 *
 	 * ```
 	 * {$hello('world')}
@@ -553,7 +561,7 @@ final class Blate
 
 		return \array_filter(
 			self::$helpers,
-			static fn(string $key): bool => !isset(self::$disabled_helpers[\ltrim($key, $prefix)]),
+			static fn (string $key): bool => !isset(self::$disabled_helpers[\ltrim($key, $prefix)]),
 			\ARRAY_FILTER_USE_KEY
 		);
 	}
@@ -588,6 +596,36 @@ final class Blate
 		}
 
 		return null;
+	}
+
+	/**
+	 * Register a global variable.
+	 *
+	 * @param string $name     the variable name
+	 * @param mixed  $value    the variable value
+	 * @param bool   $editable whether the variable is editable (default: false)
+	 */
+	public static function registerGlobalVar(string $name, mixed $value, bool $editable = false): void
+	{
+		$is_const = self::$GLOBAL_VARS_CONSTANT[$name] ?? false;
+
+		if ($is_const) {
+			throw new BlateRuntimeException(\sprintf(Message::GLOBAL_VAR_IS_NOT_EDITABLE, $name));
+		}
+
+		if (!$editable) {
+			self::$GLOBAL_VARS_CONSTANT[$name] = true;
+		}
+
+		self::$GLOBAL_VARS[$name] = $value;
+	}
+
+	/**
+	 * Get the global variables.
+	 */
+	public static function getGlobalVars(): mixed
+	{
+		return self::$GLOBAL_VARS;
 	}
 
 	/**
