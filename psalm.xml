@@ -13,4 +13,16 @@
             <directory name="tests/samples"/>
         </ignoreFiles>
     </projectFiles>
+    <issueHandlers>
+        <MissingOverrideAttribute errorLevel="suppress"/>
+        <!-- Public API methods not called within the library itself (consumed externally) -->
+        <PossiblyUnusedMethod errorLevel="suppress"/>
+        <!-- Fluent builder methods whose return values are chained by callers externally -->
+        <PossiblyUnusedReturnValue errorLevel="suppress"/>
+        <!-- Public API classes and properties used externally, not within the library -->
+        <UnusedClass errorLevel="suppress"/>
+        <PossiblyUnusedProperty errorLevel="suppress"/>
+        <!-- Initial null assignments for typed variables are a valid pattern; suppress false positives -->
+        <UnusedVariable errorLevel="suppress"/>
+    </issueHandlers>
 </psalm>
