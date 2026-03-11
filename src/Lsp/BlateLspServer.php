@@ -29,7 +29,7 @@ use Throwable;
  * Features:
  *  - textDocument/publishDiagnostics  parse errors with exact source positions
  *  - textDocument/completion          block names, helper names, in-scope vars
- *  - textDocument/hover               docblock for built-in helpers
+ *  - textDocument/hover               docblock for helpers, blocks, and global variables
  *  - textDocument/rename              simple variable rename in one document
  *
  * Wire format: JSON-RPC 2.0 over stdin/stdout with Content-Length framing.
@@ -374,13 +374,13 @@ class BlateLspServer
 	private function diagnose(string $uri, string $content): void
 	{
 		try {
-			// parse(false): only recompiles when the content hash has changed.
+			// parse(false): only re-compiles when the content hash has changed.
 			Blate::fromString($content)->parse(false);
 			$this->notify('textDocument/publishDiagnostics', [
 				'uri'         => $uri,
 				'diagnostics' => [],
 			]);
-		} catch (BlateParserException|BlateRuntimeException $e) {
+		} catch (BlateParserException | BlateRuntimeException $e) {
 			$chunk = $e->getChunk();
 
 			if (null !== $chunk) {
@@ -742,7 +742,25 @@ class BlateLspServer
 			];
 		}
 
-		// Only provide hover for registered helpers.
+		// Detect {@word or {/word context to provide block hover.
+		$wordStart = $offset;
+
+		while ($wordStart > 0 && \preg_match('/\w/', $content[$wordStart - 1])) {
+			--$wordStart;
+		}
+
+		$prevChar  = $wordStart > 0 ? $content[$wordStart - 1] : '';
+		$prev2Char = $wordStart > 1 ? $content[$wordStart - 2] : '';
+
+		if (('@' === $prevChar || '/' === $prevChar) && '{' === $prev2Char
+			&& \array_key_exists($word, Blate::getBlocks())
+		) {
+			return [
+				'contents' => ['kind' => 'markdown', 'value' => $this->resolveBlockDoc($word)],
+			];
+		}
+
+		// Provide hover for registered helpers.
 		if (!\array_key_exists($word, Blate::getHelpers())) {
 			return null;
 		}
@@ -761,7 +779,7 @@ class BlateLspServer
 				$raw = $ref->getMethod($name)->getDocComment();
 
 				if (false !== $raw) {
-					return $this->formatDocblock($name, $raw);
+					return $this->formatDocblock('**' . $name . '** _(Blate helper)_', $raw);
 				}
 			}
 		} catch (ReflectionException) {
@@ -771,23 +789,136 @@ class BlateLspServer
 		return '**' . $name . '** _(Blate helper)_';
 	}
 
-	private function formatDocblock(string $name, string $raw): string
+	private function resolveBlockDoc(string $name): string
 	{
-		// Strip /** ... */ markers and leading * from each line.
-		$lines  = \explode("\n", $raw);
-		$chunks = [];
+		$blocks = Blate::getBlocks();
+
+		if (!isset($blocks[$name])) {
+			return '**@' . $name . '** _(Blate block)_';
+		}
+
+		try {
+			$ref = new ReflectionClass($blocks[$name]);
+			$raw = $ref->getDocComment();
+
+			if (false !== $raw) {
+				return $this->formatDocblock('**@' . $name . '** _(Blate block)_', $raw, true);
+			}
+		} catch (ReflectionException) {
+			// ignore
+		}
+
+		return '**@' . $name . '** _(Blate block)_';
+	}
+
+	/**
+	 * Converts a raw PHP docblock into a markdown hover string.
+	 *
+	 * Strips the delimiters and leading `*` per line, then groups content into:
+	 *   - A description section (paragraphs separated by blank lines)
+	 *   - A Parameters section (from `@param` tags)
+	 *   - A Returns line (from `@return` tag)
+	 *
+	 * Other tags (`@throws`, `@see`, etc.) are omitted.
+	 *
+	 * @param string $heading        markdown heading line (bold name + type badge)
+	 * @param string $raw            raw docblock string from ReflectionMethod/ReflectionClass
+	 * @param bool   $skipClassLine  when true, drops the leading "Class Foo." summary line
+	 *                               that class-level docblocks contain
+	 */
+	private function formatDocblock(string $heading, string $raw, bool $skipClassLine = false): string
+	{
+		$lines = \explode("\n", $raw);
+		$plain = [];
 
 		foreach ($lines as $line) {
-			$line = \ltrim($line);
-			$line = \ltrim($line, '*');
-			$line = \trim($line);
+			$line    = \ltrim($line);       // strip indent
+			$line    = \ltrim($line, '*');   // strip leading *
+			$plain[] = \trim($line);        // strip trailing whitespace
+		}
 
-			if ('' !== $line && '/' !== $line) {
-				$chunks[] = $line;
+		// Drop the opening /** line.
+		while (!empty($plain) && ('' === $plain[0] || \str_starts_with($plain[0], '/'))) {
+			\array_shift($plain);
+		}
+
+		// Drop trailing empty lines and the closing */ line (becomes '/' after stripping).
+		while (!empty($plain) && ('' === \end($plain) || '/' === \end($plain))) {
+			\array_pop($plain);
+		}
+
+		// For class-level docblocks, drop the "Class BlockXxx." first line and any
+		// blank lines that immediately follow it.
+		if ($skipClassLine && !empty($plain) && \preg_match('/^Class\s+\w+\./', $plain[0])) {
+			\array_shift($plain);
+
+			while (!empty($plain) && '' === $plain[0]) {
+				\array_shift($plain);
 			}
 		}
 
-		return '**' . $name . '** _(Blate helper)_' . "\n\n" . \implode("\n", $chunks);
+		$descLines  = [];
+		$paramLines = [];
+		$returnLine = '';
+
+		foreach ($plain as $line) {
+			if (\str_starts_with($line, '@param')) {
+				if (\preg_match('/^@param\s+(\S+)\s+(\$\w+)\s*(.*)/s', $line, $m)) {
+					$pdesc        = \trim($m[3]);
+					$paramLines[] = '- `' . $m[2] . '` `' . $m[1] . '`' . ('' !== $pdesc ? ' - ' . $pdesc : '');
+				} else {
+					$paramLines[] = '- ' . \trim(\substr($line, 7));
+				}
+			} elseif (\str_starts_with($line, '@return')) {
+				$type       = \trim(\substr($line, 7));
+				$returnLine = '' !== $type ? '`' . $type . '`' : '';
+			} elseif (\str_starts_with($line, '@')) {
+				// Drop other tags (@throws, @see, @var, etc.).
+			} else {
+				$descLines[] = $line;
+			}
+		}
+
+		// Trim trailing blank lines from description.
+		while (!empty($descLines) && '' === \end($descLines)) {
+			\array_pop($descLines);
+		}
+
+		// Build description: consecutive non-blank lines form a paragraph;
+		// blank lines separate paragraphs.
+		$paragraphs = [];
+		$current    = [];
+
+		foreach ($descLines as $line) {
+			if ('' === $line) {
+				if (!empty($current)) {
+					$paragraphs[] = \implode("\n", $current);
+					$current      = [];
+				}
+			} else {
+				$current[] = $line;
+			}
+		}
+
+		if (!empty($current)) {
+			$paragraphs[] = \implode("\n", $current);
+		}
+
+		$md = $heading;
+
+		if (!empty($paragraphs)) {
+			$md .= "\n\n" . \implode("\n\n", $paragraphs);
+		}
+
+		if (!empty($paramLines)) {
+			$md .= "\n\n**Parameters:**\n" . \implode("\n", $paramLines);
+		}
+
+		if ('' !== $returnLine) {
+			$md .= "\n\n**Returns:** " . $returnLine;
+		}
+
+		return \rtrim($md);
 	}
 
 	// =========================================================================
