@@ -19,7 +19,7 @@
 		"roave/security-advisories": "dev-latest",
 		"oliup/oliup-cs-php": "dev-main",
 		"phpunit/phpunit": "^9.5.9",
-		"vimeo/psalm": "^5.26.1"
+		"vimeo/psalm": "^6.0"
 	},
 	"repositories": {
 		"oliup/oliup-cs-php": {
