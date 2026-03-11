@@ -18117,7 +18117,7 @@ function activate(context) {
   const config = vscode.workspace.getConfiguration("blate");
   const php = config.get("phpExecutable", "php");
   const serverScript = context.asAbsolutePath(
-    path.join("..", "lsp", "server.php")
+    path.join(".", "lsp", "server.php")
   );
   const serverOptions = {
     command: php,

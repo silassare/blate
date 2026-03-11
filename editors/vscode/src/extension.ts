@@ -22,9 +22,9 @@ export function activate(context: vscode.ExtensionContext): void {
 	const config = vscode.workspace.getConfiguration('blate');
 	const php = config.get<string>('phpExecutable', 'php');
 
-	// The PHP server script lives at ../lsp/server.php relative to this extension root.
+	// The PHP server script lives at ./lsp/server.php relative to this extension root.
 	const serverScript = context.asAbsolutePath(
-		path.join('..', 'lsp', 'server.php')
+		path.join('.', 'lsp', 'server.php')
 	);
 
 	const serverOptions: ServerOptions = {
