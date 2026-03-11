@@ -253,7 +253,7 @@ final class Blate
 			throw new BlateException(\sprintf(Message::FILE_IS_NOT_READABLE, $src));
 		}
 
-		return \file_get_contents($src);
+		return (string) \file_get_contents($src);
 	}
 
 	/**
@@ -336,7 +336,7 @@ final class Blate
 			throw $e;
 		}
 
-		return \ob_get_clean();
+		return (string) \ob_get_clean();
 	}
 
 	/**
@@ -591,7 +591,6 @@ final class Blate
 		$name = $token->getValue();
 
 		if (isset(self::$blocks[$name]) && !isset(self::$disabled_blocks[$name])) {
-			/** @var class-string<BlockInterface> $class_name */
 			$class_name = self::$blocks[$name];
 
 			return new $class_name($parser, $token);

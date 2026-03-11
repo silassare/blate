@@ -820,7 +820,7 @@ class Helpers
 	 */
 	public static function sortBy(array $data, string $key): array
 	{
-		\usort($data, static fn ($a, $b) => ($a[$key] ?? null) <=> ($b[$key] ?? null));
+		\usort($data, static fn($a, $b) => ($a[$key] ?? null) <=> ($b[$key] ?? null));
 
 		return $data;
 	}
@@ -888,7 +888,7 @@ class Helpers
 	{
 		$count = \count($data);
 
-		return $count > 0 ? (float) (\array_sum($data) / $count) : 0.0;
+		return $count > 0 ? (float) \array_sum($data) / (float) $count : 0.0;
 	}
 
 	/**
@@ -925,7 +925,7 @@ class Helpers
 			return \array_values(\array_filter($data));
 		}
 
-		return \array_values(\array_filter($data, static fn ($item) => $item === $value));
+		return \array_values(\array_filter($data, static fn($item) => $item === $value));
 	}
 
 	// =========================================================================
@@ -1057,7 +1057,7 @@ class Helpers
 	public static function date(DateTimeInterface|float|int|string $date, string $format = 'Y-m-d H:i:s', ?string $timezone = null): string
 	{
 		if (!$date instanceof DateTimeInterface) {
-			$date = new DateTimeImmutable('@' . (\is_numeric($date) ? (int) $date : \strtotime($date)));
+			$date = new DateTimeImmutable('@' . (\is_numeric($date) ? (int) $date : (int) \strtotime($date)));
 		}
 
 		if (null !== $timezone) {

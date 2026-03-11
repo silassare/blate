@@ -86,13 +86,13 @@ class DataContext
 	}
 
 	/**
-	 * @param string $location compile-time source location 'line:index'
+	 * @param string $_location compile-time source location 'line:index' (unused, kept for compiled template compatibility)
 	 *
 	 * @return SimpleChain
 	 */
-	public function chain(string $location = ''): SimpleChain
+	public function chain(string $_location = ''): SimpleChain
 	{
-		return new SimpleChain($this, $location);
+		return new SimpleChain($this);
 	}
 
 	public function get(mixed $key): mixed

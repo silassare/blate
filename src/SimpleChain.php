@@ -52,7 +52,7 @@ class SimpleChain
 
 	private bool $is_head = true;
 
-	public function __construct(private DataContext $data_context, private string $location = '') {}
+	public function __construct(private DataContext $data_context) {}
 
 	public function val(): mixed
 	{
