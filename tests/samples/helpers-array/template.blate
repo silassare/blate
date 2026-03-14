@@ -1,25 +1,25 @@
-{length(items)}
-{first(items)}
-{last(items)}
-{join(items, '-')}
-{join(sort(items), ',')}
-{join(reverse(items), ',')}
-{join(unique(dupes), ',')}
-{join(slice(items, 1, 2), ',')}
-{join(flatten(nested), ',')}
-{sum(nums)}
-{avg(nums)}
-{min(nums)}
-{max(nums)}
-{abs(-7)}
-{round(3.567, 2)}
-{clamp(150, 0, 100)}
-{floor(4.9)}
-{ceil(4.1)}
-{number(1234567.891, 2)}
-{=json(slice(items, 0, 2))}
-{=json($map('a', 1, 'b', 2))}
-{=json($map('x.y', 3))}
-{=json($list('p', 'q', 'r'))}
-{=json($store())}
-{=json($store(base).set('x', 9).getData())}
+{$length(items)}
+{$first(items)}
+{$last(items)}
+{$join(items, '-')}
+{$join($sort(items), ',')}
+{$join($reverse(items), ',')}
+{$join($unique(dupes), ',')}
+{$join($slice(items, 1, 2), ',')}
+{$join($flatten(nested), ',')}
+{$sum(nums)}
+{$avg(nums)}
+{$min(nums)}
+{$max(nums)}
+{$abs(-7)}
+{$round(3.567, 2)}
+{$clamp(150, 0, 100)}
+{$floor(4.9)}
+{$ceil(4.1)}
+{$number(1234567.891, 2)}
+{=$json($slice(items, 0, 2))}
+{=$json($map('a', 1, 'b', 2))}
+{=$json($map('x.y', 3))}
+{=$json($list('p', 'q', 'r'))}
+{=$json($store())}
+{=$json($store(base).set('x', 9).getData())}
