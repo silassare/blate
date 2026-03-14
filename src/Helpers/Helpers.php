@@ -498,8 +498,9 @@ class Helpers
 	 * The default flags include JSON_HEX_TAG and JSON_HEX_AMP so that
 	 * the output is safe to embed inside HTML <script> blocks.
 	 *
-	 * @param mixed $value The value to encode
-	 * @param int   $flags JSON encoding flags
+	 * @param mixed $value  The value to encode
+	 * @param int   $flags  JSON encoding flags (default: JSON_HEX_TAG | JSON_HEX_AMP | JSON_THROW_ON_ERROR)
+	 * @param bool  $pretty When true, pretty-print the JSON output
 	 *
 	 * @return string
 	 */
