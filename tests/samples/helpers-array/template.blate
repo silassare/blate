@@ -23,3 +23,5 @@
 {=$json($list('p', 'q', 'r'))}
 {=$json($store())}
 {=$json($store(base).set('x', 9).getData())}
+{=$json($map('a', 1, 'b', 2), 0, true)}
+{=$json($slice(items, 0, 2), 0, true)}
