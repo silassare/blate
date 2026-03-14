@@ -733,7 +733,7 @@ final class TemplateSyntaxTest extends TestCase
 
 		try {
 			Blate::fromString('{@if 1}yes{/if}')->parse(true);
-		} catch (BlateException | BlateRuntimeException $e) {
+		} catch (BlateException|BlateRuntimeException $e) {
 			$caught = true;
 		} finally {
 			Blate::enableBlock('if');
@@ -826,7 +826,7 @@ final class TemplateSyntaxTest extends TestCase
 				$parser->parse();
 				$output = $parser->getClassBody();
 			}
-		} catch (BlateException | BlateRuntimeException $e) {
+		} catch (BlateException|BlateRuntimeException $e) {
 			$error = $e->describe(false, false);
 			\file_put_contents($full_error_file, $e->describe(false, true));
 		}
@@ -864,7 +864,7 @@ final class TemplateSyntaxTest extends TestCase
 				$inject = include $inject_file;
 				$bl->runGet($inject);
 			}
-		} catch (BlateException | BlateRuntimeException $e) {
+		} catch (BlateException|BlateRuntimeException $e) {
 			$error = $e->describe(false, false);
 			\file_put_contents($full_error_file, $e->describe(false, true));
 		}

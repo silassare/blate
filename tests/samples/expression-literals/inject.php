@@ -12,8 +12,8 @@
 declare(strict_types=1);
 
 return [
-    'foo' => [
-        'true'  => 'chain-true-val',
-        'null'  => 'chain-null-val',
-    ],
+	'foo' => [
+		'true'  => 'chain-true-val',
+		'null'  => 'chain-null-val',
+	],
 ];

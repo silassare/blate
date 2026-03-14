@@ -436,7 +436,7 @@ class BlateLspServer
 				'uri'         => $uri,
 				'diagnostics' => $this->buildHelperShadowWarnings($content),
 			]);
-		} catch (BlateParserException | BlateRuntimeException $e) {
+		} catch (BlateParserException|BlateRuntimeException $e) {
 			$chunk = $e->getChunk();
 
 			if (null !== $chunk) {
