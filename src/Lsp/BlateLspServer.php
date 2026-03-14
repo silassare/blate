@@ -378,9 +378,9 @@ class BlateLspServer
 			Blate::fromString($content)->parse(false);
 			$this->notify('textDocument/publishDiagnostics', [
 				'uri'         => $uri,
-				'diagnostics' => [],
+				'diagnostics' => $this->buildHelperShadowHints($content),
 			]);
-		} catch (BlateParserException | BlateRuntimeException $e) {
+		} catch (BlateParserException|BlateRuntimeException $e) {
 			$chunk = $e->getChunk();
 
 			if (null !== $chunk) {
@@ -426,6 +426,70 @@ class BlateLspServer
 				]],
 			]);
 		}
+	}
+
+	// =========================================================================
+	// Completion
+	// =========================================================================
+
+	/**
+	 * Scans the template for unqualified helper calls that may be shadowed by
+	 * user-data keys at runtime. Returns Hint-level diagnostics.
+	 *
+	 * A call like {upper(name)} resolves through the full scope stack: if the
+	 * render data contains a key 'upper', it will shadow the registered helper.
+	 * Use {$upper(name)} to guarantee the registered helper is always resolved.
+	 *
+	 * Pipe-filter positions (| name) are skipped because they already use
+	 * helper-only lookup internally and are never subject to shadowing.
+	 *
+	 * @return list<array<string, mixed>>
+	 */
+	private function buildHelperShadowHints(string $content): array
+	{
+		$helperSet = [];
+
+		foreach (\array_keys(Blate::getHelpers()) as $name) {
+			if (!\str_starts_with($name, '$')) {
+				$helperSet[$name] = true;
+			}
+		}
+
+		if (empty($helperSet)) {
+			return [];
+		}
+
+		// Match unqualified identifier calls: word( not preceded by $
+		if (!\preg_match_all('/(?<!\$)\b([a-zA-Z_]\w*)\s*\(/', $content, $matches, \PREG_OFFSET_CAPTURE)) {
+			return [];
+		}
+
+		$hints = [];
+
+		foreach ($matches[1] as [$name, $byteOffset]) {
+			if (!isset($helperSet[$name])) {
+				continue;
+			}
+
+			// Pipe-filter position: | (whitespace*) name( -- already helper-only, skip.
+			$before = \rtrim(\substr($content, 0, $byteOffset));
+
+			if (\str_ends_with($before, '|')) {
+				continue;
+			}
+
+			$end      = $byteOffset + \strlen($name);
+			$hints[]  = [
+				'range'    => $this->byteRangeToLspRange($content, $byteOffset, $end),
+				'severity' => 4,   // DiagnosticSeverity.Hint
+				'source'   => 'blate',
+				'message'  => '"' . $name . '" is a registered helper. '
+					. 'If render data contains a key "' . $name . '", it will shadow this helper at runtime. '
+					. 'Use $' . $name . '(...) to always resolve the registered helper.',
+			];
+		}
+
+		return $hints;
 	}
 
 	// =========================================================================
@@ -821,10 +885,10 @@ class BlateLspServer
 	 *
 	 * Other tags (`@throws`, `@see`, etc.) are omitted.
 	 *
-	 * @param string $heading        markdown heading line (bold name + type badge)
-	 * @param string $raw            raw docblock string from ReflectionMethod/ReflectionClass
-	 * @param bool   $skipClassLine  when true, drops the leading "Class Foo." summary line
-	 *                               that class-level docblocks contain
+	 * @param string $heading       markdown heading line (bold name + type badge)
+	 * @param string $raw           raw docblock string from ReflectionMethod/ReflectionClass
+	 * @param bool   $skipClassLine when true, drops the leading "Class Foo." summary line
+	 *                              that class-level docblocks contain
 	 */
 	private function formatDocblock(string $heading, string $raw, bool $skipClassLine = false): string
 	{
