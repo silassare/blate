@@ -885,6 +885,22 @@ render performance is functionally equivalent across all three.
 Blate has the lightest compile step of the three because it is a single-pass
 lexer/parser with no component resolver or service-container lookup.
 
+### Iteration
+
+All three engines inject loop metadata into the iteration scope. Blate and Twig
+keep memory usage O(1) for streaming iterables (generators, database cursors);
+Blade materialises the entire `$loop` object upfront.
+
+| Feature               | Blate                                               | Blade               | Twig                            |
+| --------------------- | --------------------------------------------------- | ------------------- | ------------------------------- |
+| Basic iteration       | `{@each val in list}`                               | `@foreach`          | `{% for %}`                     |
+| Key access            | `{@each val:key in list}`                           | `$loop->index`      | `loop.key` (assoc only)         |
+| Iteration index       | `{@each val:key:idx in list}`                       | `$loop->index`      | `loop.index` (1-based)          |
+| First / last flags    | `is_first` / `is_last` (always in scope)            | `$loop->first/last` | `loop.first` / `loop.last`      |
+| Memory for generators | **O(1)** - lookahead via `Iterator::next()/valid()` | O(n) materialises   | **O(1)** - native `for` loop    |
+| Loop of N with index  | `{@repeat n as i}` + `is_first`/`is_last`           | `@for`              | `{% for i in 0..n-1 %}`         |
+| Empty-list fallback   | `{:else}` branch on `@each`                         | `@forelse`          | `{% else %}` inside `{% for %}` |
+
 ### Security
 
 All three engines auto-escape HTML output by default, which is the most
@@ -908,16 +924,36 @@ Blate's `disableBlock()` / `disableHelper()` API provides a lighter-weight
 alternative: you can strip dangerous blocks like `{@php}` or restrict the
 helper surface without a full sandbox.
 
+### Template reuse
+
+| Feature              | Blate                                            | Blade                            | Twig                            |
+| -------------------- | ------------------------------------------------ | -------------------------------- | ------------------------------- |
+| Inheritance          | `{@extends 'base' ctx}{@slot name}...{/extends}` | `@extends` + `@section`/`@yield` | `{% extends %}` + `{% block %}` |
+| Inclusion            | `{@import 'partial' ctx}`                        | `@include`                       | `{% include %}`                 |
+| Raw file embed       | `{@import_raw 'file'}`                           | `@includeRaw` (not built-in)     | N/A                             |
+| Default slot content | `{:default}` breakpoint inside `{@slot}`         | `@section` with fallback         | `{{ block() }}` in child        |
+
+### Data and helpers
+
+| Feature                   | Blate                                       | Blade                        | Twig                          |
+| ------------------------- | ------------------------------------------- | ---------------------------- | ----------------------------- |
+| Global variables          | `Blate::registerGlobalVar()`                | `View::share()`              | `$twig->addGlobal()`          |
+| Custom helpers / filters  | `Blate::registerHelper()`                   | Custom directives / Blade X  | `$twig->addFilter/Function()` |
+| Inline array construction | `$map()`, `$list()`, `$store()` helpers     | PHP array literals in `@php` | `{}` object / `[]` array      |
+| Pipe filters              | `{expr \| helperName}` (helper-only lookup) | No native pipe syntax        | `{{ expr\|filtername }}`      |
+| Variable assignment       | `{@set name = expr}`                        | `@php $name = expr; @endphp` | `{% set name = expr %}`       |
+
 ### Summary
 
 |                               | Blate             | Blade                       | Twig                             |
 | ----------------------------- | ----------------- | --------------------------- | -------------------------------- |
 | Hot render speed              | Fast              | Fast                        | Fast                             |
 | Cold compile speed            | **Fastest**       | Medium                      | Slowest                          |
-| Memory footprint              | Smallest          | Medium (Laravel-tied)       | Medium                           |
+| Memory footprint (iteration)  | **O(1)**          | O(n) for `@foreach`         | **O(1)**                         |
 | Auto-escaping                 | Yes               | Yes                         | Yes                              |
 | Sandbox for untrusted authors | No                | No                          | **Yes**                          |
 | Disable blocks/helpers        | **Yes**           | No                          | Partial                          |
+| Global variables              | Yes               | Yes (`View::share`)         | Yes (`addGlobal`)                |
 | Framework coupling            | None - standalone | Laravel only                | Framework-agnostic               |
 | Feature richness              | Focused           | Rich (Livewire, components) | Rich (macros, extensions, tests) |
 
