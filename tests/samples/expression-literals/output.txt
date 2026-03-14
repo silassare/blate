@@ -1,0 +1,14 @@
+
+true-passes
+false-blocked
+null-blocked
+TRUE-passes
+FALSE-blocked
+NULL-blocked
+lit-T
+lit-F
+
+
+
+chain-true-val
+chain-null-val

@@ -1,0 +1,14 @@
+{# true / false / null at expression head are PHP literals #}
+{@if true}true-passes{/if}
+{@if false}false-passes{:else}false-blocked{/if}
+{@if null}null-passes{:else}null-blocked{/if}
+{@if TRUE}TRUE-passes{/if}
+{@if FALSE}FALSE-passes{:else}FALSE-blocked{/if}
+{@if NULL}NULL-passes{:else}NULL-blocked{/if}
+{$if(true, 'lit-T', 'lit-F')}
+{$if(false, 'lit-T', 'lit-F')}
+{# null as null-coalesce fallback #}
+{missing ?? null}{# empty - null renders as empty string #}
+{# foo.true and foo.null are normal chain property lookups #}
+{foo.true}
+{foo.null}
