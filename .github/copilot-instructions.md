@@ -64,15 +64,15 @@ The cached files live next to their source under `blate_cache/<version>/<hash[0:
 {= varName}          -- print, raw/unescaped
 {foo.bar}            -- property access chain
 {helper('arg')}      -- call a helper; user data with key 'helper' shadows it
-{$helper('arg')}     -- helper-only lookup: always resolves to the registered helper
+{$helper('arg')}     -- helper-only lookup: always resolves to the registered helper (preferred)
 {expr | fn}          -- pipe filter: fn(expr); fn is helper-only lookup (same as $fn); user-data callables cannot be used here
 {expr | fn(a, b)}    -- pipe filter with extra args: fn(expr, a, b)
 {expr | f1 | f2(x)}  -- chained pipes: f2(f1(expr), x)
 {# comment #}        -- template comment (stripped at compile time)
-{~ echo 'php'; ~}    -- inline PHP code
+{~ echo 'php'; ~}    -- inline PHP code; $context (DataContext) is in scope
 {@set x = expr; y = expr}
 {@if expr}...{:elseif expr}...{:else}...{/if}
-{@each val:key:idx in list}...{/each}
+{@each val:key:idx in list}...{/each}  -- is_first, is_last always in scope
 {@scoped}...{/scoped}
 {@slot name}default{/slot}
 {@extends 'path/to/base' context}{@slot name}override{/slot}{/extends}
@@ -110,6 +110,33 @@ Blate::registerHelper('myHelper', function (mixed $value): string {
 ```
 
 Built-in helpers are in `src/Helpers/Helpers.php` and registered in `bootstrap.php`.
+
+Prefer `{$helperName(...)}` over `{helperName(...)}` in all generated template
+code. The bare form resolves through the full scope stack and will silently
+change behaviour if render data contains a matching key. The `$` prefix always
+resolves to the registered helper regardless of user data.
+
+---
+
+## Inline Array Construction
+
+Blate has no array-literal syntax. Use the three built-in helpers to build arrays
+inline within template expressions:
+
+| Helper   | Returns                  | Description                                             |
+| -------- | ------------------------ | ------------------------------------------------------- |
+| `$map`   | `array` (associative)    | Alternating k/v pairs; keys are DotPath expressions     |
+| `$list`  | `array` (indexed)        | Variadic values; always re-indexed from 0               |
+| `$store` | `Store` (mutable object) | Wrap existing array for chained `.set()` / `.getData()` |
+
+```blate
+{i18n('KEY', $map('name', user.name, 'count', total))}
+{= json($map('x.y', 3))}            -- {"x":{"y":3}}
+{join($list('a', 'b', 'c'), '-')}    -- a-b-c
+{= json($store(base).set('k', v).getData())}
+```
+
+`$map` and `$store().set()` accept full DotPath keys (`'foo.bar'`, `'items[0]'`).
 
 ---
 
