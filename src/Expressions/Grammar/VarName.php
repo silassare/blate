@@ -132,6 +132,7 @@ class VarName implements TokenHandlerInterface
 				|| $next->isOperator()
 				|| $next->isGroupCloser()
 				|| Token::T_PIPE === $next->getType() // pipe filter terminates the chain
+				|| Token::T_SEMICOLON === $next->getType() // {@set} assignment separator
 			)
 		) {
 			$parser->setActiveChain($current, null);

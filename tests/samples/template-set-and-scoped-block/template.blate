@@ -1,7 +1,9 @@
 {@set foo = 8;
+      extract_taz = tar[0].taz;
       bar = foo + 9}
 foo = {foo}
 bar = {bar}
+extract_taz = {extract_taz}
 {@scoped}
 --SCOPE START--
     {@set foo = foo + 5}

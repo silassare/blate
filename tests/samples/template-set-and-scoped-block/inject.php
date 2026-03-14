@@ -14,5 +14,10 @@ declare(strict_types=1);
 use Blate\Tests\Utils\SampleInfo;
 
 return [
-	'me' => new SampleInfo(),
+	'me'  => new SampleInfo(),
+	'tar' => [
+		[
+			'taz' => 2,
+		],
+	],
 ];

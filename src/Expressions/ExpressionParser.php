@@ -177,6 +177,7 @@ class ExpressionParser implements ParserInterface
 								|| $next->isOperator()
 								|| $next->isGroupCloser()
 								|| Token::T_PIPE === $next->getType() // pipe filter terminates the chain
+								|| Token::T_SEMICOLON === $next->getType() // {@set} assignment separator
 							) {
 								$this->setActiveChain($current, null);
 								$this->write('->val()');

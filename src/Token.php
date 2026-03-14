@@ -100,6 +100,8 @@ class Token implements TokenInterface
 
 	public const T_NULL_COALESCE = 30;
 
+	public const T_SEMICOLON = 31;
+
 	public const ATTR_IN_TREE = 'in_tree';
 
 	public const ATTR_ACTIVE_CHAIN = 'active_chain';

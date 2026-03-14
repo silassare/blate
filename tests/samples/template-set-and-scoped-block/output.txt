@@ -1,6 +1,7 @@
 
 foo = 8
 bar = 17
+extract_taz = 2
 
 --SCOPE START--
     
