@@ -503,8 +503,12 @@ class Helpers
 	 *
 	 * @return string
 	 */
-	public static function json(mixed $value, int $flags = \JSON_HEX_TAG | \JSON_HEX_AMP | \JSON_THROW_ON_ERROR): string
+	public static function json(mixed $value, int $flags = \JSON_HEX_TAG | \JSON_HEX_AMP | \JSON_THROW_ON_ERROR, bool $pretty = false): string
 	{
+		if ($pretty) {
+			$flags |= \JSON_PRETTY_PRINT;
+		}
+
 		return (string) \json_encode($value, $flags);
 	}
 
