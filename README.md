@@ -784,25 +784,13 @@ cp -r editors/vscode ~/.vscode/extensions/blate
 Restart VS Code (or run `Developer: Reload Window`). `.blate` files are detected
 and highlighted automatically.
 
-**Package and install as a `.vsix`:**
+**Build `.vsix`:**
 
 ```sh
 npm install -g @vscode/vsce
 cd editors/vscode
 vsce package            # produces blate-1.0.0.vsix
 code --install-extension blate-1.0.0.vsix
-```
-
-**Publish to the VS Code Marketplace:**
-
-1. Create a publisher account at <https://marketplace.visualstudio.com/manage>.
-2. Generate a Personal Access Token (PAT) with _Marketplace - Manage_ scope.
-3. Run:
-
-```sh
-cd editors/vscode
-vsce login silassare    # prompts for PAT
-vsce publish
 ```
 
 ---
