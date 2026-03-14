@@ -19,6 +19,7 @@ use DateTimeImmutable;
 use DateTimeInterface;
 use DateTimeZone;
 use InvalidArgumentException;
+use PHPUtils\Store\Store;
 
 /**
  * Class Helpers.
@@ -88,6 +89,9 @@ class Helpers
 		Blate::registerHelper('avg', [static::class, 'avg']);
 		Blate::registerHelper('shuffle', [static::class, 'shuffle']);
 		Blate::registerHelper('filter', [static::class, 'filter']);
+		Blate::registerHelper('map', [static::class, 'map']);
+		Blate::registerHelper('list', [static::class, '_list']);
+		Blate::registerHelper('store', [static::class, 'store']);
 
 		// Number
 		Blate::registerHelper('number', [static::class, 'number']);
@@ -820,7 +824,7 @@ class Helpers
 	 */
 	public static function sortBy(array $data, string $key): array
 	{
-		\usort($data, static fn($a, $b) => ($a[$key] ?? null) <=> ($b[$key] ?? null));
+		\usort($data, static fn ($a, $b) => ($a[$key] ?? null) <=> ($b[$key] ?? null));
 
 		return $data;
 	}
@@ -925,7 +929,7 @@ class Helpers
 			return \array_values(\array_filter($data));
 		}
 
-		return \array_values(\array_filter($data, static fn($item) => $item === $value));
+		return \array_values(\array_filter($data, static fn ($item) => $item === $value));
 	}
 
 	// =========================================================================
@@ -1066,5 +1070,50 @@ class Helpers
 		}
 
 		return $date->format($format);
+	}
+
+	/**
+	 * Build an associative array from alternating key/value pairs.
+	 *
+	 * Keys are DotPath expressions, so 'foo.bar' nests the value.
+	 *
+	 * @param mixed ...$pairs Alternating keys and values: map(k1, v1, k2, v2, ...)
+	 *
+	 * @return array<mixed, mixed>
+	 */
+	public static function map(mixed ...$pairs): array
+	{
+		$store = new Store([]);
+		$count = \count($pairs);
+
+		for ($i = 0; $i + 1 < $count; $i += 2) {
+			$store->set((string) $pairs[$i], $pairs[$i + 1]);
+		}
+
+		return (array) $store->getData();
+	}
+
+	/**
+	 * Build an indexed array from the given values.
+	 *
+	 * @param mixed ...$values The values
+	 *
+	 * @return list<mixed>
+	 */
+	public static function _list(mixed ...$values): array
+	{
+		return \array_values($values);
+	}
+
+	/**
+	 * Wrap an array in a mutable Store for chained .set() calls.
+	 *
+	 * @param array<mixed, mixed> $arr The initial data
+	 *
+	 * @return Store
+	 */
+	public static function store(array $arr = []): Store
+	{
+		return new Store($arr);
 	}
 }
