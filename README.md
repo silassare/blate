@@ -157,6 +157,21 @@ Standard arithmetic and string operators are supported inside `{ }`:
 {config.title ?? 'Untitled'}
 ```
 
+### PHP Literals
+
+`true`, `false`, and `null` are PHP literals when used as expression heads.
+All casings are supported (`TRUE`, `FALSE`, `NULL`).
+Inside a dot-chain they remain normal property lookups.
+
+```blate
+{@if true}always{/if}
+{@if false}never{:else}always{/if}
+{@if null}never{:else}always{/if}
+{= value ?? null}         -- null as null-coalesce fallback
+{$if(true, 'yes', 'no')}  -- literal as helper argument
+{foo.null}                -- property lookup, not a literal
+```
+
 ### Pipe Filters
 
 Apply a helper as a filter with `|`. The left-hand expression becomes the first
@@ -942,6 +957,19 @@ helper surface without a full sandbox.
 | Inline array construction | `$map()`, `$list()`, `$store()` helpers     | PHP array literals in `@php` | `{}` object / `[]` array      |
 | Pipe filters              | `{expr \| helperName}` (helper-only lookup) | No native pipe syntax        | `{{ expr\|filtername }}`      |
 | Variable assignment       | `{@set name = expr}`                        | `@php $name = expr; @endphp` | `{% set name = expr %}`       |
+| PHP literals in exprs     | `true`/`false`/`null` (any case)            | Yes (full PHP)               | Yes (`true`/`false`/`null`)   |
+
+### Editor tooling
+
+| Feature               | Blate                                | Blade                   | Twig                   |
+| --------------------- | ------------------------------------ | ----------------------- | ---------------------- |
+| Syntax highlighting   | VS Code, Sublime Text, Vim/Neovim    | VS Code (official ext.) | VS Code + many editors |
+| Language server (LSP) | **Built-in PHP LSP server**          | No official LSP         | No official LSP        |
+| Parse diagnostics     | Exact line/column squiggles          | No                      | No                     |
+| Completions           | Blocks, helpers, in-scope variables  | Snippets only           | No                     |
+| Hover documentation   | Helper docblocks                     | No                      | No                     |
+| Variable rename       | In-document rename                   | No                      | No                     |
+| Quick fix             | Prepend `$` to shadowed helper calls | No                      | No                     |
 
 ### Summary
 
@@ -951,9 +979,11 @@ helper surface without a full sandbox.
 | Cold compile speed            | **Fastest**       | Medium                      | Slowest                          |
 | Memory footprint (iteration)  | **O(1)**          | O(n) for `@foreach`         | **O(1)**                         |
 | Auto-escaping                 | Yes               | Yes                         | Yes                              |
+| PHP literals in expressions   | Yes               | Yes (full PHP)              | Yes                              |
 | Sandbox for untrusted authors | No                | No                          | **Yes**                          |
 | Disable blocks/helpers        | **Yes**           | No                          | Partial                          |
 | Global variables              | Yes               | Yes (`View::share`)         | Yes (`addGlobal`)                |
+| Built-in LSP server           | **Yes**           | No                          | No                               |
 | Framework coupling            | None - standalone | Laravel only                | Framework-agnostic               |
 | Feature richness              | Focused           | Rich (Livewire, components) | Rich (macros, extensions, tests) |
 

@@ -52,7 +52,7 @@ The cached files live next to their source under `blate_cache/<version>/<hash[0:
 | `src/Expressions/`                 | Expression parser + grammar rules (`Grammar/VarName.php`, `Operator.php`, etc.)                                                              |
 | `src/bootstrap.php`                | Registers all built-in blocks and helpers at autoload time                                                                                   |
 | `src/assets/output.php.sample`     | Scaffold for compiled template files                                                                                                         |
-| `src/Lsp/BlateLspServer.php`       | LSP server implementation (diagnostics, completions, hover) over stdio                                                                       |
+| `src/Lsp/BlateLspServer.php`       | LSP server implementation (diagnostics, completions, hover, rename, code actions) over stdio                                                 |
 | `editors/lsp/server.php`           | LSP entry point: bootstraps Composer and starts `BlateLspServer`                                                                             |
 
 ---
@@ -83,6 +83,8 @@ The cached files live next to their source under `blate_cache/<version>/<hash[0:
 {BRACE_CLOSE}         -- literal } via built-in global var
 {BLATE_VERSION}       -- engine version string (built-in global var)
 $$                   -- reference to the raw DataContext inside expressions
+true / false / null  -- PHP literals at expression head (any case: TRUE, FALSE, NULL)
+                     -- inside a dot-chain (foo.true, foo.null) they are normal property lookups
 ```
 
 ---
