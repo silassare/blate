@@ -198,7 +198,7 @@
 
 		"constant-language": {
 			"name": "constant.language.blate",
-			"match": "\\b(null|true|false)\\b"
+			"match": "\\b(null|NULL|true|TRUE|false|FALSE)\\b"
 		},
 
 		"data-context": {

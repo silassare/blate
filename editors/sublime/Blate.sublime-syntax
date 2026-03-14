@@ -187,7 +187,7 @@ contexts:
       scope: constant.numeric.blate
 
   constant-language:
-    - match: '\b(null|true|false)\b'
+    - match: '\b(null|NULL|true|TRUE|false|FALSE)\b'
       scope: constant.language.blate
 
   # $$ -- reference to the raw DataContext

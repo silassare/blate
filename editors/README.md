@@ -31,12 +31,13 @@ editors/
 The PHP-based language server provides four IDE features for all LSP-capable
 editors:
 
-| Feature         | Description                                                        |
-| --------------- | ------------------------------------------------------------------ |
-| **Diagnostics** | Parse errors appear as red squiggles with exact line/column        |
-| **Completions** | Block names, helper names, and in-scope template variables         |
-| **Hover**       | Docblock for built-in helpers (`escapeHtml`, `json`, `attrs`, ...) |
-| **Rename**      | Renames all occurrences of a variable within the document          |
+| Feature         | Description                                                                      |
+| --------------- | -------------------------------------------------------------------------------- |
+| **Diagnostics** | Parse errors appear as red squiggles with exact line/column                      |
+| **Completions** | Block names, helper names, and in-scope template variables                       |
+| **Hover**       | Docblock for built-in helpers (`escapeHtml`, `json`, `attrs`, ...)               |
+| **Rename**      | Renames all occurrences of a variable within the document                        |
+| **Quick Fix**   | Unqualified helper calls get a one-click fix to prepend `$` (helper-only lookup) |
 
 ### Starting the server
 
@@ -252,22 +253,22 @@ PHP syntax inside `{~ ... ~}` blocks is highlighted automatically when
 
 ## What is highlighted
 
-| Token                     | Scope                           |
-| ------------------------- | ------------------------------- |
-| `{# ... #}`               | `comment.block.blate`           |
-| `{~ ... ~}`               | embedded PHP (`source.php`)     |
-| `{@if`, `{@each` ...      | `keyword.control.blate`         |
-| `{/if}`, `{/each}` ...    | `keyword.control.blate`         |
-| `{:else}`, `{:case}` ...  | `keyword.control.blate`         |
-| `{= expr}`                | `meta.print.raw.blate`          |
-| `'...'` `"..."`           | `string.quoted.*.blate`         |
-| Numbers                   | `constant.numeric.blate`        |
-| `null` / `true` / `false` | `constant.language.blate`       |
-| `$$`                      | `variable.language.blate`       |
-| `$helper`                 | `variable.other.constant.blate` |
-| `fn(...)`                 | `entity.name.function.blate`    |
-| `\|` pipe filter          | `keyword.operator.pipe.blate`   |
-| `??` `&&` `\|\|` `==` ... | `keyword.operator.blate`        |
-| `.` accessor              | `punctuation.accessor.blate`    |
-| `in` / `as`               | `keyword.operator.word.blate`   |
-| Bare identifiers          | `variable.other.blate`          |
+| Token                                | Scope                           |
+| ------------------------------------ | ------------------------------- |
+| `{# ... #}`                          | `comment.block.blate`           |
+| `{~ ... ~}`                          | embedded PHP (`source.php`)     |
+| `{@if`, `{@each` ...                 | `keyword.control.blate`         |
+| `{/if}`, `{/each}` ...               | `keyword.control.blate`         |
+| `{:else}`, `{:case}` ...             | `keyword.control.blate`         |
+| `{= expr}`                           | `meta.print.raw.blate`          |
+| `'...'` `"..."`                      | `string.quoted.*.blate`         |
+| Numbers                              | `constant.numeric.blate`        |
+| `null` / `true` / `false` (any case) | `constant.language.blate`       |
+| `$$`                                 | `variable.language.blate`       |
+| `$helper`                            | `variable.other.constant.blate` |
+| `fn(...)`                            | `entity.name.function.blate`    |
+| `\|` pipe filter                     | `keyword.operator.pipe.blate`   |
+| `??` `&&` `\|\|` `==` ...            | `keyword.operator.blate`        |
+| `.` accessor                         | `punctuation.accessor.blate`    |
+| `in` / `as`                          | `keyword.operator.word.blate`   |
+| Bare identifiers                     | `variable.other.blate`          |

@@ -120,8 +120,8 @@ highlight default link blateEscape SpecialChar
 syntax match blateNumber contained "-\?\b\d\+\(\.\d\+\)\?\b"
 highlight default link blateNumber Number
 
-" Language constants: null true false
-syntax keyword blateConstant contained null true false
+" Language constants: null true false (any case)
+syntax keyword blateConstant contained null true false NULL TRUE FALSE
 highlight default link blateConstant Constant
 
 " $$ -- raw DataContext reference
