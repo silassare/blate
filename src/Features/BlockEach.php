@@ -19,6 +19,7 @@ use Blate\Expressions\Expression;
 use Blate\Interfaces\TokenInterface;
 use Blate\Message;
 use Blate\Token;
+use PHPUtils\Str;
 
 /**
  * Class BlockEach.
@@ -30,10 +31,20 @@ use Blate\Token;
  *   {@each value:key in list}           -- value + key
  *   {@each value:key:index in list}     -- value + key + iteration index
  *
+ * Built-in scope variables set on every iteration (all forms):
+ *   is_first  bool  true on the first iteration
+ *   is_last   bool  true on the last iteration
+ *
  * An optional {:else} branch renders when the list is empty.
  *
  * Compile-time output:
- *   Creates a new DataContext scope (newContext()), emits a foreach loop that
+ *   The iterable is normalized to an Iterator at runtime: IteratorAggregate
+ *   instances are unwrapped recursively via getIterator(); plain arrays are
+ *   wrapped in ArrayIterator.  After each element is fetched via current()/key(),
+ *   next() is called immediately and valid() is re-checked to determine is_last
+ *   without materializing the whole sequence.  This keeps memory usage O(1)
+ *   even for generators or large database cursors.
+ *   Creates a new DataContext scope (newContext()), emits a while loop that
  *   sets the named variables on the context, and closes the scope on {/each}.
  *
  * Unique PHP variable names are generated via Parser::createVar() to avoid
@@ -72,8 +83,8 @@ class BlockEach extends Block
 		$next              = $this->lexer->nextIsOneOf([Token::T_COLON, Token::T_NAME], true);
 
 		if (Token::T_COLON === $next->getType()) {
-			$key_access_name    = $this->lexer->nextIs(Token::T_NAME, null, true);
-			$forward            = $this->lexer->lookForward(true);
+			$key_access_name = $this->lexer->nextIs(Token::T_NAME, null, true);
+			$forward         = $this->lexer->lookForward(true);
 
 			if ($forward && Token::T_COLON === $forward->getType()) {
 				$this->lexer->nextIs(Token::T_COLON, null, true);
@@ -93,63 +104,95 @@ class BlockEach extends Block
 		$value_var = $this->parser->createVar();
 		$key_var   = $this->parser->createVar();
 		$index_var = $this->parser->createVar();
+		$iter_var  = $this->parser->createVar();
 		$code      = '';
 
 		$this->had_var = $this->parser->createVar();
 		$this->parser->writeCode($this->had_var . ' = false;');
 		$this->parser->newDataContext();
 
+		// Normalize the iterable to an Iterator so we can use the lookahead
+		// technique: fetch current()/key(), call next(), then check valid()
+		// to determine is_last without fully materializing the sequence.
+		// IteratorAggregate instances are unwrapped; arrays are wrapped in
+		// ArrayIterator (copy-on-write, no full copy until modified).
+		$this->parser->writeCode(Str::interpolate(
+			'{iter_var} = {list_access};' . "\n"
+				. 'while ({iter_var} instanceof \IteratorAggregate) { {iter_var} = {iter_var}->getIterator(); }' . "\n"
+				. 'if (\is_array({iter_var})) { {iter_var} = new \ArrayIterator({iter_var}); }' . "\n"
+				. '{iter_var}->rewind();' . "\n"
+				. '{index_var} = 0;' . "\n",
+			[
+				'iter_var'    => $iter_var,
+				'list_access' => $list_access,
+				'index_var'   => $index_var,
+			]
+		));
+
+		$ctx      = Blate::DATA_CONTEXT_VAR;
+		$val_name = $value_access_name->getValue();
+
 		if (isset($key_access_name, $index_access_name)) {
-			$code .= \sprintf(
-				'
-%s = 0;
-foreach (%s as %s => %s) {
-	%s = true;
-	%s->set(\'%s\',%s)->set(\'%s\',%s)->set(\'%s\',%s++);
-',
-				$index_var,
-				$list_access,
-				$key_var,
-				$value_var,
-				$this->had_var,
-				Blate::DATA_CONTEXT_VAR,
-				$key_access_name->getValue(),
-				$key_var,
-				$value_access_name->getValue(),
-				$value_var,
-				$index_access_name->getValue(),
-				$index_var
+			$code .= Str::interpolate(
+				"\nwhile ({iter_var}->valid()) {\n"
+					. "\t{key_var} = {iter_var}->key();\n"
+					. "\t{value_var} = {iter_var}->current();\n"
+					. "\t{iter_var}->next();\n"
+					. "\t{had_var} = true;\n"
+					. "\t{ctx}->set('{key_name}',{key_var})->set('{val_name}',{value_var})"
+					. "->set('{idx_name}',{index_var})"
+					. "->set('is_first',{index_var} === 0)->set('is_last',!{iter_var}->valid());\n"
+					. "\t++{index_var};\n",
+				[
+					'iter_var'  => $iter_var,
+					'key_var'   => $key_var,
+					'value_var' => $value_var,
+					'had_var'   => $this->had_var,
+					'ctx'       => $ctx,
+					'key_name'  => $key_access_name->getValue(),
+					'val_name'  => $val_name,
+					'idx_name'  => $index_access_name->getValue(),
+					'index_var' => $index_var,
+				]
 			);
 		} elseif (isset($key_access_name)) {
-			$code .= \sprintf(
-				'
-foreach (%s as %s => %s) {
-	%s = true;
-	%s->set(\'%s\',%s)->set(\'%s\',%s);
-',
-				$list_access,
-				$key_var,
-				$value_var,
-				$this->had_var,
-				Blate::DATA_CONTEXT_VAR,
-				$key_access_name->getValue(),
-				$key_var,
-				$value_access_name->getValue(),
-				$value_var
+			$code .= Str::interpolate(
+				"\nwhile ({iter_var}->valid()) {\n"
+					. "\t{key_var} = {iter_var}->key();\n"
+					. "\t{value_var} = {iter_var}->current();\n"
+					. "\t{iter_var}->next();\n"
+					. "\t{had_var} = true;\n"
+					. "\t{ctx}->set('{key_name}',{key_var})->set('{val_name}',{value_var})"
+					. "->set('is_first',{index_var} === 0)->set('is_last',!{iter_var}->valid());\n"
+					. "\t++{index_var};\n",
+				[
+					'iter_var'  => $iter_var,
+					'key_var'   => $key_var,
+					'value_var' => $value_var,
+					'had_var'   => $this->had_var,
+					'ctx'       => $ctx,
+					'key_name'  => $key_access_name->getValue(),
+					'val_name'  => $val_name,
+					'index_var' => $index_var,
+				]
 			);
 		} else {
-			$code .= \sprintf(
-				'
-foreach (%s as %s) {
-	%s = true;
-	%s->set(\'%s\',%s);
-',
-				$list_access,
-				$value_var,
-				$this->had_var,
-				Blate::DATA_CONTEXT_VAR,
-				$value_access_name->getValue(),
-				$value_var
+			$code .= Str::interpolate(
+				"\nwhile ({iter_var}->valid()) {\n"
+					. "\t{value_var} = {iter_var}->current();\n"
+					. "\t{iter_var}->next();\n"
+					. "\t{had_var} = true;\n"
+					. "\t{ctx}->set('{val_name}',{value_var})"
+					. "->set('is_first',{index_var} === 0)->set('is_last',!{iter_var}->valid());\n"
+					. "\t++{index_var};\n",
+				[
+					'iter_var'  => $iter_var,
+					'value_var' => $value_var,
+					'had_var'   => $this->had_var,
+					'ctx'       => $ctx,
+					'val_name'  => $val_name,
+					'index_var' => $index_var,
+				]
 			);
 		}
 

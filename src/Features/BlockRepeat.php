@@ -18,6 +18,7 @@ use Blate\Exceptions\BlateParserException;
 use Blate\Expressions\Expression;
 use Blate\Interfaces\TokenInterface;
 use Blate\Token;
+use PHPUtils\Str;
 
 /**
  * Class BlockRepeat.
@@ -28,14 +29,21 @@ use Blate\Token;
  *   {@repeat n}              -- repeat n times
  *   {@repeat n as idx}       -- repeat n times, exposing the current index as idx (0-based)
  *
- * The count expression is cast to int at runtime. When idx is specified,
- * the variable is accessible inside the loop body as a normal template variable.
+ * The count expression is cast to int at runtime. A new DataContext scope is
+ * created for the loop body. Two built-in variables are available on every
+ * iteration regardless of the syntax form used:
+ *
+ *   is_first  bool  true on the first iteration (index === 0)
+ *   is_last   bool  true on the last iteration  (index === count - 1)
+ *
+ * When idx is specified it is also available as a normal template variable.
  *
  * Example:
  *   {@repeat 3}row{/repeat}              -> rowrowrow
  *   {@repeat items|length as i}{i}{/repeat}
  *
- * Compile-time output emits a for loop with an optional set() for the index variable.
+ * Compile-time output emits a for loop with set() calls for is_first, is_last,
+ * and the optional index variable.
  */
 class BlockRepeat extends Block
 {
@@ -97,22 +105,28 @@ class BlockRepeat extends Block
 		$this->count_var = $this->parser->createVar();
 		$this->index_var = $this->parser->createVar();
 
-		$code = \sprintf(
-			"%s = (int)(%s);\nfor (%s = 0; %s < %s; %s++) {\n",
-			$this->count_var,
-			$count_expr,
-			$this->index_var,
-			$this->index_var,
-			$this->count_var,
-			$this->index_var
+		$this->parser->newDataContext();
+
+		$code = Str::interpolate(
+			'{count_var} = (int)({count_expr});' . "\n"
+				. 'for ({index_var} = 0; {index_var} < {count_var}; {index_var}++) {' . "\n"
+				. "{ctx}->set('is_first',{index_var} === 0)->set('is_last',{index_var} === {count_var} - 1);\n",
+			[
+				'count_var'  => $this->count_var,
+				'count_expr' => $count_expr,
+				'index_var'  => $this->index_var,
+				'ctx'        => Blate::DATA_CONTEXT_VAR,
+			]
 		);
 
 		if (null !== $loop_idx_name) {
-			$code .= \sprintf(
-				"%s->set('%s', %s);\n",
-				Blate::DATA_CONTEXT_VAR,
-				$loop_idx_name,
-				$this->index_var
+			$code .= Str::interpolate(
+				"{ctx}->set('{loop_idx_name}', {index_var});\n",
+				[
+					'ctx'           => Blate::DATA_CONTEXT_VAR,
+					'loop_idx_name' => $loop_idx_name,
+					'index_var'     => $this->index_var,
+				]
 			);
 		}
 
@@ -125,6 +139,7 @@ class BlockRepeat extends Block
 	public function onClose(): void
 	{
 		$this->parser->writeCode('}');
+		$this->parser->popDataContext();
 	}
 
 	/**
