@@ -378,7 +378,7 @@ class BlateLspServer
 			Blate::fromString($content)->parse(false);
 			$this->notify('textDocument/publishDiagnostics', [
 				'uri'         => $uri,
-				'diagnostics' => $this->buildHelperShadowHints($content),
+				'diagnostics' => $this->buildHelperShadowWarnings($content),
 			]);
 		} catch (BlateParserException|BlateRuntimeException $e) {
 			$chunk = $e->getChunk();
@@ -434,7 +434,7 @@ class BlateLspServer
 
 	/**
 	 * Scans the template for unqualified helper calls that may be shadowed by
-	 * user-data keys at runtime. Returns Hint-level diagnostics.
+	 * user-data keys at runtime. Returns Warning-level diagnostics.
 	 *
 	 * A call like {upper(name)} resolves through the full scope stack: if the
 	 * render data contains a key 'upper', it will shadow the registered helper.
@@ -445,7 +445,7 @@ class BlateLspServer
 	 *
 	 * @return list<array<string, mixed>>
 	 */
-	private function buildHelperShadowHints(string $content): array
+	private function buildHelperShadowWarnings(string $content): array
 	{
 		$helperSet = [];
 
@@ -464,7 +464,7 @@ class BlateLspServer
 			return [];
 		}
 
-		$hints = [];
+		$warns = [];
 
 		foreach ($matches[1] as [$name, $byteOffset]) {
 			if (!isset($helperSet[$name])) {
@@ -479,9 +479,9 @@ class BlateLspServer
 			}
 
 			$end      = $byteOffset + \strlen($name);
-			$hints[]  = [
+			$warns[]  = [
 				'range'    => $this->byteRangeToLspRange($content, $byteOffset, $end),
-				'severity' => 4,   // DiagnosticSeverity.Hint
+				'severity' => 2,   // DiagnosticSeverity.Warning
 				'source'   => 'blate',
 				'message'  => '"' . $name . '" is a registered helper. '
 					. 'If render data contains a key "' . $name . '", it will shadow this helper at runtime. '
@@ -489,7 +489,7 @@ class BlateLspServer
 			];
 		}
 
-		return $hints;
+		return $warns;
 	}
 
 	// =========================================================================
