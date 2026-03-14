@@ -515,8 +515,14 @@ class BlateLspServer
 			return [];
 		}
 
+		// Blank regions where Blate expression parsing does not apply so that
+		// helper names inside comments, raw blocks, inline PHP, or plain HTML
+		// content do not produce false-positive shadow warnings.
+		// Byte length is preserved, so match offsets stay valid for the original $content.
+		$scanContent = $this->blankDeadZones($content);
+
 		// Match unqualified identifier calls: word( not preceded by $
-		if (!\preg_match_all('/(?<!\$)\b([a-zA-Z_]\w*)\s*\(/', $content, $matches, \PREG_OFFSET_CAPTURE)) {
+		if (!\preg_match_all('/(?<!\$)\b([a-zA-Z_]\w*)\s*\(/', $scanContent, $matches, \PREG_OFFSET_CAPTURE)) {
 			return [];
 		}
 
@@ -528,7 +534,7 @@ class BlateLspServer
 			}
 
 			// Pipe-filter position: | (whitespace*) name( -- already helper-only, skip.
-			$before = \rtrim(\substr($content, 0, $byteOffset));
+			$before = \rtrim(\substr($scanContent, 0, $byteOffset));
 
 			if (\str_ends_with($before, '|')) {
 				continue;
@@ -548,6 +554,47 @@ class BlateLspServer
 		}
 
 		return $warns;
+	}
+
+	// =========================================================================
+	// Helpers
+	// =========================================================================
+
+	/**
+	 * Returns a copy of $content with "dead zones" -- regions where Blate
+	 * expression parsing does not apply -- replaced with equal-length spaces.
+	 *
+	 * Blanked regions:
+	 *  - plain text        content outside {…} template tags
+	 *  - {# ... #}        template comments (stripped at compile time)
+	 *  - {~ ... ~}        inline PHP blocks (raw PHP, not Blate expressions)
+	 *  - {@raw}...{/raw}  literal-content blocks (no Blate parsing inside)
+	 *
+	 * Replacing with spaces of the same byte length keeps all byte offsets
+	 * identical to the original, so match positions remain accurate.
+	 */
+	private function blankDeadZones(string $content): string
+	{
+		// Blank specific tag types that contain non-expression content first.
+		// After this pass, no remaining {…} tag contains nested braces, so the
+		// plain-text split below is safe.
+		foreach (['/\{#.*?#\}/s', '/\{~.*?~\}/s', '/\{@raw\}.*?\{\/raw\}/s'] as $pattern) {
+			$content = \preg_replace_callback($pattern, static function (array $m): string {
+				return \str_repeat(' ', \strlen($m[0]));
+			}, $content) ?? $content;
+		}
+
+		// Blank plain text (content outside {…} template tags).
+		// Odd-indexed parts from PREG_SPLIT_DELIM_CAPTURE are the tag segments
+		// themselves; even-indexed parts are plain-text segments between tags.
+		$parts  = \preg_split('/(\{[^{}]*\})/s', $content, -1, \PREG_SPLIT_DELIM_CAPTURE) ?: [$content];
+		$result = '';
+
+		foreach ($parts as $i => $part) {
+			$result .= (0 === $i % 2) ? \str_repeat(' ', \strlen($part)) : $part;
+		}
+
+		return $result;
 	}
 
 	// =========================================================================

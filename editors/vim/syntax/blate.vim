@@ -23,11 +23,13 @@ unlet! b:current_syntax
 syntax case match
 
 " --- Priority ordering note ---------------------------------------------------
-" Vim applies the FIRST defined syntax rule when two patterns match at the same
-" starting position (see :help syn-priority, rule 4).  The order here is:
-"   1. high-priority specific patterns first (comment, php, block, breakpoint,
-"      raw-print)
-"   2. catch-all blatePrint last (lowest priority)
+" Vim applies the LAST-defined syntax rule when two patterns match at the same
+" starting position (see :help syn-priority, rule 2c).  The order here is:
+"   1. comment  {# #}   and inline-php  {~ ~}  -- unique prefixes, no conflict
+"   2. block-open {@ / block-close {/ / breakpoint {: / print-raw {=
+"   3. blatePrint  {   -- catch-all
+"   4. blateRawBlock  {@raw}  -- LAST so it beats block-open and blatePrint at
+"      the same start position
 
 " --- {# comment #} ------------------------------------------------------------
 syntax region blateComment
@@ -48,15 +50,6 @@ else
         \ contains=NONE keepend extend
 endif
 highlight default link blatePhpBlock Special
-
-" --- {@raw}...{/raw} (literal content -- no inner Blate parsing) -------------
-" Must be defined BEFORE blateBlockOpen so it takes priority at {@ positions.
-syntax region blateRawBlock
-      \ start="{@raw}"  end="{/raw}"
-      \ contains=blateRawTag keepend extend
-syntax match blateRawTag contained "{@raw}\|{/raw}"
-highlight default link blateRawBlock Normal
-highlight default link blateRawTag Statement
 
 " --- {@blockname ...} ---------------------------------------------------------
 syntax region blateBlockOpen
@@ -82,11 +75,23 @@ syntax region blatePrintRaw
       \ contains=@blateExpr keepend extend
 highlight default link blatePrintRaw Identifier
 
-" --- {expr} (escaped print, catch-all -- defined LAST for lowest priority) ----
+" --- {expr} (escaped print, catch-all) ---------------------------------------
 syntax region blatePrint
       \ start="{"   end="}"
       \ contains=@blateExpr keepend extend
 highlight default link blatePrint Identifier
+
+" --- {@raw}...{/raw} (literal content -- no inner Blate parsing) -------------
+" MUST be defined AFTER all other { regions.  Vim's priority rule: when two
+" patterns start at the same position, the LAST-defined rule wins.  By placing
+" blateRawBlock here, it beats blateBlockOpen (start={@) and blatePrint
+" (start={) at the {@ position, so {/raw} correctly acts as the end anchor.
+syntax region blateRawBlock
+      \ start="{@raw}"  end="{/raw}"
+      \ contains=blateRawTag keepend extend
+syntax match blateRawTag contained "{@raw}\|{/raw}"
+highlight default link blateRawBlock Normal
+highlight default link blateRawTag Statement
 
 " === Keywords =================================================================
 syntax keyword blateBlockKwd contained

@@ -55,7 +55,8 @@
 				"1": { "name": "punctuation.section.tag.begin.blate" },
 				"2": { "name": "keyword.control.blate" },
 				"3": { "name": "punctuation.section.tag.end.blate" }
-			}
+			},
+			"patterns": []
 		},
 
 		"blate-block-open": {
