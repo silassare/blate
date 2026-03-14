@@ -31,6 +31,7 @@ use Throwable;
  *  - textDocument/completion          block names, helper names, in-scope vars
  *  - textDocument/hover               docblock for helpers, blocks, and global variables
  *  - textDocument/rename              simple variable rename in one document
+ *  - textDocument/codeAction          quick fix: prepend $ to shadowed helper calls
  *
  * Wire format: JSON-RPC 2.0 over stdin/stdout with Content-Length framing.
  */
@@ -245,6 +246,11 @@ class BlateLspServer
 
 					break;
 
+				case 'textDocument/codeAction':
+					$this->handleCodeAction($id, $params);
+
+					break;
+
 				default:
 					if (null !== $id) {
 						$this->respondError($id, -32601, 'Method not found: ' . $method);
@@ -276,8 +282,11 @@ class BlateLspServer
 					'triggerCharacters' => ['{', '@', ':', '|', '/'],
 					'resolveProvider'   => false,
 				],
-				'hoverProvider'  => true,
-				'renameProvider' => true,
+				'hoverProvider'      => true,
+				'renameProvider'     => true,
+				'codeActionProvider' => [
+					'codeActionKinds' => ['quickfix'],
+				],
 			],
 			'serverInfo' => [
 				'name'    => 'blate-lsp',
@@ -367,6 +376,53 @@ class BlateLspServer
 		$this->respond($id, ['changes' => [$uri => $edits]]);
 	}
 
+	/**
+	 * @param array<string, mixed> $params
+	 */
+	private function handleCodeAction(mixed $id, array $params): void
+	{
+		$uri         = (string) ($params['textDocument']['uri'] ?? '');
+		$diagnostics = (array) ($params['context']['diagnostics'] ?? []);
+		$actions     = [];
+
+		foreach ($diagnostics as $diag) {
+			if (($diag['code'] ?? '') !== 'blate.helper.shadow') {
+				continue;
+			}
+
+			$range = $diag['range'] ?? null;
+
+			if (null === $range) {
+				continue;
+			}
+
+			$helperName = (string) ($diag['data']['helperName'] ?? '');
+
+			if ('' === $helperName) {
+				continue;
+			}
+
+			// Insert '$' before the helper name to convert {name(...)} -> {$name(...)},
+			// guaranteeing helper-only lookup regardless of render data.
+			$actions[] = [
+				'title'       => 'Use $' . $helperName . '(...) -- helper-only lookup, avoids data shadow',
+				'kind'        => 'quickfix',
+				'diagnostics' => [$diag],
+				'isPreferred' => true,
+				'edit'        => [
+					'changes' => [
+						$uri => [[
+							'range'   => ['start' => $range['start'], 'end' => $range['start']],
+							'newText' => '$',
+						]],
+					],
+				],
+			];
+		}
+
+		$this->respond($id, $actions);
+	}
+
 	// =========================================================================
 	// Diagnostics
 	// =========================================================================
@@ -380,7 +436,7 @@ class BlateLspServer
 				'uri'         => $uri,
 				'diagnostics' => $this->buildHelperShadowWarnings($content),
 			]);
-		} catch (BlateParserException|BlateRuntimeException $e) {
+		} catch (BlateParserException | BlateRuntimeException $e) {
 			$chunk = $e->getChunk();
 
 			if (null !== $chunk) {
@@ -483,6 +539,8 @@ class BlateLspServer
 				'range'    => $this->byteRangeToLspRange($content, $byteOffset, $end),
 				'severity' => 2,   // DiagnosticSeverity.Warning
 				'source'   => 'blate',
+				'code'     => 'blate.helper.shadow',
+				'data'     => ['helperName' => $name],
 				'message'  => '"' . $name . '" is a registered helper. '
 					. 'If render data contains a key "' . $name . '", it will shadow this helper at runtime. '
 					. 'Use $' . $name . '(...) to always resolve the registered helper.',
