@@ -38,6 +38,12 @@ use Blate\Token;
  *
  *   Special case: $$ (DATA_CONTEXT_REF) is the raw DataContext reference and
  *   does not start a chain -- it emits $context directly without ->val().
+ *
+ *   PHP literals (true/false/null, case-insensitive) at chain head:
+ *     Emitted verbatim as the PHP literal (always lowercase). No chain is started
+ *     and no ->val() is appended. This only applies when the keyword is the head
+ *     of an expression -- inside a dot-chain (foo.true.bar) it is a normal
+ *     property lookup.
  */
 class VarName implements TokenHandlerInterface
 {
@@ -46,11 +52,12 @@ class VarName implements TokenHandlerInterface
 	 */
 	public function handle(ParserInterface $parser, TokenInterface $token, bool $is_head): void
 	{
-		$current             = $token;
-		$lexer               = $parser->getLexer();
-		$prev                = $lexer->lookBackward(true);
-		$prev_type           = $prev?->getType();
-		$is_ref              = false;
+		$current   = $token;
+		$lexer     = $parser->getLexer();
+		$prev      = $lexer->lookBackward(true);
+		$prev_type = $prev?->getType();
+		$is_ref    = false;
+		$is_literal = false;
 
 		if (Token::T_DOT === $prev_type) { // foo.bar
 			$dot_loc     = $current->getChunk()->getLocation();
@@ -77,15 +84,22 @@ class VarName implements TokenHandlerInterface
 				throw BlateParserException::withToken(Message::UNEXPECTED, $current);
 			}
 
-			$parser->setActiveChain($current, $current);
+			$var_name      = $current->getValue();
+			$is_ref        = (Blate::DATA_CONTEXT_REF === $var_name);
+			$is_helper_ref = !$is_ref && \str_starts_with($var_name, Blate::HELPER_PREFIX_CHAR);
+			$lower_name    = \strtolower($var_name);
+			$is_literal    = !$is_ref && !$is_helper_ref
+				&& ('true' === $lower_name || 'false' === $lower_name || 'null' === $lower_name);
 
-			$var_name            = $current->getValue();
-			$is_ref              = (Blate::DATA_CONTEXT_REF === $var_name);
-			$is_helper_ref       = !$is_ref && \str_starts_with($var_name, Blate::HELPER_PREFIX_CHAR);
-
-			if ($is_ref) {
+			if ($is_literal) {
+				// PHP reserved literal at expression head -- emitted verbatim, no chain started.
+				// foo.true and foo.null inside a dot-chain are still normal property lookups.
+				$parser->write($lower_name);
+			} elseif ($is_ref) {
+				$parser->setActiveChain($current, $current);
 				$parser->write(Blate::DATA_CONTEXT_VAR);
 			} elseif ($is_helper_ref) {
+				$parser->setActiveChain($current, $current);
 				$actual_name  = \substr($var_name, \strlen(Blate::HELPER_PREFIX_CHAR)); // strip leading prefix
 				$head_loc     = $current->getChunk()->getLocation();
 				$head_loc_str = $head_loc['line'] . ':' . $head_loc['index'];
@@ -93,6 +107,7 @@ class VarName implements TokenHandlerInterface
 				$parser->write($actual_name);
 				$parser->write('\')');
 			} else {
+				$parser->setActiveChain($current, $current);
 				$head_loc     = $current->getChunk()->getLocation();
 				$head_loc_str = $head_loc['line'] . ':' . $head_loc['index'];
 				$parser->write(Blate::DATA_CONTEXT_VAR . '->chain(\'' . $head_loc_str . '\')->get(\'' . $head_loc_str . '\', \'');
@@ -109,12 +124,15 @@ class VarName implements TokenHandlerInterface
 		if ($is_ref) {
 			$parser->setActiveChain($current, null);
 		} elseif (
-			!$next
-			|| $next->isComparator()
-			|| $next->isLogicalCondition()
-			|| $next->isOperator()
-			|| $next->isGroupCloser()
-			|| Token::T_PIPE === $next->getType() // pipe filter terminates the chain
+			!$is_literal
+			&& (
+				!$next
+				|| $next->isComparator()
+				|| $next->isLogicalCondition()
+				|| $next->isOperator()
+				|| $next->isGroupCloser()
+				|| Token::T_PIPE === $next->getType() // pipe filter terminates the chain
+			)
 		) {
 			$parser->setActiveChain($current, null);
 			$parser->write('->val()');
