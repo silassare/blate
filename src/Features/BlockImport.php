@@ -19,6 +19,7 @@ use Blate\Helpers\Helpers;
 use Blate\Message;
 use Blate\Token;
 use PHPUtils\FS\PathUtils;
+use PHPUtils\Str;
 
 /**
  * Class BlockImport.
@@ -67,22 +68,18 @@ class BlockImport extends Block
 		$instance_var = $this->parser->createVar();
 		$context_var  = $this->parser->createVar();
 
-		$this->parser->writeCode(\sprintf(
-			'
-%s = Blate::fromPath(%s)->parse();
-%s = %s->getParsedInstance();
-%s = $this->createExtendsContext(%s, %s);
-%s->build(%s);
-',
-			$blate_var,
-			Helpers::quote($abs_path),
-			$instance_var,
-			$blate_var,
-			$context_var,
-			$blate_var,
-			$context,
-			$instance_var,
-			$context_var
+		$this->parser->writeCode(Str::interpolate(
+			"\n{blate_var} = Blate::fromPath({abs_path})->parse();\n"
+				. '{instance_var} = {blate_var}->getParsedInstance();' . "\n"
+				. '{context_var} = $this->createExtendsContext({blate_var}, {context});' . "\n"
+				. '{instance_var}->build({context_var});' . "\n",
+			[
+				'blate_var'    => $blate_var,
+				'abs_path'     => Helpers::quote($abs_path),
+				'instance_var' => $instance_var,
+				'context_var'  => $context_var,
+				'context'      => $context,
+			]
 		));
 	}
 

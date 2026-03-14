@@ -227,9 +227,27 @@ Assign one or more variables in the current data scope:
 Iterate over a list. Supports `key` and `index` variables.
 The optional `{:else}` branch renders when the list is empty or null.
 
+Three built-in variables are injected into every iteration's scope regardless
+of the syntax form used:
+
+| Variable   | Type   | Description                   |
+| ---------- | ------ | ----------------------------- |
+| `is_first` | `bool` | `true` on the first iteration |
+| `is_last`  | `bool` | `true` on the last iteration  |
+
+At runtime the iterable is normalized to an `Iterator`: `IteratorAggregate`
+instances are unwrapped, plain arrays are wrapped in `ArrayIterator`. The loop
+then fetches each element via `current()`/`key()`, advances with `next()`, and
+reads `valid()` to determine `is_last` — without materializing the whole
+sequence first. Memory usage is O(1) even for generators or large database
+cursors.
+
 ```blate
 {@each item in products}
-  <li>{item.name} - {item.price | number(2)}</li>
+  <li
+    {@if is_first}class="first"{/if}
+    {@if is_last}class="last"{/if}
+  >{item.name} - {item.price | $number(2)}</li>
 {:else}
   <li>No products found.</li>
 {/each}
@@ -241,7 +259,7 @@ The optional `{:else}` branch renders when the list is empty or null.
 
 <!-- with key and index -->
 {@each item:key:idx in list}
-  {idx}. [{key}] {item}
+  {idx}. [{key}] {item} (first={is_first}, last={is_last})
 {/each}
 ```
 
@@ -263,13 +281,26 @@ Branch on a single expression using strict equality (`===`).
 
 ### @repeat
 
-Loop a block `n` times. Optionally expose the 0-based index as a variable:
+Loop a block `n` times. Optionally expose the 0-based index as a variable.
+
+Two built-in variables are injected on every iteration:
+
+| Variable   | Type   | Description                   |
+| ---------- | ------ | ----------------------------- |
+| `is_first` | `bool` | `true` on the first iteration |
+| `is_last`  | `bool` | `true` on the last iteration  |
 
 ```blate
 {@repeat 3}*{/repeat}       -- outputs: ***
 
 {@repeat count as i}
   Row {i}
+{/repeat}
+
+{@repeat 3}
+  {@if is_first}<ul>{/if}
+  <li>item</li>
+  {@if is_last}</ul>{/if}
 {/repeat}
 ```
 
@@ -387,6 +418,22 @@ Embed arbitrary PHP expressions directly (use sparingly):
 Created: {~ echo date('Y-m-d', $ts); ~}
 ```
 
+The snippet is emitted verbatim into the compiled template's `build()` method,
+which receives `$context` as its only parameter. `$context` is the
+`Blate\DataContext` object for the current render and exposes the full scope
+stack. Common uses:
+
+```blate
+{~ $val = $context->chain()->get('user')->get('name')->val(); ~}
+{~ $context->set('computed', strtoupper((string) $val)); ~}
+Name: {computed}
+```
+
+All standard PHP globals (`$_SERVER`, `$_SESSION`, etc.) and any PHP variables
+defined in earlier `{~ ~}` blocks within the same template are also in scope.
+Php snippets inside `{@extends}` child templates share the same scope as their
+parent's `build()` call.
+
 ---
 
 ## Helpers Reference
@@ -398,13 +445,18 @@ There are three ways to invoke a helper named `upper`:
 
 ```blate
 {upper(title)}     -- full stack lookup: user-data key 'upper' shadows the helper
-{$upper(title)}    -- helper-only lookup: immune to user-data shadowing
+{$upper(title)}    -- helper-only lookup: immune to user-data shadowing (preferred)
 {title | upper}    -- pipe filter: always uses helper-only lookup (same as $upper)
 ```
 
 The `$` prefix and pipe filters both bypass the variable scope stack and consult
 only the registered helpers layer. A callable stored in user data can never be
 invoked as a pipe filter; only registered helpers are resolved in that position.
+
+**Prefer `$helper(...)` over `helper(...)` in template expressions.** The bare
+form resolves through the full scope stack and silently changes behaviour if
+render data contains a key with the same name — a hard-to-trace runtime bug.
+Use the bare form only when intentional user-data shadowing is desired.
 
 ---
 
@@ -453,30 +505,57 @@ invoked as a pipe filter; only registered helpers are resolved in that position.
 
 ### Array
 
-| Helper    | Signature                       | Description                                             |
-| --------- | ------------------------------- | ------------------------------------------------------- |
-| `join`    | `join(array, glue?)`            | `implode` (default glue `''`).                          |
-| `keys`    | `keys(array)`                   | `array_keys`.                                           |
-| `values`  | `values(array)`                 | `array_values`.                                         |
-| `length`  | `length(value)`                 | String length (`mb_strlen`) or array count.             |
-| `count`   | `count(array)`                  | Alias for `length`.                                     |
-| `first`   | `first(array)`                  | First element, or `null`.                               |
-| `last`    | `last(array)`                   | Last element, or `null`.                                |
-| `slice`   | `slice(array, offset, length?)` | `array_slice`.                                          |
-| `reverse` | `reverse(array\|string)`        | Reverse array or string (multibyte-safe).               |
-| `unique`  | `unique(array)`                 | Remove duplicate values.                                |
-| `flatten` | `flatten(array)`                | Flatten one level deep.                                 |
-| `chunk`   | `chunk(array, size)`            | Split into chunks of `size`.                            |
-| `merge`   | `merge(a, b, ...)`              | `array_merge` (variadic).                               |
-| `sort`    | `sort(array)`                   | Sort ascending, re-indexed from 0.                      |
-| `sortBy`  | `sortBy(array, key)`            | Sort array of objects/maps by field `key`.              |
-| `range`   | `range(start, end, step?)`      | Create a range array.                                   |
-| `min`     | `min(array)`                    | Minimum value.                                          |
-| `max`     | `max(array)`                    | Maximum value.                                          |
-| `sum`     | `sum(array)`                    | Sum of all values.                                      |
-| `avg`     | `avg(array)`                    | Arithmetic mean (returns `0.0` for empty arrays).       |
-| `shuffle` | `shuffle(array)`                | Return a shuffled copy.                                 |
-| `filter`  | `filter(array, value?)`         | Remove falsy values; or keep only elements `=== value`. |
+| Helper    | Signature                       | Description                                                                                        |
+| --------- | ------------------------------- | -------------------------------------------------------------------------------------------------- |
+| `join`    | `join(array, glue?)`            | `implode` (default glue `''`).                                                                     |
+| `keys`    | `keys(array)`                   | `array_keys`.                                                                                      |
+| `values`  | `values(array)`                 | `array_values`.                                                                                    |
+| `length`  | `length(value)`                 | String length (`mb_strlen`) or array count.                                                        |
+| `count`   | `count(array)`                  | Alias for `length`.                                                                                |
+| `first`   | `first(array)`                  | First element, or `null`.                                                                          |
+| `last`    | `last(array)`                   | Last element, or `null`.                                                                           |
+| `slice`   | `slice(array, offset, length?)` | `array_slice`.                                                                                     |
+| `reverse` | `reverse(array\|string)`        | Reverse array or string (multibyte-safe).                                                          |
+| `unique`  | `unique(array)`                 | Remove duplicate values.                                                                           |
+| `flatten` | `flatten(array)`                | Flatten one level deep.                                                                            |
+| `chunk`   | `chunk(array, size)`            | Split into chunks of `size`.                                                                       |
+| `merge`   | `merge(a, b, ...)`              | `array_merge` (variadic).                                                                          |
+| `sort`    | `sort(array)`                   | Sort ascending, re-indexed from 0.                                                                 |
+| `sortBy`  | `sortBy(array, key)`            | Sort array of objects/maps by field `key`.                                                         |
+| `range`   | `range(start, end, step?)`      | Create a range array.                                                                              |
+| `min`     | `min(array)`                    | Minimum value.                                                                                     |
+| `max`     | `max(array)`                    | Maximum value.                                                                                     |
+| `sum`     | `sum(array)`                    | Sum of all values.                                                                                 |
+| `avg`     | `avg(array)`                    | Arithmetic mean (returns `0.0` for empty arrays).                                                  |
+| `shuffle` | `shuffle(array)`                | Return a shuffled copy.                                                                            |
+| `filter`  | `filter(array, value?)`         | Remove falsy values; or keep only elements `=== value`.                                            |
+| `map`     | `map(k1, v1, k2, v2, ...)`      | Build an associative array from key/value pairs. Keys are DotPath expressions (`'foo.bar'` nests). |
+| `list`    | `list(v1, v2, ...)`             | Build an indexed array from the given values.                                                      |
+| `store`   | `store(array?)`                 | Wrap an array in a mutable `Store` for chained `.set()` calls.                                     |
+
+#### Inline Array Construction
+
+Blate has no array-literal syntax (`[...]` is a subscript operator only), so the
+three helpers above cover those use cases:
+
+```blate
+{# pass an associative array to a helper #}
+{i18n('KEY', $map('name', user.name, 'count', total))}
+
+{# DotPath keys produce nested arrays #}
+{= json($map('user.name', user.name, 'addr.city', user.address.city))}
+{# -> {"user":{"name":"..."},"addr":{"city":"..."}} #}
+
+{# indexed array #}
+{join($list(1, 2, 3), '-')}    {# -> 1-2-3 #}
+
+{# start from existing data, mutate, then pass on #}
+{= json($store(defaults).set('extra', 1).getData())}
+```
+
+Keys passed to `$map` and `$store().set()` are full DotPath expressions — dots
+create intermediate objects and bracket subscripts (`items[0]`) address array
+indices.
 
 ---
 

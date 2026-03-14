@@ -16,6 +16,7 @@ namespace Blate\Features;
 use Blate\Blate;
 use Blate\Exceptions\BlateParserException;
 use Blate\Token;
+use PHPUtils\Str;
 
 /**
  * Class BlockCapture.
@@ -64,9 +65,13 @@ class BlockCapture extends Block
 	 */
 	public function onClose(): void
 	{
-		$this->parser->writeCode(
-			\sprintf("%s->set('%s', ob_get_clean());", Blate::DATA_CONTEXT_VAR, $this->var_name)
-		);
+		$this->parser->writeCode(Str::interpolate(
+			"{ctx}->set('{var_name}', ob_get_clean());",
+			[
+				'ctx'      => Blate::DATA_CONTEXT_VAR,
+				'var_name' => $this->var_name,
+			]
+		));
 	}
 
 	/**

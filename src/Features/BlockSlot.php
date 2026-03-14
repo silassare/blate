@@ -18,6 +18,7 @@ use Blate\Exceptions\BlateParserException;
 use Blate\Interfaces\TokenInterface;
 use Blate\Message;
 use Blate\Token;
+use PHPUtils\Str;
 
 /**
  * Class BlockSlot.
@@ -95,13 +96,13 @@ class BlockSlot extends Block
 
 				$inject = $this->lexer->nextIs(Token::T_NAME);
 
-				$this->parser->writeCode(\sprintf(
-					'
-%s->set(\'%s\', %s);
-',
-					Blate::DATA_CONTEXT_VAR,
-					$inject->getValue(),
-					$this->slot_inject_arg
+				$this->parser->writeCode(Str::interpolate(
+					"\n{ctx}->set('{inject_name}', {inject_arg});\n",
+					[
+						'ctx'         => Blate::DATA_CONTEXT_VAR,
+						'inject_name' => $inject->getValue(),
+						'inject_arg'  => $this->slot_inject_arg,
+					]
 				));
 			}
 		}
@@ -125,9 +126,16 @@ class BlockSlot extends Block
 			$slots->end(true);
 			$extended_instance = $extends->getAttribute(Token::ATTR_EXTENDED_INSTANCE_VAR);
 			$extended_context  = $extends->getAttribute(Token::ATTR_EXTENDED_CONTEXT_VAR);
-			$this->parser->writeCode(\sprintf('
-%s->injectSlot(\'%s\', function (DataContext %s) use (%s, %s, %s) {
-', $extended_instance, $name, $this->slot_inject_arg, Blate::DATA_CONTEXT_VAR, $extended_instance, $extended_context));
+			$this->parser->writeCode(Str::interpolate(
+				"\n{instance}->injectSlot('{slot_name}', function (DataContext {inject_arg}) use ({ctx}, {instance}, {ext_ctx}) {\n",
+				[
+					'instance'   => $extended_instance,
+					'slot_name'  => $name,
+					'inject_arg' => $this->slot_inject_arg,
+					'ctx'        => Blate::DATA_CONTEXT_VAR,
+					'ext_ctx'    => $extended_context,
+				]
+			));
 			$this->parser->newDataContext();
 			$this->parser->writeCode($code);
 			$this->parser->popDataContext();
@@ -136,13 +144,18 @@ class BlockSlot extends Block
 ');
 		} else {
 			$slots->end();
-			$this->parser->writeCode(\sprintf('
-if ($this->hasInjectedSlot(\'%s\')) {
-	$this->renderInjectedSlot(\'%s\', %s);
-} else {
-	$this->%s(%s);
-}
-', $name, $name, Blate::DATA_CONTEXT_VAR, Blate::slotMethodName($name), Blate::DATA_CONTEXT_VAR));
+			$this->parser->writeCode(Str::interpolate(
+				"\nif (\$this->hasInjectedSlot('{slot_name}')) {\n"
+					. "\t\$this->renderInjectedSlot('{slot_name}', {ctx});\n"
+					. "} else {\n"
+					. "\t\$this->{slot_method}({ctx});\n"
+					. "}\n",
+				[
+					'slot_name'   => $name,
+					'ctx'         => Blate::DATA_CONTEXT_VAR,
+					'slot_method' => Blate::slotMethodName($name),
+				]
+			));
 		}
 	}
 
@@ -161,9 +174,14 @@ if ($this->hasInjectedSlot(\'%s\')) {
 
 		$name             = $this->slot->getValue();
 		$extended_context = $extends->getAttribute(Token::ATTR_EXTENDED_CONTEXT_VAR);
-		$this->parser->writeCode(\sprintf('
-%s->%s(%s);
-', $extends->getAttribute(Token::ATTR_EXTENDED_INSTANCE_VAR), Blate::slotMethodName($name), $extended_context));
+		$this->parser->writeCode(Str::interpolate(
+			"\n{instance}->{slot_method}({ext_ctx});\n",
+			[
+				'instance'    => $extends->getAttribute(Token::ATTR_EXTENDED_INSTANCE_VAR),
+				'slot_method' => Blate::slotMethodName($name),
+				'ext_ctx'     => $extended_context,
+			]
+		));
 
 		$this->parser->tagClose();
 	}

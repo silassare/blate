@@ -18,6 +18,7 @@ use Blate\Exceptions\BlateParserException;
 use Blate\Expressions\Expression;
 use Blate\Interfaces\TokenInterface;
 use Blate\Token;
+use PHPUtils\Str;
 
 /**
  * Class BlockSet.
@@ -58,13 +59,13 @@ class BlockSet extends Block
 		$expression = (new Expression())->getWhileTrue($this->lexer, static function (TokenInterface $token) {
 			return Token::T_TAG_CLOSE !== $token->getType() && ';' !== $token->getValue();
 		});
-		$this->parser->writeCode(\sprintf(
-			'
-%s->set(\'%s\', %s);
-',
-			Blate::DATA_CONTEXT_VAR,
-			$var_name->getValue(),
-			$expression
+		$this->parser->writeCode(Str::interpolate(
+			"\n{ctx}->set('{var_name}', {expression});\n",
+			[
+				'ctx'        => Blate::DATA_CONTEXT_VAR,
+				'var_name'   => $var_name->getValue(),
+				'expression' => $expression,
+			]
 		));
 
 		$current = $this->lexer->current();

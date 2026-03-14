@@ -21,6 +21,7 @@ use Blate\Interfaces\TokenInterface;
 use Blate\Message;
 use Blate\Token;
 use PHPUtils\FS\PathUtils;
+use PHPUtils\Str;
 
 /**
  * Class BlockExtends.
@@ -111,19 +112,17 @@ class BlockExtends extends Block
 		$this->extends->setAttribute(Token::ATTR_EXTENDED_INSTANCE_VAR, $extended_instance_var);
 		$this->extends->setAttribute(Token::ATTR_EXTENDED_CONTEXT_VAR, $extended_context_var);
 
-		$this->parser->writeCode(\sprintf(
-			'
-%s = Blate::fromPath(%s)->parse();
-%s = %s->getParsedInstance();
-%s = $this->createExtendsContext(%s, %s);
-',
-			$extended_blate_var,
-			Helpers::quote($abs_path),
-			$extended_instance_var,
-			$extended_blate_var,
-			$extended_context_var,
-			$extended_blate_var,
-			$context
+		$this->parser->writeCode(Str::interpolate(
+			"\n{blate_var} = Blate::fromPath({abs_path})->parse();\n"
+				. '{instance_var} = {blate_var}->getParsedInstance();' . "\n"
+				. '{context_var} = $this->createExtendsContext({blate_var}, {context});' . "\n",
+			[
+				'blate_var'    => $extended_blate_var,
+				'abs_path'     => Helpers::quote($abs_path),
+				'instance_var' => $extended_instance_var,
+				'context_var'  => $extended_context_var,
+				'context'      => $context,
+			]
 		));
 	}
 
@@ -132,11 +131,12 @@ class BlockExtends extends Block
 	 */
 	public function onClose(): void
 	{
-		$this->parser->writeCode(\sprintf(
-			'
-%s->build(%s);',
-			$this->extends->getAttribute(Token::ATTR_EXTENDED_INSTANCE_VAR),
-			$this->extends->getAttribute(Token::ATTR_EXTENDED_CONTEXT_VAR),
+		$this->parser->writeCode(Str::interpolate(
+			"\n{instance_var}->build({context_var});",
+			[
+				'instance_var' => $this->extends->getAttribute(Token::ATTR_EXTENDED_INSTANCE_VAR),
+				'context_var'  => $this->extends->getAttribute(Token::ATTR_EXTENDED_CONTEXT_VAR),
+			]
 		));
 	}
 
