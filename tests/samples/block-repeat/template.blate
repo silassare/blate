@@ -1,3 +1,4 @@
 {@repeat 3}x{/repeat}
 {@repeat 3 as i}{i}{/repeat}
 {@repeat count as n}{n}:{/repeat}
+{@repeat 3}(F={$if(is_first,1,0)},L={$if(is_last,1,0)}){/repeat}

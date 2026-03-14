@@ -1,1 +1,3 @@
-{@each val:key:idx in items}{idx}:{key}={val} {/each}
+{@each val:key:idx in items}
+    {idx}:{key}={val}(F={$if(is_first, 1, 0)},L={$if(is_last, 1, 0)})
+{/each}
