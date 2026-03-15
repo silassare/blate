@@ -833,6 +833,10 @@ workspace root it calls `Blate::autoLoad($root)` so that project-specific
 helpers and global variables appear in completions and hover documentation
 without any manual configuration.
 
+**The VS Code extension restarts the LSP automatically** when `.blate.php` is
+saved, created, or deleted, so changes to your config are reflected immediately
+in completions and hover without reloading the editor window.
+
 ### How project root detection works
 
 `Blate::findProjectRoot(?string $start)` walks upward from `$start`
