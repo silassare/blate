@@ -42,6 +42,7 @@ file, so there is no parsing overhead at runtime.
   - [Date](#date)
 - [Custom Blocks](#custom-blocks)
 - [Custom Helpers](#custom-helpers)
+- [Template Scope](#template-scope)
 - [Global Variables](#global-variables)
 - [Disabling Blocks and Helpers](#disabling-blocks-and-helpers)
 - [Editor Support](#editor-support)
@@ -669,6 +670,56 @@ only, so a `slugify` key in the template data cannot intercept the call.
 
 ---
 
+## Template Scope
+
+`Blate::scope()` returns a `BlateTemplateScope` instance while a template is
+being rendered. It throws `BlateRuntimeException` when called from outside any
+active render call.
+
+```php
+use Blate\Blate;
+use Blate\BlateTemplateScope;
+
+$scope = Blate::scope(); // BlateTemplateScope
+$scope->data;            // Blate\DataContext - full runtime scope stack
+$scope->template;        // Blate\Blate      - the Blate instance for the running template
+```
+
+For nested templates (`{@import}` / `{@extends}`) the scope stack grows, so
+`Blate::scope()` always reflects the **innermost currently executing** template.
+
+The primary use case is reading render data inside a helper without requiring
+the template author to pass extra arguments:
+
+```php
+Blate::registerHelper('i18n', function (string $key) {
+    $locale = Blate::scope()->data->get('locale') ?? 'en';
+    return translate($key, $locale);
+});
+```
+
+```blate
+{$i18n('WELCOME_MSG')}
+```
+
+Alternatively, pass `$$` as an explicit argument to give a helper access to the
+current `DataContext` directly, without the static scope stack:
+
+```blate
+{$i18n('WELCOME_MSG', $$)}
+```
+
+```php
+use Blate\DataContext;
+
+Blate::registerHelper('i18n', function (string $key, DataContext $ctx) {
+    $locale = $ctx->get('locale') ?? 'en';
+    return translate($key, $locale);
+});
+```
+
+---
+
 ## Global Variables
 
 Global variables are values registered once at application bootstrap time and
@@ -880,7 +931,7 @@ render performance is functionally equivalent across all three.
 
 | Aspect             | Blate                                     | Blade (Laravel)                       | Twig                                   |
 | ------------------ | ----------------------------------------- | ------------------------------------- | -------------------------------------- |
-| Compiled output    | PHP class extending `TemplateParsed`      | Plain PHP file with echo/control-flow | PHP class extending `Twig\Template`    |
+| Compiled output    | PHP class extending `BlateTemplateParsed` | Plain PHP file with echo/control-flow | PHP class extending `Twig\Template`    |
 | Cache key          | content hash + file path + engine version | file path + mtime                     | source hash                            |
 | Cache invalidation | file change OR engine version bump        | file change                           | file change                            |
 | Compile overhead   | Minimal - single-pass lexer + parser      | Medium - multiple compiler passes     | Highest - full AST with visitor passes |
@@ -938,14 +989,15 @@ helper surface without a full sandbox.
 
 ### Data and helpers
 
-| Feature                   | Blate                                       | Blade                        | Twig                          |
-| ------------------------- | ------------------------------------------- | ---------------------------- | ----------------------------- |
-| Global variables          | `Blate::registerGlobalVar()`                | `View::share()`              | `$twig->addGlobal()`          |
-| Custom helpers / filters  | `Blate::registerHelper()`                   | Custom directives / Blade X  | `$twig->addFilter/Function()` |
-| Inline array construction | `$map()`, `$list()`, `$store()` helpers     | PHP array literals in `@php` | `{}` object / `[]` array      |
-| Pipe filters              | `{expr \| helperName}` (helper-only lookup) | No native pipe syntax        | `{{ expr\|filtername }}`      |
-| Variable assignment       | `{@set name = expr}`                        | `@php $name = expr; @endphp` | `{% set name = expr %}`       |
-| PHP literals in exprs     | `true`/`false`/`null` (any case)            | Yes (full PHP)               | Yes (`true`/`false`/`null`)   |
+| Feature                   | Blate                                                            | Blade                        | Twig                          |
+| ------------------------- | ---------------------------------------------------------------- | ---------------------------- | ----------------------------- |
+| Global variables          | `Blate::registerGlobalVar()`                                     | `View::share()`              | `$twig->addGlobal()`          |
+| Custom helpers / filters  | `Blate::registerHelper()`                                        | Custom directives / Blade X  | `$twig->addFilter/Function()` |
+| Inline array construction | `$map()`, `$list()`, `$store()` helpers                          | PHP array literals in `@php` | `{}` object / `[]` array      |
+| Pipe filters              | `{expr \| helperName}` (helper-only lookup)                      | No native pipe syntax        | `{{ expr\|filtername }}`      |
+| Variable assignment       | `{@set name = expr}`                                             | `@php $name = expr; @endphp` | `{% set name = expr %}`       |
+| PHP literals in exprs     | `true`/`false`/`null` (any case)                                 | Yes (full PHP)               | Yes (`true`/`false`/`null`)   |
+| Render context in helpers | `Blate::scope()->data` / `Blate::scope()->template` or pass `$$` | No direct mechanism          | No direct mechanism           |
 
 ### Editor tooling
 

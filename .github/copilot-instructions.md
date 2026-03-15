@@ -30,7 +30,7 @@ IMPORTANT:
 Blate is a PHP template engine. Templates (`.blate` files) are compiled to PHP class files and cached on disk. The pipeline is:
 
 ```
-.blate source -> Lexer (tokens) -> Parser (PHP codegen) -> cached TemplateParsed class -> rendered output
+.blate source -> Lexer (tokens) -> Parser (PHP codegen) -> cached BlateTemplateParsed class -> rendered output
 ```
 
 The cached files live next to their source under `blate_cache/<version>/<hash[0:2]>/<hash[2:4]>/`. Cache is invalidated by content hash, file path, or `Blate::VERSION` change.
@@ -47,7 +47,8 @@ The cached files live next to their source under `blate_cache/<version>/<hash[0:
 | `src/Traits/ParserOutputTrait.php` | PHP codegen helpers (`writeCode`, `write`, `writeExpression`, `getClassBody`) used by `Parser`                                               |
 | `src/DataContext.php`              | Runtime scope stack - wraps user data with a global-vars layer and a helpers layer; supports `newContext()`/`popContext()` for scoped blocks |
 | `src/SimpleChain.php`              | Fluent path resolver used at runtime: `{foo.bar}` -> `$context->chain()->get('foo')->get('bar')->val()`                                      |
-| `src/TemplateParsed.php`           | Abstract base for compiled templates; handles slot injection for `extends`                                                                   |
+| `src/BlateTemplateParsed.php`      | Abstract base for compiled templates; handles slot injection for `extends`                                                                   |
+| `src/BlateTemplateScope.php`       | Snapshot of the executing template: `data` (DataContext) + `template` (Blate); returned by `Blate::scope()`                                  |
 | `src/Features/Block*.php`          | Built-in block implementations (`BlockIf`, `BlockEach`, `BlockSlot`, `BlockExtends`, etc.)                                                   |
 | `src/Expressions/`                 | Expression parser + grammar rules (`Grammar/VarName.php`, `Operator.php`, etc.)                                                              |
 | `src/bootstrap.php`                | Registers all built-in blocks and helpers at autoload time                                                                                   |
@@ -117,6 +118,44 @@ Prefer `{$helperName(...)}` over `{helperName(...)}` in all generated template
 code. The bare form resolves through the full scope stack and will silently
 change behaviour if render data contains a matching key. The `$` prefix always
 resolves to the registered helper regardless of user data.
+
+---
+
+## Accessing the Template Scope from a Helper
+
+`Blate::scope()` returns a `BlateTemplateScope` instance while a template is
+being rendered. It throws `BlateRuntimeException` (`Message::SCOPE_NOT_AVAILABLE`)
+when called outside of any render call.
+
+```php
+$scope = Blate::scope();
+$scope->data;     // DataContext - full runtime scope stack for the running template
+$scope->template; // Blate      - the Blate instance for the running template
+```
+
+For nested templates (`{@import}` / `{@extends}`) the stack grows, so
+`Blate::scope()` always reflects the **innermost currently executing** template.
+
+```php
+Blate::registerHelper('i18n', function (string $key) {
+    $locale = Blate::scope()->data->get('locale') ?? 'en';
+    return translate($key, $locale);
+});
+```
+
+Alternatively, pass `$$` as an explicit argument to give a helper access to the
+`DataContext` without relying on the static scope stack:
+
+```blate
+{$i18n('KEY', $$)}
+```
+
+```php
+Blate::registerHelper('i18n', function (string $key, DataContext $ctx) {
+    $locale = $ctx->get('locale') ?? 'en';
+    return translate($key, $locale);
+});
+```
 
 ---
 
