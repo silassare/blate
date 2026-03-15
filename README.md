@@ -759,9 +759,12 @@ An invalid name throws a `BlateRuntimeException` at registration time.
 // Read-only constant (default) - throws if registered again
 Blate::registerGlobalVar('APP_NAME', 'My App');
 
+// With description shown in LSP hover / completions
+Blate::registerGlobalVar('APP_NAME', 'My App', ['description' => 'The application display name.']);
+
 // Editable - can be updated between renders
-Blate::registerGlobalVar('REQUEST_ID', '', editable: true);
-Blate::registerGlobalVar('REQUEST_ID', $requestId, editable: true);
+Blate::registerGlobalVar('REQUEST_ID', '', ['editable' => true]);
+Blate::registerGlobalVar('REQUEST_ID', $requestId, ['editable' => true]);
 ```
 
 Use in templates exactly like any other variable:
@@ -772,6 +775,26 @@ Use in templates exactly like any other variable:
 ```
 
 User data with the same name takes priority over the global variable.
+
+### $global reference
+
+`$global` is a special chain-head that resolves a property **directly from the global
+vars layer**, bypassing user data entirely. It is the mirror of `$$` for global variables:
+
+```blate
+{APP_NAME}           -- user data can shadow this
+{$global.APP_NAME}   -- always reads the registered global, never shadowed
+```
+
+The dot-chain can be as deep as needed:
+
+```blate
+{$global.APP_NAME}
+{$global.THEME.color}   -- if THEME is an object / associative array
+```
+
+This is useful in base layouts where render data from a child template may
+contain keys that coincidentally match global variable names.
 
 ### Computed (lazy) globals
 
@@ -786,7 +809,7 @@ Blate::registerComputedGlobalVar('NOW', fn () => date('Y-m-d H:i:s'));
 Blate::registerComputedGlobalVar(
     'REQUEST_LOCALE',
     fn () => Blate::scope()->data->get('locale') ?? 'en',
-    editable: true,
+    ['editable' => true],
 );
 ```
 

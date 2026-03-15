@@ -67,6 +67,7 @@ The cached files live next to their source under `blate_cache/<version>/<hash[0:
 {foo.bar}            -- property access chain
 {helper('arg')}      -- call a helper; user data with key 'helper' shadows it
 {$helper('arg')}     -- helper-only lookup: always resolves to the registered helper (preferred)
+{$global.foo}        -- global vars layer access: foo cannot be shadowed by user data
 {expr | fn}          -- pipe filter: fn(expr); fn is helper-only lookup (same as $fn); user-data callables cannot be used here
 {expr | fn(a, b)}    -- pipe filter with extra args: fn(expr, a, b)
 {expr | f1 | f2(x)}  -- chained pipes: f2(f1(expr), x)
@@ -201,8 +202,11 @@ Built-in globals (registered in `bootstrap.php`):
 // Read-only constant (default) - throws GLOBAL_VAR_IS_NOT_EDITABLE if registered again
 Blate::registerGlobalVar('APP_NAME', 'My App');
 
+// With LSP description
+Blate::registerGlobalVar('APP_NAME', 'My App', ['description' => 'The application display name.']);
+
 // Editable - can be updated between renders
-Blate::registerGlobalVar('REQUEST_ID', $requestId, editable: true);
+Blate::registerGlobalVar('REQUEST_ID', $requestId, ['editable' => true]);
 ```
 
 **Computed (lazy) global variables** are registered with a factory callable instead of a static value. The factory is called on every template access with no arguments and no memoization. Use `Blate::scope()` inside the factory when the current render context is needed.
@@ -212,7 +216,7 @@ Blate::registerGlobalVar('REQUEST_ID', $requestId, editable: true);
 Blate::registerComputedGlobalVar('NOW', fn () => date('Y-m-d H:i:s'));
 
 // Editable computed global - factory can be replaced later
-Blate::registerComputedGlobalVar('REQUEST_LOCALE', fn () => Blate::scope()->data->get('locale') ?? 'en', editable: true);
+Blate::registerComputedGlobalVar('REQUEST_LOCALE', fn () => Blate::scope()->data->get('locale') ?? 'en', ['editable' => true]);
 ```
 
 `Blate::getGlobalVars()` returns the `GlobalVarsContext` instance (implements `ArrayAccess`) used by `DataContext` and the LSP completion provider. Call `->getNames()` to list all registered names.
