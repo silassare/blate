@@ -152,6 +152,7 @@
 				{ "include": "#number" },
 				{ "include": "#constant-language" },
 				{ "include": "#data-context" },
+				{ "include": "#global-context" },
 				{ "include": "#helper-lookup" },
 				{ "include": "#keyword-in-as" },
 				{ "include": "#operator" },
@@ -205,6 +206,12 @@
 		"data-context": {
 			"name": "variable.language.blate",
 			"match": "\\$\\$"
+		},
+
+		"global-context": {
+			"comment": "$global -- accesses the global vars layer directly, bypassing user-data shadowing",
+			"name": "variable.language.blate",
+			"match": "\\$global\\b"
 		},
 
 		"helper-lookup": {

@@ -105,7 +105,7 @@ highlight default link blateBreakKwd Keyword
 " === Expression cluster =======================================================
 syntax cluster blateExpr contains=
       \ blateString,blateNumber,blateConstant,
-      \ blateDataCtx,blateHelperRef,
+      \ blateDataCtx,blateGlobalCtx,blateHelperRef,
       \ blateKwdInAs,
       \ blateOperator,blatePipe,blateDot,
       \ blateFunc,blateVar
@@ -136,6 +136,10 @@ highlight default link blateDataCtx Special
 " $helperName -- forced helper-layer lookup ($ prefix)
 syntax match blateHelperRef contained "\$[a-zA-Z_][a-zA-Z0-9_]*"
 highlight default link blateHelperRef Identifier
+
+" $global -- global vars layer reference; defined AFTER blateHelperRef so it wins at same position
+syntax match blateGlobalCtx contained "\$global\b"
+highlight default link blateGlobalCtx Special
 
 " Structural keywords: in (each), as (repeat)
 syntax keyword blateKwdInAs contained in as

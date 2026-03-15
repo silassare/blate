@@ -152,6 +152,7 @@ contexts:
     - include: number
     - include: constant-language
     - include: data-context
+    - include: global-context
     - include: helper-lookup
     - include: keyword-in-as
     - include: operator
@@ -193,6 +194,11 @@ contexts:
   # $$ -- reference to the raw DataContext
   data-context:
     - match: '\$\$'
+      scope: variable.language.blate
+
+  # $global -- accesses the global vars layer directly, bypassing user-data shadowing
+  global-context:
+    - match: '\$global\b'
       scope: variable.language.blate
 
   # $helperName -- forces resolution against the helpers layer only
