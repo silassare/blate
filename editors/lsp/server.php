@@ -12,15 +12,39 @@
 
 declare(strict_types=1);
 
-// Resolve the project root relative to this file (editors/lsp/ -> root).
-$root = \dirname(__DIR__, 2);
+// Walk up the directory tree from this file to find vendor/autoload.php.
+// This works both when blate is the root project (development) and when it
+// is installed as a dependency inside another project's vendor/ tree.
+$_blate_lsp_autoload = null;
+$_blate_lsp_dir      = __DIR__;
 
-if (!\file_exists($root . '/vendor/autoload.php')) {
-    fwrite(\STDERR, '[blate-lsp] Cannot find vendor/autoload.php at: ' . $root . "\n");
+while (true) {
+    $candidate = $_blate_lsp_dir . \DIRECTORY_SEPARATOR . 'vendor' . \DIRECTORY_SEPARATOR . 'autoload.php';
+
+    if (\file_exists($candidate)) {
+        $_blate_lsp_autoload = $candidate;
+
+        break;
+    }
+
+    $parent = \dirname($_blate_lsp_dir);
+
+    if ($parent === $_blate_lsp_dir) {
+        break;
+    }
+
+    $_blate_lsp_dir = $parent;
+}
+
+unset($_blate_lsp_dir, $candidate, $parent);
+
+if (null === $_blate_lsp_autoload) {
+    \fwrite(\STDERR, '[blate-lsp] Cannot find vendor/autoload.php' . "\n");
 
     exit(1);
 }
 
-require_once $root . '/vendor/autoload.php';
+require_once $_blate_lsp_autoload;
+unset($_blate_lsp_autoload);
 
 (new Blate\Lsp\BlateLspServer())->run();

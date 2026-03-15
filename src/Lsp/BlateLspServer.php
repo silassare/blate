@@ -279,6 +279,18 @@ class BlateLspServer
 		$root = $this->resolveWorkspaceRoot($params);
 
 		if (null !== $root) {
+			// Load the project's vendor/autoload.php first so that any custom
+			// classes referenced inside .blate.php are available to the autoloader.
+			$projectAutoload = $root . \DIRECTORY_SEPARATOR . 'vendor' . \DIRECTORY_SEPARATOR . 'autoload.php';
+
+			if (\is_file($projectAutoload)) {
+				try {
+					require_once $projectAutoload;
+				} catch (Throwable $e) {
+					\fwrite(\STDERR, '[blate-lsp] Failed to load project autoload: ' . $e->getMessage() . "\n");
+				}
+			}
+
 			try {
 				Blate::autoLoad($root);
 			} catch (Throwable $e) {
@@ -505,7 +517,7 @@ class BlateLspServer
 				'uri'         => $uri,
 				'diagnostics' => $this->buildHelperShadowWarnings($content),
 			]);
-		} catch (BlateParserException | BlateRuntimeException $e) {
+		} catch (BlateParserException|BlateRuntimeException $e) {
 			$chunk = $e->getChunk();
 
 			if (null !== $chunk) {
