@@ -92,6 +92,26 @@ class SimpleChain
 	}
 
 	/**
+	 * Sets the chain current value to the GlobalVarsContext (global vars layer),
+	 * allowing subsequent ->get() calls to look up global variables directly,
+	 * immune to user-data shadowing.
+	 *
+	 * Used by the $global chain-head syntax: {$global.foo}
+	 *
+	 * @param string $location compile-time source location 'line:index'
+	 *
+	 * @return $this
+	 */
+	public function getGlobals(string $_location): self
+	{
+		$this->is_head     = false;
+		$this->current     = $this->data_context->getGlobalVars();
+		$this->current_key = Blate::GLOBAL_CONTEXT_REF;
+
+		return $this;
+	}
+
+	/**
 	 * Resolves a helper by name, looking only in the helpers layer (immune to user-data shadowing).
 	 *
 	 * Used by the $name syntax and by pipe filters.

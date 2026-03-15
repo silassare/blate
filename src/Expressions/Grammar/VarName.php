@@ -100,12 +100,20 @@ class VarName implements TokenHandlerInterface
 				$parser->write(Blate::DATA_CONTEXT_VAR);
 			} elseif ($is_helper_ref) {
 				$parser->setActiveChain($current, $current);
-				$actual_name  = \substr($var_name, \strlen(Blate::HELPER_PREFIX_CHAR)); // strip leading prefix
 				$head_loc     = $current->getChunk()->getLocation();
 				$head_loc_str = $head_loc['line'] . ':' . $head_loc['index'];
-				$parser->write(Blate::DATA_CONTEXT_VAR . '->chain(\'' . $head_loc_str . '\')->getHelper(\'' . $head_loc_str . '\', \'');
-				$parser->write($actual_name);
-				$parser->write('\')');
+
+				if (Blate::GLOBAL_CONTEXT_REF === $var_name) {
+					// $global is a special chain head that gives direct access to the
+					// global vars layer, bypassing user data entirely.
+					// {$global.foo} -> $context->chain(...)->getGlobals(...)->get(..., 'foo')->val()
+					$parser->write(Blate::DATA_CONTEXT_VAR . '->chain(\'' . $head_loc_str . '\')->getGlobals(\'' . $head_loc_str . '\')');
+				} else {
+					$actual_name = \substr($var_name, \strlen(Blate::HELPER_PREFIX_CHAR)); // strip leading prefix
+					$parser->write(Blate::DATA_CONTEXT_VAR . '->chain(\'' . $head_loc_str . '\')->getHelper(\'' . $head_loc_str . '\', \'');
+					$parser->write($actual_name);
+					$parser->write('\')');
+				}
 			} else {
 				$parser->setActiveChain($current, $current);
 				$head_loc     = $current->getChunk()->getLocation();

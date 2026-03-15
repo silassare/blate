@@ -60,6 +60,13 @@ final class GlobalVarsContext implements ArrayAccess
 	private array $constants = [];
 
 	/**
+	 * Per-variable descriptions used by the LSP for hover and completion docs.
+	 *
+	 * @var array<string, string>
+	 */
+	private array $descriptions = [];
+
+	/**
 	 * Returns true when the name has been registered as non-editable.
 	 */
 	public function isConst(string $name): bool
@@ -79,13 +86,18 @@ final class GlobalVarsContext implements ArrayAccess
 	/**
 	 * Register (or update) a static global variable.
 	 *
-	 * @param string $name
-	 * @param mixed  $value
-	 * @param bool   $editable
+	 * @param string      $name
+	 * @param mixed       $value
+	 * @param bool        $editable
+	 * @param null|string $description optional LSP hover / completion description
 	 */
-	public function registerVar(string $name, mixed $value, bool $editable): void
+	public function registerVar(string $name, mixed $value, bool $editable, ?string $description = null): void
 	{
 		$this->vars[$name] = $value;
+
+		if (null !== $description) {
+			$this->descriptions[$name] = $description;
+		}
 
 		if (!$editable) {
 			$this->constants[$name] = true;
@@ -100,11 +112,16 @@ final class GlobalVarsContext implements ArrayAccess
 	 * @param string            $name
 	 * @param callable(): mixed $factory
 	 * @param bool              $editable
+	 * @param null|string       $description optional LSP hover / completion description
 	 */
-	public function registerComputed(string $name, callable $factory, bool $editable): void
+	public function registerComputed(string $name, callable $factory, bool $editable, ?string $description = null): void
 	{
 		unset($this->vars[$name]);
 		$this->computed[$name] = $factory;
+
+		if (null !== $description) {
+			$this->descriptions[$name] = $description;
+		}
 
 		if (!$editable) {
 			$this->constants[$name] = true;
@@ -119,6 +136,18 @@ final class GlobalVarsContext implements ArrayAccess
 	public function getNames(): array
 	{
 		return \array_values(\array_unique(\array_merge(\array_keys($this->vars), \array_keys($this->computed))));
+	}
+
+	/**
+	 * Returns the description registered for a variable, or null if none was provided.
+	 *
+	 * @param string $name the variable name
+	 *
+	 * @return null|string
+	 */
+	public function getDescription(string $name): ?string
+	{
+		return $this->descriptions[$name] ?? null;
 	}
 
 	/**

@@ -709,7 +709,8 @@ class BlateLspServer
 				return \array_merge(
 					$this->helperCompletions(),
 					$this->globalVarCompletions(),
-					$this->variableCompletions($content)
+					$this->variableCompletions($content),
+					$this->specialRefCompletions()
 				);
 		}
 	}
@@ -856,21 +857,56 @@ class BlateLspServer
 	}
 
 	/**
+	 * Completion items for special language references: $$ and $global.
+	 *
+	 * @return list<array<string, mixed>>
+	 */
+	private function specialRefCompletions(): array
+	{
+		return [
+			[
+				'label'            => '$$',
+				'kind'             => 21,   // CompletionItemKind.Constant
+				'detail'           => 'Raw DataContext reference',
+				'documentation'    => 'Passes the raw DataContext to a helper or sub-template. e.g. {$helper($$)} or {@import "p.blate" $$}',
+				'insertText'       => '$$',
+			],
+			[
+				'label'            => '$global',
+				'kind'             => 21,   // CompletionItemKind.Constant
+				'detail'           => 'Global vars layer reference',
+				'documentation'    => 'Access a global variable directly, bypassing user-data shadowing. e.g. {$global.APP_NAME}',
+				'insertText'       => '\$global.${1:varName}',
+				'insertTextFormat' => 2,     // InsertTextFormat.Snippet
+			],
+		];
+	}
+
+	/**
 	 * Completion items for registered global variables.
 	 *
 	 * @return list<array<string, mixed>>
 	 */
 	private function globalVarCompletions(): array
 	{
-		$items = [];
+		$items   = [];
+		$globals = Blate::getGlobalVars();
 
-		foreach (Blate::getGlobalVars()->getNames() as $name) {
-			$items[] = [
+		foreach ($globals->getNames() as $name) {
+			$item = [
 				'label'      => $name,
 				'kind'       => 21,  // CompletionItemKind.Constant
 				'detail'     => 'Blate global variable',
 				'insertText' => $name,
 			];
+
+			$desc = $globals->getDescription($name);
+
+			if (null !== $desc) {
+				$item['documentation'] = $desc;
+			}
+
+			$items[] = $item;
 		}
 
 		return $items;
@@ -977,6 +1013,42 @@ class BlateLspServer
 			return null;
 		}
 
+		// $global -- special global-vars-layer reference.
+		$wordStart = $offset;
+
+		while ($wordStart > 0 && \preg_match('/\w/', $content[$wordStart - 1])) {
+			--$wordStart;
+		}
+
+		if ($wordStart > 0 && '\$' === $content[$wordStart - 1] && 'global' === $word) {
+			$names   = Blate::getGlobalVars()->getNames();
+			$namesMd = empty($names) ? '_none registered_' : '`' . \implode('`, `', $names) . '`';
+
+			return [
+				'contents' => [
+					'kind'  => 'markdown',
+					'value' => '**\$global** _(Blate global context reference)_'
+						. "\n\n" . 'Provides direct access to the registered global variables layer, '
+						. 'bypassing user-data shadowing. Use dot-notation to read any global:'
+						. "\n\n" . '```blate' . "\n" . '{$global.APP_NAME}' . "\n" . '```'
+						. "\n\n" . '**Registered globals:** ' . $namesMd,
+				],
+			];
+		}
+
+		// $$ -- raw DataContext reference.
+		if ($wordStart > 1 && '\$' === $content[$wordStart - 1] && '\$' === $content[$wordStart - 2]) {
+			return [
+				'contents' => [
+					'kind'  => 'markdown',
+					'value' => '**\$\$** _(Blate DataContext reference)_'
+						. "\n\n" . 'Reference to the raw `DataContext` of the current render. '
+						. 'Useful for forwarding the full context to helpers or sub-templates:'
+						. "\n\n" . '```blate' . "\n" . '{@import \'partial.blate\' $$}' . "\n" . '{$helper($$)}' . "\n" . '```',
+				],
+			];
+		}
+
 		// Provide hover for registered global variables.
 		$globals = Blate::getGlobalVars();
 
@@ -989,10 +1061,18 @@ class BlateLspServer
 				$hover = '`' . $repr . '`';
 			}
 
+			$md = '**' . $word . '** _(Blate global variable)_' . "\n\n" . $hover;
+
+			$desc = $globals->getDescription($word);
+
+			if (null !== $desc) {
+				$md .= "\n\n" . $desc;
+			}
+
 			return [
 				'contents' => [
 					'kind'  => 'markdown',
-					'value' => '**' . $word . '** _(Blate global variable)_' . "\n\n" . $hover,
+					'value' => $md,
 				],
 			];
 		}

@@ -66,6 +66,16 @@ class DataContext
 	}
 
 	/**
+	 * Returns the global vars layer (always stack[1]).
+	 */
+	public function getGlobalVars(): GlobalVarsContext
+	{
+		\assert($this->stack[1] instanceof GlobalVarsContext);
+
+		return $this->stack[1];
+	}
+
+	/**
 	 * @return $this
 	 */
 	public function newContext(): self

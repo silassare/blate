@@ -45,10 +45,10 @@ Blate::registerBlock(BlockRepeat::NAME, BlockRepeat::class);
 Blate::registerBlock(BlockSwitch::NAME, BlockSwitch::class);
 
 // = Global variables
-Blate::registerGlobalVar('BLATE_VERSION', Blate::VERSION, false);
-Blate::registerGlobalVar('BLATE_VERSION_NAME', Blate::VERSION_NAME, false);
-Blate::registerGlobalVar('BRACE_OPEN', '{', false);
-Blate::registerGlobalVar('BRACE_CLOSE', '}', false);
+Blate::registerGlobalVar('BLATE_VERSION', Blate::VERSION, ['description' => 'The Blate engine version string (e.g. ' . Blate::VERSION . ').']);
+Blate::registerGlobalVar('BLATE_VERSION_NAME', Blate::VERSION_NAME, ['description' => 'The Blate engine display name (e.g. ' . Blate::VERSION_NAME . ').']);
+Blate::registerGlobalVar('BRACE_OPEN', '{', ['description' => 'Literal opening brace. Use to output a literal { without opening a Blate tag.']);
+Blate::registerGlobalVar('BRACE_CLOSE', '}', ['description' => 'Literal closing brace. Use to output a literal } without closing a Blate tag.']);
 
 // = Helpers
 Helpers::register();

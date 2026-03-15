@@ -58,6 +58,8 @@ final class Blate
 
 	public const HELPER_PREFIX_CHAR = '$';
 
+	public const GLOBAL_CONTEXT_REF = '$global';
+
 	public const SLOT_METHOD_PREFIX = 'slot_';
 
 	public const BLOCK_NAME_PATTERN = '~^[a-z_][a-z0-9_]*$~i';
@@ -728,14 +730,20 @@ final class Blate
 	 * (`~^[a-z_][a-z0-9$_]*$~i`), i.e. a letter or underscore followed by
 	 * letters, digits, `$`, or underscores.
 	 *
-	 * @param string $name     the variable name
-	 * @param mixed  $value    the variable value
-	 * @param bool   $editable whether the variable is editable (default: false)
+	 * Accepted options:
+	 *  - `editable`    (bool, default false) - when false the variable is a
+	 *                  read-only constant; re-registering it will throw.
+	 *  - `description` (string)              - plain-text description shown by
+	 *                  the LSP in hover tooltips and completion items.
+	 *
+	 * @param string                                    $name    the variable name
+	 * @param mixed                                     $value   the variable value
+	 * @param array{editable?:bool,description?:string} $options
 	 *
 	 * @throws BlateRuntimeException when the name is not a valid identifier (Message::INVALID_VAR_NAME)
 	 * @throws BlateRuntimeException when a constant global is re-registered (Message::GLOBAL_VAR_IS_NOT_EDITABLE)
 	 */
-	public static function registerGlobalVar(string $name, mixed $value, bool $editable = false): void
+	public static function registerGlobalVar(string $name, mixed $value, array $options = []): void
 	{
 		$ctx = self::globalVarsContext();
 
@@ -747,7 +755,10 @@ final class Blate
 			throw new BlateRuntimeException(\sprintf(Message::INVALID_VAR_NAME, $name, self::VAR_NAME_PATTERN));
 		}
 
-		$ctx->registerVar($name, $value, $editable);
+		$editable    = (bool) ($options['editable'] ?? false);
+		$description = isset($options['description']) ? (string) $options['description'] : null;
+
+		$ctx->registerVar($name, $value, $editable, $description);
 	}
 
 	/**
@@ -757,14 +768,20 @@ final class Blate
 	 * is no memoization. Use Blate::scope() inside the factory to access the
 	 * current render context when needed.
 	 *
-	 * @param string            $name     the variable name
-	 * @param callable(): mixed $factory  called each time the variable is read
-	 * @param bool              $editable whether the variable is editable (default: false)
+	 * Accepted options:
+	 *  - `editable`    (bool, default false) - when false the variable is a
+	 *                  read-only constant; re-registering it will throw.
+	 *  - `description` (string)              - plain-text description shown by
+	 *                  the LSP in hover tooltips and completion items.
+	 *
+	 * @param string                                    $name    the variable name
+	 * @param callable(): mixed                         $factory called each time the variable is read
+	 * @param array{editable?:bool,description?:string} $options
 	 *
 	 * @throws BlateRuntimeException when the name is not a valid identifier (Message::INVALID_VAR_NAME)
 	 * @throws BlateRuntimeException when a constant global is re-registered (Message::GLOBAL_VAR_IS_NOT_EDITABLE)
 	 */
-	public static function registerComputedGlobalVar(string $name, callable $factory, bool $editable = false): void
+	public static function registerComputedGlobalVar(string $name, callable $factory, array $options = []): void
 	{
 		$ctx = self::globalVarsContext();
 
@@ -776,7 +793,10 @@ final class Blate
 			throw new BlateRuntimeException(\sprintf(Message::INVALID_VAR_NAME, $name, self::VAR_NAME_PATTERN));
 		}
 
-		$ctx->registerComputed($name, $factory, $editable);
+		$editable    = (bool) ($options['editable'] ?? false);
+		$description = isset($options['description']) ? (string) $options['description'] : null;
+
+		$ctx->registerComputed($name, $factory, $editable, $description);
 	}
 
 	/**
