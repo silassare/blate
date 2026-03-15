@@ -320,7 +320,7 @@ final class Blate
 					->getClassBody();
 				$this->save();
 			}
-		} catch (BlateException | BlateRuntimeException $t) {
+		} catch (BlateException|BlateRuntimeException $t) {
 			throw $t->templateSource($this->template);
 		}
 
@@ -685,7 +685,7 @@ final class Blate
 
 		return \array_filter(
 			self::$helpers,
-			static fn(string $key): bool => !isset(self::$disabled_helpers[\ltrim($key, $prefix)]),
+			static fn (string $key): bool => !isset(self::$disabled_helpers[\ltrim($key, $prefix)]),
 			\ARRAY_FILTER_USE_KEY
 		);
 	}

@@ -743,12 +743,12 @@ final class TemplateSyntaxTest extends TestCase
 	 */
 	public function testComputedGlobalVarConstant(): void
 	{
-		Blate::registerComputedGlobalVar('COMPUTED_CONST', static fn() => 'a', false);
+		Blate::registerComputedGlobalVar('COMPUTED_CONST', static fn () => 'a', false);
 
 		$caught = false;
 
 		try {
-			Blate::registerComputedGlobalVar('COMPUTED_CONST', static fn() => 'b', false);
+			Blate::registerComputedGlobalVar('COMPUTED_CONST', static fn () => 'b', false);
 		} catch (BlateRuntimeException $e) {
 			$caught = true;
 		}
@@ -762,7 +762,7 @@ final class TemplateSyntaxTest extends TestCase
 	public function testComputedGlobalVarInvalidName(): void
 	{
 		$this->expectException(BlateRuntimeException::class);
-		Blate::registerComputedGlobalVar('123bad', static fn() => '');
+		Blate::registerComputedGlobalVar('123bad', static fn () => '');
 	}
 
 	/**
@@ -772,7 +772,7 @@ final class TemplateSyntaxTest extends TestCase
 	 */
 	public function testComputedGlobalVarShadowedByUserData(): void
 	{
-		Blate::registerComputedGlobalVar('COMPUTED_SHADOW', static fn() => 'from-factory', true);
+		Blate::registerComputedGlobalVar('COMPUTED_SHADOW', static fn () => 'from-factory', true);
 
 		$out = Blate::fromString('{COMPUTED_SHADOW}')->runGet(['COMPUTED_SHADOW' => 'from-data']);
 
@@ -796,7 +796,7 @@ final class TemplateSyntaxTest extends TestCase
 
 		try {
 			Blate::fromString('{@if 1}yes{/if}')->parse(true);
-		} catch (BlateException | BlateRuntimeException $e) {
+		} catch (BlateException|BlateRuntimeException $e) {
 			$caught = true;
 		} finally {
 			Blate::enableBlock('if');
@@ -1097,7 +1097,7 @@ final class TemplateSyntaxTest extends TestCase
 				$parser->parse();
 				$output = $parser->getClassBody();
 			}
-		} catch (BlateException | BlateRuntimeException $e) {
+		} catch (BlateException|BlateRuntimeException $e) {
 			$error = $e->describe(false, false);
 			\file_put_contents($full_error_file, $e->describe(false, true));
 		}
@@ -1135,7 +1135,7 @@ final class TemplateSyntaxTest extends TestCase
 				$inject = include $inject_file;
 				$bl->runGet($inject);
 			}
-		} catch (BlateException | BlateRuntimeException $e) {
+		} catch (BlateException|BlateRuntimeException $e) {
 			$error = $e->describe(false, false);
 			\file_put_contents($full_error_file, $e->describe(false, true));
 		}
