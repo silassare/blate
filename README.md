@@ -44,6 +44,7 @@ file, so there is no parsing overhead at runtime.
 - [Custom Helpers](#custom-helpers)
 - [Template Scope](#template-scope)
 - [Global Variables](#global-variables)
+- [Project Configuration (`.blate.php`)](#project-configuration-blatephp)
 - [Disabling Blocks and Helpers](#disabling-blocks-and-helpers)
 - [Editor Support](#editor-support)
 - [Comparison: Blate vs Twig vs Blade](#comparison-blate-vs-twig-vs-blade)
@@ -772,6 +773,73 @@ Use in templates exactly like any other variable:
 
 User data with the same name takes priority over the global variable.
 
+### Computed (lazy) globals
+
+A computed global has a factory callable instead of a static value. The factory
+is called on **every template access** — there is no memoization.
+
+```php
+// Read-only computed global
+Blate::registerComputedGlobalVar('NOW', fn () => date('Y-m-d H:i:s'));
+
+// Editable computed global - factory can be replaced later
+Blate::registerComputedGlobalVar(
+    'REQUEST_LOCALE',
+    fn () => Blate::scope()->data->get('locale') ?? 'en',
+    editable: true,
+);
+```
+
+`Blate::getGlobalVars()` returns the `GlobalVarsContext` singleton
+(`ArrayAccess`). `->getNames()` lists all registered names (static and
+computed).
+
+---
+
+## Project Configuration (`.blate.php`)
+
+A `.blate.php` file placed next to `composer.json` in your project root is
+the conventional place to register project-specific helpers, global variables,
+and computed globals once. It is a plain PHP file that calls
+`Blate::register*` methods:
+
+```php
+<?php
+// .blate.php
+
+use Blate\Blate;
+
+Blate::registerHelper('currency', fn (float $v) => '$' . number_format($v, 2));
+Blate::registerGlobalVar('APP_NAME', 'My App');
+Blate::registerComputedGlobalVar('NOW', fn () => date('Y-m-d'));
+```
+
+### Loading the config file
+
+**Via `autoLoad()` in your application bootstrap:**
+
+```php
+// e.g. in public/index.php or config/blate.php
+Blate::autoLoad();            // auto-discovers composer.json upward from getcwd()
+Blate::autoLoad('/path/to/project');  // explicit root
+```
+
+`autoLoad()` returns `true` when the file was loaded, `false` when `.blate.php`
+was not found or the project root could not be determined. Double-calls with
+the same resolved path are silently skipped.
+
+**The LSP loads it automatically.** When the language server receives the editor
+workspace root it calls `Blate::autoLoad($root)` so that project-specific
+helpers and global variables appear in completions and hover documentation
+without any manual configuration.
+
+### How project root detection works
+
+`Blate::findProjectRoot(?string $start)` walks upward from `$start`
+(or `getcwd()` when `null`) until it finds a directory containing
+`composer.json`. It returns the absolute path of that directory, or `null`
+if none is found before the filesystem root.
+
 ---
 
 ## Disabling Blocks and Helpers
@@ -992,6 +1060,8 @@ helper surface without a full sandbox.
 | Feature                   | Blate                                                            | Blade                        | Twig                          |
 | ------------------------- | ---------------------------------------------------------------- | ---------------------------- | ----------------------------- |
 | Global variables          | `Blate::registerGlobalVar()`                                     | `View::share()`              | `$twig->addGlobal()`          |
+| Computed global variables | `Blate::registerComputedGlobalVar()` (lazy, no memoization)      | No built-in                  | No built-in                   |
+| Project config file       | `.blate.php` auto-loaded by LSP; opt-in via `Blate::autoLoad()`  | `AppServiceProvider` (PHP)   | `ExtensionInterface` (PHP)    |
 | Custom helpers / filters  | `Blate::registerHelper()`                                        | Custom directives / Blade X  | `$twig->addFilter/Function()` |
 | Inline array construction | `$map()`, `$list()`, `$store()` helpers                          | PHP array literals in `@php` | `{}` object / `[]` array      |
 | Pipe filters              | `{expr \| helperName}` (helper-only lookup)                      | No native pipe syntax        | `{{ expr\|filtername }}`      |
@@ -1023,6 +1093,8 @@ helper surface without a full sandbox.
 | Sandbox for untrusted authors | No                | No                          | **Yes**                          |
 | Disable blocks/helpers        | **Yes**           | No                          | Partial                          |
 | Global variables              | Yes               | Yes (`View::share`)         | Yes (`addGlobal`)                |
+| Computed global variables     | **Yes**           | No                          | No                               |
+| Project config file           | **`.blate.php`**  | `AppServiceProvider`        | Extension class                  |
 | Built-in LSP server           | **Yes**           | No                          | No                               |
 | Framework coupling            | None - standalone | Laravel only                | Framework-agnostic               |
 | Feature richness              | Focused           | Rich (Livewire, components) | Rich (macros, extensions, tests) |

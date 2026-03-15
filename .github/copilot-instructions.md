@@ -46,6 +46,7 @@ The cached files live next to their source under `blate_cache/<version>/<hash[0:
 | `src/Parser.php`                   | Walks tokens, dispatches to `BlockInterface` implementations, emits PHP code                                                                 |
 | `src/Traits/ParserOutputTrait.php` | PHP codegen helpers (`writeCode`, `write`, `writeExpression`, `getClassBody`) used by `Parser`                                               |
 | `src/DataContext.php`              | Runtime scope stack - wraps user data with a global-vars layer and a helpers layer; supports `newContext()`/`popContext()` for scoped blocks |
+| `src/GlobalVarsContext.php`        | `ArrayAccess` container for global variables; holds both static values and computed (lazy) factories; singleton managed by `Blate`           |
 | `src/SimpleChain.php`              | Fluent path resolver used at runtime: `{foo.bar}` -> `$context->chain()->get('foo')->get('bar')->val()`                                      |
 | `src/BlateTemplateParsed.php`      | Abstract base for compiled templates; handles slot injection for `extends`                                                                   |
 | `src/BlateTemplateScope.php`       | Snapshot of the executing template: `data` (DataContext) + `template` (Blate); returned by `Blate::scope()`                                  |
@@ -204,7 +205,17 @@ Blate::registerGlobalVar('APP_NAME', 'My App');
 Blate::registerGlobalVar('REQUEST_ID', $requestId, editable: true);
 ```
 
-`Blate::getGlobalVars()` returns all registered globals (used by `DataContext` and the LSP completion provider).
+**Computed (lazy) global variables** are registered with a factory callable instead of a static value. The factory is called on every template access with no arguments and no memoization. Use `Blate::scope()` inside the factory when the current render context is needed.
+
+```php
+// Read-only computed global - factory called each time {NOW} is rendered
+Blate::registerComputedGlobalVar('NOW', fn () => date('Y-m-d H:i:s'));
+
+// Editable computed global - factory can be replaced later
+Blate::registerComputedGlobalVar('REQUEST_LOCALE', fn () => Blate::scope()->data->get('locale') ?? 'en', editable: true);
+```
+
+`Blate::getGlobalVars()` returns the `GlobalVarsContext` instance (implements `ArrayAccess`) used by `DataContext` and the LSP completion provider. Call `->getNames()` to list all registered names.
 
 ---
 
@@ -229,6 +240,32 @@ Blate::isHelperEnabled('json');    // bool
 
 `Message::BLOCK_NOT_REGISTERED` is thrown when disabling an unregistered block.
 `Message::HELPER_NOT_FOUND` is thrown when disabling an unregistered helper.
+
+---
+
+## Project Configuration (`.blate.php`)
+
+A `.blate.php` file placed next to `composer.json` is the conventional location
+for project-specific helper and global variable registration. The file is a
+plain PHP script that calls `Blate::register*` methods.
+
+**Loading**:
+
+```php
+Blate::autoLoad();                    // discovers root via getcwd() -> up to composer.json
+Blate::autoLoad('/path/to/project');  // explicit root
+```
+
+`autoLoad()` returns `true` if the file was loaded, `false` if `.blate.php` was
+not found or no project root could be discovered. Already-loaded paths (by
+`realpath`) are silently skipped.
+
+`Blate::findProjectRoot(string $start): ?string` is the helper that walks up
+from `$start` looking for `composer.json`.
+
+The **LSP server** calls `Blate::autoLoad($workspaceRoot)` automatically when
+the editor sends the `initialize` request, so completions and hover reflect
+project-specific helpers/globals without any editor configuration.
 
 ---
 
