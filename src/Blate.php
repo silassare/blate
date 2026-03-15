@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Blate;
 
+use Blate\Events\BlateRegistryChangedEvent;
 use Blate\Exceptions\BlateException;
 use Blate\Exceptions\BlateParserException;
 use Blate\Exceptions\BlateRuntimeException;
@@ -531,6 +532,7 @@ final class Blate
 		}
 
 		self::$blocks[$name] = $block_class;
+		(new BlateRegistryChangedEvent())->dispatch();
 	}
 
 	/**
@@ -623,6 +625,7 @@ final class Blate
 
 		self::$helpers[$name]                            = $helper;
 		self::$helpers[self::HELPER_PREFIX_CHAR . $name] = $helper;
+		(new BlateRegistryChangedEvent())->dispatch();
 	}
 
 	/**
@@ -759,6 +762,7 @@ final class Blate
 		$description = isset($options['description']) ? (string) $options['description'] : null;
 
 		$ctx->registerVar($name, $value, $editable, $description);
+		(new BlateRegistryChangedEvent())->dispatch();
 	}
 
 	/**
@@ -797,6 +801,17 @@ final class Blate
 		$description = isset($options['description']) ? (string) $options['description'] : null;
 
 		$ctx->registerComputed($name, $factory, $editable, $description);
+		(new BlateRegistryChangedEvent())->dispatch();
+	}
+
+	/**
+	 * Returns the real paths of all .blate.php config files loaded so far.
+	 *
+	 * @return list<string>
+	 */
+	public static function getLoadedConfigs(): array
+	{
+		return \array_keys(self::$loaded_configs);
 	}
 
 	/**

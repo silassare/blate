@@ -45,6 +45,5 @@ if (null === $_blate_lsp_autoload) {
 }
 
 require_once $_blate_lsp_autoload;
-unset($_blate_lsp_autoload);
 
-(new Blate\Lsp\BlateLspServer())->run();
+(new Blate\Lsp\BlateLspServer($_blate_lsp_autoload))->run();

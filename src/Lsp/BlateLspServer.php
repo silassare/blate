@@ -14,11 +14,15 @@ declare(strict_types=1);
 namespace Blate\Lsp;
 
 use Blate\Blate;
+use Blate\Events\BlateRegistryChangedEvent;
 use Blate\Exceptions\BlateParserException;
 use Blate\Exceptions\BlateRuntimeException;
 use Blate\Helpers\Helpers;
+use Closure;
 use ReflectionClass;
 use ReflectionException;
+use ReflectionFunction;
+use ReflectionMethod;
 use Throwable;
 
 /**
@@ -42,12 +46,67 @@ class BlateLspServer
 	/** @var array<string, string> uri -> full text content */
 	private array $docs = [];
 
-	public function __construct()
+	/** Set to true once the LSP initialize handshake is complete. */
+	private bool $initialized = false;
+
+	/** True when at least one registry change event has fired since the last log. */
+	private bool $registryDirty = false;
+
+	/** Absolute path to the autoload.php used to bootstrap the LSP server. */
+	private string $autoloadPath;
+
+	/** @var list<string> errors collected during .blate.php loading, shown at startup */
+	private array $loadErrors = [];
+
+	/** Absolute path to workspace root resolved from the initialize request. */
+	private ?string $workspaceRoot = null;
+
+	/**
+	 * Names of helpers registered during bootstrap, before any .blate.php is loaded.
+	 * Used to distinguish built-in helpers from project/custom helpers.
+	 *
+	 * @var array<string, true>
+	 */
+	private array $builtinHelperNames = [];
+
+	/**
+	 * Names of global variables registered during bootstrap.
+	 *
+	 * @var array<string, true>
+	 */
+	private array $builtinGlobalVarNames = [];
+
+	/**
+	 * Names of blocks registered during bootstrap.
+	 *
+	 * @var array<string, true>
+	 */
+	private array $builtinBlockNames = [];
+
+	/**
+	 * @param string $autoloadPath absolute path to vendor/autoload.php that was
+	 *                             used to bootstrap this server process
+	 */
+	public function __construct(string $autoloadPath)
 	{
+		$this->autoloadPath = $autoloadPath;
+
 		// Dedicated temp dir keeps LSP cache files away from the project tree.
 		Blate::setCacheDir(
 			\sys_get_temp_dir() . \DIRECTORY_SEPARATOR . 'blate-lsp-cache'
 		);
+
+		// Snapshot built-in registrations (everything present after bootstrap,
+		// before any .blate.php is loaded) so we can label items correctly.
+		$this->builtinHelperNames    = \array_fill_keys(\array_keys(Blate::getHelpers()), true);
+		$this->builtinGlobalVarNames = \array_fill_keys(Blate::getGlobalVars()->getNames(), true);
+		$this->builtinBlockNames     = \array_fill_keys(\array_keys(Blate::getBlocks()), true);
+
+		// Subscribe to registry changes before loading any config so every
+		// register() call (including those in .blate.php) is captured.
+		BlateRegistryChangedEvent::listen(function (): void {
+			$this->registryDirty = true;
+		});
 	}
 
 	// =========================================================================
@@ -190,6 +249,12 @@ class BlateLspServer
 		$id     = $msg['id'] ?? null;
 		$params = $msg['params'] ?? [];
 
+		// JSON-RPC response from client (no 'method' field) -- silently ignore.
+		// This handles responses to our own client/registerCapability requests.
+		if ('' === $method) {
+			return;
+		}
+
 		if (!\is_array($params)) {
 			$params = [];
 		}
@@ -202,7 +267,8 @@ class BlateLspServer
 					break;
 
 				case 'initialized':
-					// no-op: client acknowledges our capabilities
+					$this->handleInitialized();
+
 					break;
 
 				case 'shutdown':
@@ -251,6 +317,11 @@ class BlateLspServer
 
 					break;
 
+				case 'workspace/didChangeWatchedFiles':
+					$this->handleDidChangeWatchedFiles($params);
+
+					break;
+
 				default:
 					if (null !== $id) {
 						$this->respondError($id, -32601, 'Method not found: ' . $method);
@@ -263,6 +334,12 @@ class BlateLspServer
 				$this->respondError($id, -32603, 'Internal error: ' . $e->getMessage());
 			}
 		}
+
+		// Log registry changes once per dispatch cycle, after initialization.
+		if ($this->initialized && $this->registryDirty) {
+			$this->registryDirty = false;
+			$this->logRegistryUpdate();
+		}
 	}
 
 	// =========================================================================
@@ -274,33 +351,33 @@ class BlateLspServer
 	 */
 	private function handleInitialize(mixed $id, array $params): void
 	{
-		// Try to load .blate.php from the workspace root so that project-specific
-		// helpers and global vars are available in completions and hover.
-		$root
-			               = $this->resolveWorkspaceRoot($params);
-		$loadedAutoload = null;
-		$loadedConfig   = null;
+		$this->workspaceRoot = $this->resolveWorkspaceRoot($params);
 
-		if (null !== $root) {
-			// Load the project's vendor/autoload.php first so that any custom
-			// classes referenced inside .blate.php are available to the autoloader.
-			$projectAutoload = $root . \DIRECTORY_SEPARATOR . 'vendor' . \DIRECTORY_SEPARATOR . 'autoload.php';
+		if (null !== $this->workspaceRoot) {
+			// Load the workspace project's vendor/autoload.php so that any
+			// custom classes referenced in .blate.php are available.
+			$projectAutoload = $this->workspaceRoot
+				. \DIRECTORY_SEPARATOR . 'vendor'
+				. \DIRECTORY_SEPARATOR . 'autoload.php';
 
-			if (\is_file($projectAutoload)) {
+			if (\is_file($projectAutoload) && $projectAutoload !== $this->autoloadPath) {
 				try {
 					require_once $projectAutoload;
-					$loadedAutoload = $projectAutoload;
 				} catch (Throwable $e) {
-					\fwrite(\STDERR, '[blate-lsp] Failed to load project autoload: ' . $e->getMessage() . "\n");
+					$msg = 'Failed to load project autoload: ' . $e->getMessage()
+						. "\n" . $e->getTraceAsString();
+					\fwrite(\STDERR, '[blate-lsp] ' . $msg . "\n");
+					$this->loadErrors[] = $msg;
 				}
 			}
 
 			try {
-				if (Blate::autoLoad($root)) {
-					$loadedConfig = $root . \DIRECTORY_SEPARATOR . '.blate.php';
-				}
+				Blate::autoLoad($this->workspaceRoot);
 			} catch (Throwable $e) {
-				\fwrite(\STDERR, '[blate-lsp] Failed to load .blate.php: ' . $e->getMessage() . "\n");
+				$msg = 'Failed to load .blate.php: ' . $e->getMessage()
+					. "\n" . $e->getTraceAsString();
+				\fwrite(\STDERR, '[blate-lsp] ' . $msg . "\n");
+				$this->loadErrors[] = $msg;
 			}
 		}
 
@@ -327,36 +404,171 @@ class BlateLspServer
 			],
 		]);
 
-		// Send startup summary to the VS Code output channel after the initialize
-		// response so the client is ready to display notifications.
-		$this->logStartupInfo($loadedAutoload, $loadedConfig);
+		// Mark initialized and clear any pre-handshake dirty flag so the
+		// startup log is the single authoritative snapshot of initial state.
+		$this->initialized   = true;
+		$this->registryDirty = false;
+
+		// Send startup summary after the initialize response so the client
+		// is ready to display window/logMessage notifications.
+		$this->logStartupInfo();
 	}
 
 	/**
-	 * Sends a window/logMessage notification to the editor output channel with
-	 * a summary of what was loaded at startup: composer autoload path, project
-	 * config path, and all registered globals, blocks, and helpers.
+	 * Handles the LSP 'initialized' notification from the client.
 	 *
-	 * Type 4 = MessageType.Log (lowest verbosity; appears in the Output panel
-	 * only, not as a popup notification).
+	 * Registers a file-system watcher for .blate.php files so the server can
+	 * detect project-config changes and restart cleanly.
 	 */
-	private function logStartupInfo(?string $loadedAutoload, ?string $loadedConfig): void
+	private function handleInitialized(): void
 	{
-		$lines = ['[blate-lsp] Server initialized (' . Blate::VERSION_NAME . ')'];
+		// Ask the client to watch all .blate.php files in the workspace.
+		// The server restarts (exit 0) when the root config changes so that
+		// the new registrations take effect from a clean slate.
+		$this->send([
+			'jsonrpc' => '2.0',
+			'id'      => 'blate-register-watcher',
+			'method'  => 'client/registerCapability',
+			'params'  => [
+				'registrations' => [[
+					'id'              => 'blate-file-watcher',
+					'method'          => 'workspace/didChangeWatchedFiles',
+					'registerOptions' => [
+						'watchers' => [['globPattern' => '**/.blate.php']],
+					],
+				]],
+			],
+		]);
+	}
 
-		// Loaded files.
+	/**
+	 * Handles workspace/didChangeWatchedFiles.
+	 *
+	 * Restarts the server (exit 0) when the root .blate.php is modified so
+	 * the VS Code language client spawns a fresh process with updated config.
+	 *
+	 * @param array<string, mixed> $params
+	 */
+	private function handleDidChangeWatchedFiles(array $params): void
+	{
+		if (null === $this->workspaceRoot) {
+			return;
+		}
+
+		$changes    = $params['changes'] ?? [];
+		$rootConfig = $this->workspaceRoot . \DIRECTORY_SEPARATOR . '.blate.php';
+		$realRoot   = \realpath($rootConfig);
+
+		foreach ($changes as $change) {
+			$path = $this->fileUriToPath((string) ($change['uri'] ?? ''));
+
+			if (null === $path) {
+				continue;
+			}
+
+			$real = \realpath($path) ?: $path;
+
+			// Restart when the root .blate.php changes.
+			if (false !== $realRoot && $real === $realRoot) {
+				exit(0);
+			}
+		}
+	}
+
+	/**
+	 * Sends a window/logMessage notification with a summary of the initial
+	 * server state: autoload path, loaded configs, and the full registry.
+	 *
+	 * Type 4 = MessageType.Log (appears in the Output panel, not as a popup).
+	 */
+	private function logStartupInfo(): void
+	{
+		// Surface any .blate.php load errors as visible VS Code error messages
+		// so the user sees them immediately, not buried in the output log.
+		foreach ($this->loadErrors as $err) {
+			$this->notify('window/showMessage', [
+				'type'    => 1,   // MessageType.Error
+				'message' => '[blate-lsp] ' . $err,
+			]);
+		}
+
+		$lines   = ['[blate-lsp] Server initialized (' . Blate::VERSION_NAME . ')'];
 		$lines[] = '';
-		$lines[] = 'Composer autoload : ' . ($loadedAutoload ?? '(none)');
-		$lines[] = 'Project config    : ' . ($loadedConfig ?? '(none found - custom helpers/vars/blocks not loaded)');
 
+		// Show load errors in the log as well for traceability.
+		if (!empty($this->loadErrors)) {
+			$lines[] = 'Load errors:';
+
+			foreach ($this->loadErrors as $err) {
+				$lines[] = '  ! ' . $err;
+			}
+
+			$lines[] = '';
+		}
+
+		// Show the autoload that was used to bootstrap blate itself, and the
+		// workspace project autoload when it differs (host project scenario).
+		$lines[] = 'Composer autoload : ' . $this->autoloadPath;
+
+		if (null !== $this->workspaceRoot) {
+			$projectAutoload = $this->workspaceRoot
+				. \DIRECTORY_SEPARATOR . 'vendor'
+				. \DIRECTORY_SEPARATOR . 'autoload.php';
+
+			if ($projectAutoload !== $this->autoloadPath) {
+				$lines[] = 'Project autoload  : ' . $projectAutoload
+					. (\is_file($projectAutoload) ? '' : ' (not found)');
+			}
+		}
+
+		$configs = Blate::getLoadedConfigs();
+		$lines[] = 'Loaded configs    : ' . (empty($configs)
+			? '(none - custom helpers/vars/blocks not loaded)'
+			: \implode(', ', $configs));
+
+		$this->appendRegistryLines($lines);
+
+		$this->notify('window/logMessage', [
+			'type'    => 4,   // MessageType.Log
+			'message' => \implode("\n", $lines),
+		]);
+	}
+
+	/**
+	 * Sends a window/logMessage notification when the registry is updated
+	 * after startup (e.g. a .blate.php from a sub-package is loaded).
+	 */
+	private function logRegistryUpdate(): void
+	{
+		$lines   = ['[blate-lsp] Registry updated'];
+
+		$configs = Blate::getLoadedConfigs();
+		$lines[] = 'Loaded configs : ' . (empty($configs) ? '(none)' : \implode(', ', $configs));
+
+		$this->appendRegistryLines($lines);
+
+		$this->notify('window/logMessage', [
+			'type'    => 4,   // MessageType.Log
+			'message' => \implode("\n", $lines),
+		]);
+	}
+
+	/**
+	 * Appends lines describing the current registry state (global vars,
+	 * blocks, helpers) to the given lines array.
+	 *
+	 * @param list<string> $lines
+	 */
+	private function appendRegistryLines(array &$lines): void
+	{
 		// Registered global variables.
-		$globalNames = Blate::getGlobalVars()->getNames();
+		$globals     = Blate::getGlobalVars();
+		$globalNames = $globals->getNames();
 		\sort($globalNames);
 		$lines[] = '';
 		$lines[] = 'Global variables (' . \count($globalNames) . '):';
 
 		foreach ($globalNames as $gName) {
-			$globals = Blate::getGlobalVars();
 			$detail  = $globals->isComputed($gName) ? '(computed)' : \json_encode($globals[$gName]);
 			$desc    = $globals->getDescription($gName);
 			$suffix  = null !== $desc ? '  -- ' . $desc : '';
@@ -377,11 +589,6 @@ class BlateLspServer
 		\sort($helperNames);
 		$lines[] = '';
 		$lines[] = 'Helpers (' . \count($helperNames) . '): ' . \implode(', ', $helperNames);
-
-		$this->notify('window/logMessage', [
-			'type'    => 4,   // MessageType.Log
-			'message' => \implode("\n", $lines),
-		]);
 	}
 
 	/**
@@ -989,10 +1196,11 @@ class BlateLspServer
 				continue;
 			}
 
-			$item = [
+			$detail = isset($this->builtinBlockNames[$name]) ? 'Built-in block' : 'Block';
+			$item   = [
 				'label'  => $name,
 				'kind'   => 14,   // CompletionItemKind.Keyword
-				'detail' => 'Blate @' . $name . ' block',
+				'detail' => $detail . ' @' . $name,
 			];
 
 			if (isset($snippets[$name])) {
@@ -1096,10 +1304,11 @@ class BlateLspServer
 		$globals = Blate::getGlobalVars();
 
 		foreach ($globals->getNames() as $name) {
-			$item = [
+			$detail = isset($this->builtinGlobalVarNames[$name]) ? 'Built-in variable' : 'Global variable';
+			$item   = [
 				'label'      => $name,
 				'kind'       => 21,  // CompletionItemKind.Constant
-				'detail'     => 'Blate global variable',
+				'detail'     => $detail,
 				'insertText' => $name,
 			];
 
@@ -1130,10 +1339,11 @@ class BlateLspServer
 				continue;
 			}
 
+			$detail  = isset($this->builtinHelperNames[$name]) ? 'Built-in helper' : 'Helper';
 			$items[] = [
 				'label'      => $name,
 				'kind'       => 3,   // CompletionItemKind.Function
-				'detail'     => 'Blate helper',
+				'detail'     => $detail,
 				'insertText' => $name,
 			];
 		}
@@ -1264,7 +1474,8 @@ class BlateLspServer
 				$hover = '`' . $repr . '`';
 			}
 
-			$md = '**' . $word . '** _(Blate global variable)_' . "\n\n" . $hover;
+			$label = isset($this->builtinGlobalVarNames[$word]) ? '_(Built-in variable)_' : '_(Global variable)_';
+			$md    = '**' . $word . '** ' . $label . "\n\n" . $hover;
 
 			$desc = $globals->getDescription($word);
 
@@ -1310,29 +1521,41 @@ class BlateLspServer
 
 	private function resolveHelperDoc(string $name): string
 	{
-		try {
-			$ref = new ReflectionClass(Helpers::class);
+		$label   = isset($this->builtinHelperNames[$name]) ? '_(Built-in helper)_' : '_(Helper)_';
+		$heading = '**' . $name . '** ' . $label;
 
-			if ($ref->hasMethod($name)) {
-				$raw = $ref->getMethod($name)->getDocComment();
+		try {
+			$helpers  = Blate::getHelpers();
+			$callable = $helpers[$name] ?? null;
+
+			if (null !== $callable) {
+				if (\is_array($callable)) {
+					[$classOrObj, $method] = $callable;
+					$ref                   = new ReflectionMethod($classOrObj, $method);
+				} else {
+					$ref = new ReflectionFunction(Closure::fromCallable($callable));
+				}
+
+				$raw = $ref->getDocComment();
 
 				if (false !== $raw) {
-					return $this->formatDocblock('**' . $name . '** _(Blate helper)_', $raw);
+					return $this->formatDocblock($heading, $raw);
 				}
 			}
 		} catch (ReflectionException) {
 			// ignore - fall through to default
 		}
 
-		return '**' . $name . '** _(Blate helper)_';
+		return $heading;
 	}
 
 	private function resolveBlockDoc(string $name): string
 	{
 		$blocks = Blate::getBlocks();
+		$label  = isset($this->builtinBlockNames[$name]) ? '_(Built-in block)_' : '_(Block)_';
 
 		if (!isset($blocks[$name])) {
-			return '**@' . $name . '** _(Blate block)_';
+			return '**@' . $name . '** ' . $label;
 		}
 
 		try {
@@ -1340,13 +1563,13 @@ class BlateLspServer
 			$raw = $ref->getDocComment();
 
 			if (false !== $raw) {
-				return $this->formatDocblock('**@' . $name . '** _(Blate block)_', $raw, true);
+				return $this->formatDocblock('**@' . $name . '** ' . $label, $raw, true);
 			}
 		} catch (ReflectionException) {
 			// ignore
 		}
 
-		return '**@' . $name . '** _(Blate block)_';
+		return '**@' . $name . '** ' . $label;
 	}
 
 	/**
