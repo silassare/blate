@@ -98,7 +98,7 @@ class SimpleChain
 	 *
 	 * Used by the $global chain-head syntax: {$global.foo}
 	 *
-	 * @param string $location compile-time source location 'line:index'
+	 * @param string $_location compile-time source location 'line:index'
 	 *
 	 * @return $this
 	 */

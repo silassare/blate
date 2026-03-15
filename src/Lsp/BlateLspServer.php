@@ -515,7 +515,11 @@ class BlateLspServer
 			Blate::fromString($content)->parse(false);
 			$this->notify('textDocument/publishDiagnostics', [
 				'uri'         => $uri,
-				'diagnostics' => $this->buildHelperShadowWarnings($content),
+				'diagnostics' => \array_merge(
+					$this->buildHelperShadowWarnings($content),
+					$this->buildGlobalVarShadowWarnings($content),
+					$this->buildGlobalRefUnknownErrors($content),
+				),
 			]);
 		} catch (BlateParserException|BlateRuntimeException $e) {
 			$chunk = $e->getChunk();
@@ -635,6 +639,95 @@ class BlateLspServer
 		}
 
 		return $warns;
+	}
+
+	/**
+	 * Scans the template for bare global variable accesses that may be shadowed
+	 * by user-data keys at runtime. Returns Warning-level diagnostics.
+	 *
+	 * A bare access like {APP_NAME} resolves through the full scope stack: if the
+	 * render data contains a key 'APP_NAME', it will shadow the registered global.
+	 * Use {$global.APP_NAME} to guarantee the registered global is always resolved.
+	 *
+	 * @return list<array<string, mixed>>
+	 */
+	private function buildGlobalVarShadowWarnings(string $content): array
+	{
+		$globals = Blate::getGlobalVars();
+		$names   = $globals->getNames();
+
+		if (empty($names)) {
+			return [];
+		}
+
+		$globalSet = \array_fill_keys($names, true);
+
+		$scanContent = $this->blankDeadZones($content);
+
+		// Match bare unqualified identifiers (not preceded by $ or .)
+		if (!\preg_match_all('/(?<![.$])\b([a-zA-Z_]\w*)\b(?!\s*\()/', $scanContent, $matches, \PREG_OFFSET_CAPTURE)) {
+			return [];
+		}
+
+		$warns = [];
+
+		foreach ($matches[1] as [$name, $byteOffset]) {
+			if (!isset($globalSet[$name])) {
+				continue;
+			}
+
+			$end     = $byteOffset + \strlen($name);
+			$warns[] = [
+				'range'    => $this->byteRangeToLspRange($content, $byteOffset, $end),
+				'severity' => 2,   // DiagnosticSeverity.Warning
+				'source'   => 'blate',
+				'code'     => 'blate.global.shadow',
+				'data'     => ['varName' => $name],
+				'message'  => '"' . $name . '" is a registered global variable. '
+					. 'If render data contains a key "' . $name . '", it will shadow this global at runtime. '
+					. 'Use {$global.' . $name . '} to always resolve the registered global.',
+			];
+		}
+
+		return $warns;
+	}
+
+	/**
+	 * Scans the template for {$global.FOO} accesses where FOO is not a registered
+	 * global variable. Returns Error-level diagnostics.
+	 *
+	 * @return list<array<string, mixed>>
+	 */
+	private function buildGlobalRefUnknownErrors(string $content): array
+	{
+		$globals = Blate::getGlobalVars();
+		$names   = \array_fill_keys($globals->getNames(), true);
+
+		$scanContent = $this->blankDeadZones($content);
+
+		// Match $global.WORD -- the WORD immediately after the dot.
+		if (!\preg_match_all('/\$global\.([a-zA-Z_]\w*)/', $scanContent, $matches, \PREG_OFFSET_CAPTURE)) {
+			return [];
+		}
+
+		$errors = [];
+
+		foreach ($matches[1] as [$varName, $byteOffset]) {
+			if (isset($names[$varName])) {
+				continue;
+			}
+
+			$end      = $byteOffset + \strlen($varName);
+			$errors[] = [
+				'range'    => $this->byteRangeToLspRange($content, $byteOffset, $end),
+				'severity' => 1,   // DiagnosticSeverity.Error
+				'source'   => 'blate',
+				'code'     => 'blate.global.unknown',
+				'message'  => '"' . $varName . '" is not a registered global variable.',
+			];
+		}
+
+		return $errors;
 	}
 
 	// =========================================================================
@@ -1020,7 +1113,7 @@ class BlateLspServer
 			--$wordStart;
 		}
 
-		if ($wordStart > 0 && '\$' === $content[$wordStart - 1] && 'global' === $word) {
+		if ($wordStart > 0 && '$' === $content[$wordStart - 1] && 'global' === $word) {
 			$names   = Blate::getGlobalVars()->getNames();
 			$namesMd = empty($names) ? '_none registered_' : '`' . \implode('`, `', $names) . '`';
 
@@ -1037,7 +1130,7 @@ class BlateLspServer
 		}
 
 		// $$ -- raw DataContext reference.
-		if ($wordStart > 1 && '\$' === $content[$wordStart - 1] && '\$' === $content[$wordStart - 2]) {
+		if ($wordStart > 1 && '$' === $content[$wordStart - 1] && '$' === $content[$wordStart - 2]) {
 			return [
 				'contents' => [
 					'kind'  => 'markdown',
