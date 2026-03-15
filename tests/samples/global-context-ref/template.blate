@@ -1,0 +1,2 @@
+global: {$global.MY_GLOBAL_TEST}
+data: {MY_GLOBAL_TEST}

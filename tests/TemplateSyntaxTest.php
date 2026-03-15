@@ -662,7 +662,7 @@ final class TemplateSyntaxTest extends TestCase
 	 */
 	public function testGlobalVarsCustom(): void
 	{
-		Blate::registerGlobalVar('SITE_NAME', 'My App', true);
+		Blate::registerGlobalVar('SITE_NAME', 'My App', ['editable' => true]);
 		$this->runValid('global-vars-custom');
 	}
 
@@ -677,16 +677,16 @@ final class TemplateSyntaxTest extends TestCase
 	}
 
 	/**
-	 * registerGlobalVar() with $editable=false prevents re-registration.
+	 * registerGlobalVar() with editable:false (default) prevents re-registration.
 	 */
 	public function testGlobalVarsConstant(): void
 	{
-		Blate::registerGlobalVar('MY_CONST', 'first', false);
+		Blate::registerGlobalVar('MY_CONST', 'first');
 
 		$caught = false;
 
 		try {
-			Blate::registerGlobalVar('MY_CONST', 'second', false);
+			Blate::registerGlobalVar('MY_CONST', 'second');
 		} catch (BlateRuntimeException $e) {
 			$caught = true;
 		}
@@ -695,14 +695,14 @@ final class TemplateSyntaxTest extends TestCase
 	}
 
 	/**
-	 * registerGlobalVar() with $editable=true allows updating the value.
+	 * registerGlobalVar() with editable:true allows updating the value.
 	 *
 	 * @throws BlateException
 	 */
 	public function testGlobalVarsEditable(): void
 	{
-		Blate::registerGlobalVar('EDITABLE_VAR', 'v1', true);
-		Blate::registerGlobalVar('EDITABLE_VAR', 'v2', true);
+		Blate::registerGlobalVar('EDITABLE_VAR', 'v1', ['editable' => true]);
+		Blate::registerGlobalVar('EDITABLE_VAR', 'v2', ['editable' => true]);
 
 		$out = Blate::fromString('{EDITABLE_VAR}')->runGet([]);
 		self::assertSame('v2', $out);
@@ -729,7 +729,7 @@ final class TemplateSyntaxTest extends TestCase
 		$calls = 0;
 		Blate::registerComputedGlobalVar('COMPUTED_COUNTER', static function () use (&$calls) {
 			return ++$calls;
-		}, true);
+		}, ['editable' => true]);
 
 		$tpl = Blate::fromString('{COMPUTED_COUNTER}-{COMPUTED_COUNTER}');
 		$out = $tpl->runGet([]);
@@ -743,12 +743,12 @@ final class TemplateSyntaxTest extends TestCase
 	 */
 	public function testComputedGlobalVarConstant(): void
 	{
-		Blate::registerComputedGlobalVar('COMPUTED_CONST', static fn () => 'a', false);
+		Blate::registerComputedGlobalVar('COMPUTED_CONST', static fn () => 'a');
 
 		$caught = false;
 
 		try {
-			Blate::registerComputedGlobalVar('COMPUTED_CONST', static fn () => 'b', false);
+			Blate::registerComputedGlobalVar('COMPUTED_CONST', static fn () => 'b');
 		} catch (BlateRuntimeException $e) {
 			$caught = true;
 		}
@@ -772,11 +772,23 @@ final class TemplateSyntaxTest extends TestCase
 	 */
 	public function testComputedGlobalVarShadowedByUserData(): void
 	{
-		Blate::registerComputedGlobalVar('COMPUTED_SHADOW', static fn () => 'from-factory', true);
+		Blate::registerComputedGlobalVar('COMPUTED_SHADOW', static fn () => 'from-factory', ['editable' => true]);
 
 		$out = Blate::fromString('{COMPUTED_SHADOW}')->runGet(['COMPUTED_SHADOW' => 'from-data']);
 
 		self::assertSame('from-data', $out);
+	}
+
+	/**
+	 * {$global.NAME} always resolves from the global vars layer, even when
+	 * user data contains a key with the same name.
+	 *
+	 * @throws BlateException
+	 */
+	public function testGlobalContextRef(): void
+	{
+		Blate::registerGlobalVar('MY_GLOBAL_TEST', 'from-global', ['editable' => true]);
+		$this->runValid('global-context-ref');
 	}
 
 	// =========================================================================
