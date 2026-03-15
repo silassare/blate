@@ -315,6 +315,24 @@ Editor integrations live under `editors/`:
 The entry point `editors/lsp/server.php` bootstraps Composer and starts it.
 The `bin/blate-lsp` wrapper provides a convenient CLI entry point.
 
+**Diagnostic codes** emitted by `diagnose()` via `textDocument/publishDiagnostics`:
+
+| Code                   | Severity | Trigger                                                                      |
+| ---------------------- | -------- | ---------------------------------------------------------------------------- |
+| `blate.helper.shadow`  | Warning  | Unqualified helper call `{upper(...)}` that could be shadowed by render data |
+| `blate.global.shadow`  | Warning  | Bare global-var access `{BRACE_OPEN}` that could be shadowed by render data  |
+| `blate.global.unknown` | Error    | `{$global.FOO}` where `FOO` is not a registered global variable              |
+
+**Hover and completions** surface the `description` option registered via
+`registerGlobalVar` / `registerComputedGlobalVar`. Both completion items and
+hover cards include the description text when it is provided.
+
+**Testing approach** for `BlateLspServerTest`: all pure private helpers are
+called via `ReflectionClass`/`setAccessible`. I/O-bound handlers
+(`handleCompletion`, `handleHover`, `handleRename`, `handleCodeAction`) write
+directly to `STDOUT` with `fwrite()` and are intentionally not unit-tested; they
+are thin wiring over the pure methods that are tested.
+
 ### VS Code Extension
 
 - Source: `editors/vscode/src/extension.ts` (TypeScript)

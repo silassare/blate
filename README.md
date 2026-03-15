@@ -1098,15 +1098,17 @@ helper surface without a full sandbox.
 
 ### Editor tooling
 
-| Feature               | Blate                                | Blade                   | Twig                   |
-| --------------------- | ------------------------------------ | ----------------------- | ---------------------- |
-| Syntax highlighting   | VS Code, Sublime Text, Vim/Neovim    | VS Code (official ext.) | VS Code + many editors |
-| Language server (LSP) | **Built-in PHP LSP server**          | No official LSP         | No official LSP        |
-| Parse diagnostics     | Exact line/column squiggles          | No                      | No                     |
-| Completions           | Blocks, helpers, in-scope variables  | Snippets only           | No                     |
-| Hover documentation   | Helper docblocks                     | No                      | No                     |
-| Variable rename       | In-document rename                   | No                      | No                     |
-| Quick fix             | Prepend `$` to shadowed helper calls | No                      | No                     |
+| Feature               | Blate                                            | Blade                   | Twig                   |
+| --------------------- | ------------------------------------------------ | ----------------------- | ---------------------- |
+| Syntax highlighting   | VS Code, Sublime Text, Vim/Neovim                | VS Code (official ext.) | VS Code + many editors |
+| Language server (LSP) | **Built-in PHP LSP server**                      | No official LSP         | No official LSP        |
+| Parse diagnostics     | Exact line/column squiggles                      | No                      | No                     |
+| Shadow warnings       | Unqualified helper and global-var access         | No                      | No                     |
+| Unknown global error  | `$global.UNKNOWN` flagged as error               | No                      | No                     |
+| Completions           | Blocks, helpers, global vars, in-scope variables | Snippets only           | No                     |
+| Hover documentation   | Helpers and global variables with descriptions   | No                      | No                     |
+| Variable rename       | In-document rename                               | No                      | No                     |
+| Quick fix             | Prepend `$` to shadowed helper calls             | No                      | No                     |
 
 ### Summary
 
