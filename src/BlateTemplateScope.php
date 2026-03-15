@@ -30,14 +30,14 @@ namespace Blate;
  */
 final class BlateTemplateScope
 {
-    /**
-     * BlateTemplateScope constructor.
-     *
-     * @param DataContext $data     the current render context
-     * @param Blate       $template the Blate instance for the executing template
-     */
-    public function __construct(
-        public readonly DataContext $data,
-        public readonly Blate $template,
-    ) {}
+	/**
+	 * BlateTemplateScope constructor.
+	 *
+	 * @param DataContext $data     the current render context
+	 * @param Blate       $template the Blate instance for the executing template
+	 */
+	public function __construct(
+		public readonly DataContext $data,
+		public readonly Blate $template,
+	) {}
 }
