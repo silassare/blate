@@ -276,7 +276,10 @@ class BlateLspServer
 	{
 		// Try to load .blate.php from the workspace root so that project-specific
 		// helpers and global vars are available in completions and hover.
-		$root = $this->resolveWorkspaceRoot($params);
+		$root
+			               = $this->resolveWorkspaceRoot($params);
+		$loadedAutoload = null;
+		$loadedConfig   = null;
 
 		if (null !== $root) {
 			// Load the project's vendor/autoload.php first so that any custom
@@ -286,13 +289,16 @@ class BlateLspServer
 			if (\is_file($projectAutoload)) {
 				try {
 					require_once $projectAutoload;
+					$loadedAutoload = $projectAutoload;
 				} catch (Throwable $e) {
 					\fwrite(\STDERR, '[blate-lsp] Failed to load project autoload: ' . $e->getMessage() . "\n");
 				}
 			}
 
 			try {
-				Blate::autoLoad($root);
+				if (Blate::autoLoad($root)) {
+					$loadedConfig = $root . \DIRECTORY_SEPARATOR . '.blate.php';
+				}
 			} catch (Throwable $e) {
 				\fwrite(\STDERR, '[blate-lsp] Failed to load .blate.php: ' . $e->getMessage() . "\n");
 			}
@@ -319,6 +325,62 @@ class BlateLspServer
 				'name'    => 'blate-lsp',
 				'version' => Blate::VERSION,
 			],
+		]);
+
+		// Send startup summary to the VS Code output channel after the initialize
+		// response so the client is ready to display notifications.
+		$this->logStartupInfo($loadedAutoload, $loadedConfig);
+	}
+
+	/**
+	 * Sends a window/logMessage notification to the editor output channel with
+	 * a summary of what was loaded at startup: composer autoload path, project
+	 * config path, and all registered globals, blocks, and helpers.
+	 *
+	 * Type 4 = MessageType.Log (lowest verbosity; appears in the Output panel
+	 * only, not as a popup notification).
+	 */
+	private function logStartupInfo(?string $loadedAutoload, ?string $loadedConfig): void
+	{
+		$lines = ['[blate-lsp] Server initialized (' . Blate::VERSION_NAME . ')'];
+
+		// Loaded files.
+		$lines[] = '';
+		$lines[] = 'Composer autoload : ' . ($loadedAutoload ?? '(none)');
+		$lines[] = 'Project config    : ' . ($loadedConfig ?? '(none found - custom helpers/vars/blocks not loaded)');
+
+		// Registered global variables.
+		$globalNames = Blate::getGlobalVars()->getNames();
+		\sort($globalNames);
+		$lines[] = '';
+		$lines[] = 'Global variables (' . \count($globalNames) . '):';
+
+		foreach ($globalNames as $gName) {
+			$globals = Blate::getGlobalVars();
+			$detail  = $globals->isComputed($gName) ? '(computed)' : \json_encode($globals[$gName]);
+			$desc    = $globals->getDescription($gName);
+			$suffix  = null !== $desc ? '  -- ' . $desc : '';
+			$lines[] = '  ' . $gName . ' = ' . $detail . $suffix;
+		}
+
+		// Registered blocks.
+		$blockNames = \array_keys(Blate::getBlocks());
+		\sort($blockNames);
+		$lines[] = '';
+		$lines[] = 'Blocks (' . \count($blockNames) . '): ' . \implode(', ', $blockNames);
+
+		// Registered and enabled helpers (without $-prefixed duplicates).
+		$helperNames = \array_filter(
+			\array_keys(Blate::getHelpers()),
+			static fn (string $n): bool => !\str_starts_with($n, '$')
+		);
+		\sort($helperNames);
+		$lines[] = '';
+		$lines[] = 'Helpers (' . \count($helperNames) . '): ' . \implode(', ', $helperNames);
+
+		$this->notify('window/logMessage', [
+			'type'    => 4,   // MessageType.Log
+			'message' => \implode("\n", $lines),
 		]);
 	}
 
@@ -517,6 +579,7 @@ class BlateLspServer
 				'uri'         => $uri,
 				'diagnostics' => \array_merge(
 					$this->buildHelperShadowWarnings($content),
+					$this->buildDollarHelperUnknownErrors($content),
 					$this->buildGlobalVarShadowWarnings($content),
 					$this->buildGlobalRefUnknownErrors($content),
 				),
@@ -639,6 +702,53 @@ class BlateLspServer
 		}
 
 		return $warns;
+	}
+
+	/**
+	 * Scans for $name(...) calls where $name is not a registered (and enabled)
+	 * helper. Returns Error-level diagnostics.
+	 *
+	 * A call like {$upper(x)} explicitly targets the helpers layer via the $
+	 * prefix. If no helper named 'upper' is registered, the expression will
+	 * fail at render time with a runtime error.
+	 *
+	 * @return list<array<string, mixed>>
+	 */
+	private function buildDollarHelperUnknownErrors(string $content): array
+	{
+		$helpers = Blate::getHelpers();
+
+		$scanContent = $this->blankDeadZones($content);
+
+		// Match $name( -- $ not preceded by another $ (avoids matching $$ctx).
+		if (!\preg_match_all('/(?<!\$)\$([a-zA-Z_]\w*)\s*\(/', $scanContent, $matches, \PREG_OFFSET_CAPTURE)) {
+			return [];
+		}
+
+		$errors = [];
+
+		foreach ($matches[1] as [$name, $byteOffset]) {
+			// $global is the global-vars-layer chain-head reference, not a helper.
+			if ('global' === $name) {
+				continue;
+			}
+
+			// '$name' key present in helpers means the helper is registered and enabled.
+			if (\array_key_exists('$' . $name, $helpers)) {
+				continue;
+			}
+
+			$end      = $byteOffset + \strlen($name);
+			$errors[] = [
+				'range'    => $this->byteRangeToLspRange($content, $byteOffset, $end),
+				'severity' => 1,   // DiagnosticSeverity.Error
+				'source'   => 'blate',
+				'code'     => 'blate.helper.unknown',
+				'message'  => '"$' . $name . '" is not a registered helper.',
+			];
+		}
+
+		return $errors;
 	}
 
 	/**
