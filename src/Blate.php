@@ -82,15 +82,14 @@ final class Blate
 	 */
 	private static array $helpers = [];
 
-	/**
-	 * @var array<string, mixed>
-	 */
-	private static array $GLOBAL_VARS = [];
+	private static ?GlobalVarsContext $global_vars_context = null;
 
 	/**
+	 * Absolute real paths of .blate.php files already loaded, used to prevent double-load.
+	 *
 	 * @var array<string, true>
 	 */
-	private static array $GLOBAL_VARS_CONSTANT = [];
+	private static array $loaded_configs = [];
 
 	/**
 	 * @var array<string, true>
@@ -195,6 +194,87 @@ final class Blate
 	}
 
 	/**
+	 * Auto-load the project-level `.blate.php` configuration file.
+	 *
+	 * Searches for `composer.json` walking upward from `$projectRoot`
+	 * (defaults to `getcwd()`). If `.blate.php` exists in the same
+	 * directory as `composer.json` it is required once (double-load is
+	 * silently skipped).
+	 *
+	 * The file runs in an isolated scope so local variables it declares do
+	 * not leak. It should only call `Blate::register*` methods.
+	 *
+	 * Returns `true` when the file was loaded, `false` when it was not
+	 * found (or already loaded).
+	 *
+	 * @param null|string $projectRoot directory to start the search from;
+	 *                                 null defaults to `getcwd()`
+	 */
+	public static function autoLoad(?string $projectRoot = null): bool
+	{
+		$root = self::findProjectRoot($projectRoot ?? (\getcwd() ?: '.'));
+
+		if (null === $root) {
+			return false;
+		}
+
+		$config = $root . \DIRECTORY_SEPARATOR . '.blate.php';
+
+		if (!\is_file($config)) {
+			return false;
+		}
+
+		$real = \realpath($config);
+
+		if (false !== $real) {
+			if (isset(self::$loaded_configs[$real])) {
+				return true;
+			}
+
+			self::$loaded_configs[$real] = true;
+		}
+
+		// Isolated scope: the closure has no access to $root/$config/$real.
+		(static function (string $_blate_config_path): void {
+			require $_blate_config_path;
+		})($config);
+
+		return true;
+	}
+
+	/**
+	 * Walks up the directory tree from `$start` looking for `composer.json`.
+	 *
+	 * Returns the directory containing `composer.json`, or `null` if not
+	 * found before reaching the filesystem root.
+	 *
+	 * @param string $start absolute path to the directory to start from
+	 */
+	public static function findProjectRoot(string $start): ?string
+	{
+		$dir = \realpath($start);
+
+		if (false === $dir) {
+			return null;
+		}
+
+		while (true) {
+			if (\is_file($dir . \DIRECTORY_SEPARATOR . 'composer.json')) {
+				return $dir;
+			}
+
+			$parent = \dirname($dir);
+
+			if ($parent === $dir) {
+				// Reached the filesystem root without finding composer.json.
+				return null;
+			}
+
+			$dir = $parent;
+		}
+	}
+
+	/**
 	 * Get Blate instance from a file path.
 	 *
 	 * @throws BlateException
@@ -240,7 +320,7 @@ final class Blate
 					->getClassBody();
 				$this->save();
 			}
-		} catch (BlateException|BlateRuntimeException $t) {
+		} catch (BlateException | BlateRuntimeException $t) {
 			throw $t->templateSource($this->template);
 		}
 
@@ -605,7 +685,7 @@ final class Blate
 
 		return \array_filter(
 			self::$helpers,
-			static fn (string $key): bool => !isset(self::$disabled_helpers[\ltrim($key, $prefix)]),
+			static fn(string $key): bool => !isset(self::$disabled_helpers[\ltrim($key, $prefix)]),
 			\ARRAY_FILTER_USE_KEY
 		);
 	}
@@ -657,9 +737,9 @@ final class Blate
 	 */
 	public static function registerGlobalVar(string $name, mixed $value, bool $editable = false): void
 	{
-		$is_const = self::$GLOBAL_VARS_CONSTANT[$name] ?? false;
+		$ctx = self::globalVarsContext();
 
-		if ($is_const) {
+		if ($ctx->isConst($name)) {
 			throw new BlateRuntimeException(\sprintf(Message::GLOBAL_VAR_IS_NOT_EDITABLE, $name));
 		}
 
@@ -667,19 +747,56 @@ final class Blate
 			throw new BlateRuntimeException(\sprintf(Message::INVALID_VAR_NAME, $name, self::VAR_NAME_PATTERN));
 		}
 
-		if (!$editable) {
-			self::$GLOBAL_VARS_CONSTANT[$name] = true;
-		}
-
-		self::$GLOBAL_VARS[$name] = $value;
+		$ctx->registerVar($name, $value, $editable);
 	}
 
 	/**
-	 * Get the global variables.
+	 * Register a computed global variable.
+	 *
+	 * The factory is called on every template access with no arguments - there
+	 * is no memoization. Use Blate::scope() inside the factory to access the
+	 * current render context when needed.
+	 *
+	 * @param string            $name     the variable name
+	 * @param callable(): mixed $factory  called each time the variable is read
+	 * @param bool              $editable whether the variable is editable (default: false)
+	 *
+	 * @throws BlateRuntimeException when the name is not a valid identifier (Message::INVALID_VAR_NAME)
+	 * @throws BlateRuntimeException when a constant global is re-registered (Message::GLOBAL_VAR_IS_NOT_EDITABLE)
 	 */
-	public static function getGlobalVars(): mixed
+	public static function registerComputedGlobalVar(string $name, callable $factory, bool $editable = false): void
 	{
-		return self::$GLOBAL_VARS;
+		$ctx = self::globalVarsContext();
+
+		if ($ctx->isConst($name)) {
+			throw new BlateRuntimeException(\sprintf(Message::GLOBAL_VAR_IS_NOT_EDITABLE, $name));
+		}
+
+		if (!\preg_match(self::VAR_NAME_PATTERN, $name)) {
+			throw new BlateRuntimeException(\sprintf(Message::INVALID_VAR_NAME, $name, self::VAR_NAME_PATTERN));
+		}
+
+		$ctx->registerComputed($name, $factory, $editable);
+	}
+
+	/**
+	 * Get the global variables context.
+	 */
+	public static function getGlobalVars(): GlobalVarsContext
+	{
+		return self::globalVarsContext();
+	}
+
+	/**
+	 * Returns the singleton GlobalVarsContext, creating it on first call.
+	 */
+	private static function globalVarsContext(): GlobalVarsContext
+	{
+		if (null === self::$global_vars_context) {
+			self::$global_vars_context = new GlobalVarsContext();
+		}
+
+		return self::$global_vars_context;
 	}
 
 	/**

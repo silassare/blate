@@ -197,7 +197,7 @@ class BlateLspServer
 		try {
 			switch ($method) {
 				case 'initialize':
-					$this->handleInitialize($id);
+					$this->handleInitialize($id, $params);
 
 					break;
 
@@ -269,8 +269,23 @@ class BlateLspServer
 	// LSP request / notification handlers
 	// =========================================================================
 
-	private function handleInitialize(mixed $id): void
+	/**
+	 * @param array<string, mixed> $params
+	 */
+	private function handleInitialize(mixed $id, array $params): void
 	{
+		// Try to load .blate.php from the workspace root so that project-specific
+		// helpers and global vars are available in completions and hover.
+		$root = $this->resolveWorkspaceRoot($params);
+
+		if (null !== $root) {
+			try {
+				Blate::autoLoad($root);
+			} catch (Throwable $e) {
+				\fwrite(\STDERR, '[blate-lsp] Failed to load .blate.php: ' . $e->getMessage() . "\n");
+			}
+		}
+
 		$this->respond($id, [
 			'capabilities' => [
 				'textDocumentSync' => [
@@ -293,6 +308,60 @@ class BlateLspServer
 				'version' => Blate::VERSION,
 			],
 		]);
+	}
+
+	/**
+	 * Extracts the workspace root filesystem path from LSP `initialize` params.
+	 *
+	 * Preference order: rootUri -> rootPath -> first workspaceFolder uri.
+	 *
+	 * @param array<string, mixed> $params
+	 */
+	private function resolveWorkspaceRoot(array $params): ?string
+	{
+		// rootUri: "file:///path/to/project" (preferred, may be null string)
+		$uri = $params['rootUri'] ?? null;
+
+		if (null === $uri || '' === $uri) {
+			// rootPath: plain filesystem path (deprecated but widely sent)
+			$path = $params['rootPath'] ?? null;
+
+			if (\is_string($path) && '' !== $path) {
+				return $path;
+			}
+
+			// workspaceFolders: [{ uri: "file://..." }, ...]
+			$folders = $params['workspaceFolders'] ?? [];
+			$uri     = \is_array($folders) && isset($folders[0]['uri']) ? (string) $folders[0]['uri'] : null;
+
+			if (null === $uri || '' === $uri) {
+				return null;
+			}
+		}
+
+		return $this->fileUriToPath((string) $uri);
+	}
+
+	/**
+	 * Converts a `file://` URI to a local filesystem path.
+	 *
+	 * Handles both `file:///abs/path` (Unix) and `file:///C:/path` (Windows).
+	 */
+	private function fileUriToPath(string $uri): ?string
+	{
+		if (!\str_starts_with($uri, 'file://')) {
+			return null;
+		}
+
+		$path = \substr($uri, 7);   // strip "file://"
+		$path = \rawurldecode($path);
+
+		// Windows: file:///C:/path -> /C:/path -> C:/path
+		if (\preg_match('~^/([A-Za-z]:/.*)~', $path, $m)) {
+			return $m[1];
+		}
+
+		return $path;
 	}
 
 	/** @param array<string, mixed> $params */
@@ -436,7 +505,7 @@ class BlateLspServer
 				'uri'         => $uri,
 				'diagnostics' => $this->buildHelperShadowWarnings($content),
 			]);
-		} catch (BlateParserException|BlateRuntimeException $e) {
+		} catch (BlateParserException | BlateRuntimeException $e) {
 			$chunk = $e->getChunk();
 
 			if (null !== $chunk) {
@@ -783,7 +852,7 @@ class BlateLspServer
 	{
 		$items = [];
 
-		foreach (\array_keys(Blate::getGlobalVars()) as $name) {
+		foreach (Blate::getGlobalVars()->getNames() as $name) {
 			$items[] = [
 				'label'      => $name,
 				'kind'       => 21,  // CompletionItemKind.Constant
@@ -899,14 +968,19 @@ class BlateLspServer
 		// Provide hover for registered global variables.
 		$globals = Blate::getGlobalVars();
 
-		if (\array_key_exists($word, $globals)) {
-			$value = $globals[$word];
-			$repr  = \is_string($value) ? '"' . \addslashes($value) . '"' : \json_encode($value);
+		if (isset($globals[$word])) {
+			if ($globals->isComputed($word)) {
+				$hover = '_(computed)_';
+			} else {
+				$value = $globals[$word];
+				$repr  = \is_string($value) ? '"' . \addslashes($value) . '"' : \json_encode($value);
+				$hover = '`' . $repr . '`';
+			}
 
 			return [
 				'contents' => [
 					'kind'  => 'markdown',
-					'value' => '**' . $word . '** _(Blate global variable)_' . "\n\n" . '`' . $repr . '`',
+					'value' => '**' . $word . '** _(Blate global variable)_' . "\n\n" . $hover,
 				],
 			];
 		}
