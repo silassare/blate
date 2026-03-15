@@ -18,6 +18,7 @@ use Blate\BlateTemplateScope;
 use Blate\Exceptions\BlateException;
 use Blate\Exceptions\BlateRuntimeException;
 use Blate\Parser;
+use Exception;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 use Throwable;
@@ -718,6 +719,66 @@ final class TemplateSyntaxTest extends TestCase
 		Blate::registerGlobalVar('123invalid', 'x');
 	}
 
+	/**
+	 * registerComputedGlobalVar() - factory is called each time (no memoization).
+	 *
+	 * @throws BlateException
+	 */
+	public function testComputedGlobalVar(): void
+	{
+		$calls = 0;
+		Blate::registerComputedGlobalVar('COMPUTED_COUNTER', static function () use (&$calls) {
+			return ++$calls;
+		}, true);
+
+		$tpl = Blate::fromString('{COMPUTED_COUNTER}-{COMPUTED_COUNTER}');
+		$out = $tpl->runGet([]);
+
+		// Each {COMPUTED_COUNTER} in the template calls the factory independently.
+		self::assertSame('1-2', $out);
+	}
+
+	/**
+	 * registerComputedGlobalVar() - constant computed var cannot be re-registered.
+	 */
+	public function testComputedGlobalVarConstant(): void
+	{
+		Blate::registerComputedGlobalVar('COMPUTED_CONST', static fn() => 'a', false);
+
+		$caught = false;
+
+		try {
+			Blate::registerComputedGlobalVar('COMPUTED_CONST', static fn() => 'b', false);
+		} catch (BlateRuntimeException $e) {
+			$caught = true;
+		}
+
+		self::assertTrue($caught, 'Re-registering a constant computed global var must throw BlateRuntimeException.');
+	}
+
+	/**
+	 * registerComputedGlobalVar() - invalid name is rejected.
+	 */
+	public function testComputedGlobalVarInvalidName(): void
+	{
+		$this->expectException(BlateRuntimeException::class);
+		Blate::registerComputedGlobalVar('123bad', static fn() => '');
+	}
+
+	/**
+	 * User data shadows a computed global var with the same name.
+	 *
+	 * @throws BlateException
+	 */
+	public function testComputedGlobalVarShadowedByUserData(): void
+	{
+		Blate::registerComputedGlobalVar('COMPUTED_SHADOW', static fn() => 'from-factory', true);
+
+		$out = Blate::fromString('{COMPUTED_SHADOW}')->runGet(['COMPUTED_SHADOW' => 'from-data']);
+
+		self::assertSame('from-data', $out);
+	}
+
 	// =========================================================================
 	// Block and helper disable / enable
 	// =========================================================================
@@ -735,7 +796,7 @@ final class TemplateSyntaxTest extends TestCase
 
 		try {
 			Blate::fromString('{@if 1}yes{/if}')->parse(true);
-		} catch (BlateException|BlateRuntimeException $e) {
+		} catch (BlateException | BlateRuntimeException $e) {
 			$caught = true;
 		} finally {
 			Blate::enableBlock('if');
@@ -800,6 +861,116 @@ final class TemplateSyntaxTest extends TestCase
 		self::assertFalse(Blate::isHelperEnabled('upper'));
 		Blate::enableHelper('upper');
 		self::assertTrue(Blate::isHelperEnabled('upper'));
+	}
+
+	// =========================================================================
+	// Blate::autoLoad() / findProjectRoot()
+	// =========================================================================
+
+	/**
+	 * findProjectRoot() returns the directory containing composer.json when
+	 * given a path inside the project.
+	 */
+	public function testFindProjectRootFromSubdir(): void
+	{
+		// The test suite itself runs inside the Blate project, so we know
+		// composer.json lives at the workspace root.
+		$tests_dir = __DIR__;
+		$root      = Blate::findProjectRoot($tests_dir);
+
+		self::assertNotNull($root, 'findProjectRoot() must find the project root from tests/.');
+		self::assertFileExists($root . '/composer.json');
+	}
+
+	/**
+	 * findProjectRoot() returns null when no composer.json can be found.
+	 * We use a temp directory that has no composer.json in any ancestor we control.
+	 */
+	public function testFindProjectRootReturnsNullWhenMissing(): void
+	{
+		// sys_get_temp_dir() is outside all project trees, so walking up from
+		// there will never hit a composer.json we placed - we only need there
+		// to be no composer.json in any ancestor outside the project root.
+		// Create a deeply nested subdirectory of the system temp dir.
+		$isolated = \sys_get_temp_dir() . '/blate_test_no_composer_' . \uniqid('', true) . '/sub';
+		\mkdir($isolated, 0755, true);
+
+		$root = Blate::findProjectRoot($isolated);
+
+		\rmdir($isolated);
+		\rmdir(\dirname($isolated));
+
+		// May or may not be null depending on whether the system temp dir has
+		// a composer.json above it, but in practice it never does.
+		// What we can assert is that if it IS null, no exception was thrown.
+		self::assertNull($root);
+	}
+
+	/**
+	 * autoLoad() returns true when a .blate.php exists at the project root
+	 * and requires it exactly once (double-call is a no-op).
+	 *
+	 * @throws Exception
+	 */
+	public function testAutoLoadLoadsConfigFile(): void
+	{
+		$dir    = \sys_get_temp_dir() . '/blate_test_autoload_' . \uniqid('', true);
+		$subdir = $dir . '/src';
+		\mkdir($subdir, 0755, true);
+		\file_put_contents($dir . '/composer.json', '{}');
+
+		$counter_file = $dir . '/counter.txt';
+		\file_put_contents($counter_file, '0');
+
+		// .blate.php increments the counter each time it is required.
+		\file_put_contents($dir . '/.blate.php', '<?php $n = (int) file_get_contents("' . $counter_file . '"); file_put_contents("' . $counter_file . '", (string)($n + 1));');
+
+		// First call: should load the file.
+		$result1 = Blate::autoLoad($subdir);
+		self::assertTrue($result1);
+		self::assertSame('1', \file_get_contents($counter_file));
+
+		// Second call (same file via realpath): should be a no-op.
+		$result2 = Blate::autoLoad($dir);
+		self::assertTrue($result2, 'Second call should still return true (already loaded).');
+		self::assertSame('1', \file_get_contents($counter_file), 'File must not be required a second time.');
+
+		// Cleanup.
+		\unlink($dir . '/.blate.php');
+		\unlink($dir . '/composer.json');
+		\unlink($counter_file);
+		\rmdir($subdir);
+		\rmdir($dir);
+	}
+
+	/**
+	 * autoLoad() returns false when no .blate.php exists.
+	 */
+	public function testAutoLoadReturnsFalseWhenNoConfig(): void
+	{
+		$dir = \sys_get_temp_dir() . '/blate_test_noconfig_' . \uniqid('', true);
+		\mkdir($dir, 0755, true);
+		\file_put_contents($dir . '/composer.json', '{}');
+
+		$result = Blate::autoLoad($dir);
+		self::assertFalse($result);
+
+		\unlink($dir . '/composer.json');
+		\rmdir($dir);
+	}
+
+	/**
+	 * autoLoad() returns false when no composer.json is found.
+	 */
+	public function testAutoLoadReturnsFalseWhenNoProjectRoot(): void
+	{
+		$dir = \sys_get_temp_dir() . '/blate_test_noroot_' . \uniqid('', true);
+		\mkdir($dir, 0755, true);
+
+		$result = Blate::autoLoad($dir);
+		self::assertFalse($result);
+
+		\rmdir($dir);
 	}
 
 	// =========================================================================
@@ -926,7 +1097,7 @@ final class TemplateSyntaxTest extends TestCase
 				$parser->parse();
 				$output = $parser->getClassBody();
 			}
-		} catch (BlateException|BlateRuntimeException $e) {
+		} catch (BlateException | BlateRuntimeException $e) {
 			$error = $e->describe(false, false);
 			\file_put_contents($full_error_file, $e->describe(false, true));
 		}
@@ -964,7 +1135,7 @@ final class TemplateSyntaxTest extends TestCase
 				$inject = include $inject_file;
 				$bl->runGet($inject);
 			}
-		} catch (BlateException|BlateRuntimeException $e) {
+		} catch (BlateException | BlateRuntimeException $e) {
 			$error = $e->describe(false, false);
 			\file_put_contents($full_error_file, $e->describe(false, true));
 		}
