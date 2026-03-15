@@ -38,10 +38,11 @@ final class BlateLspServerTest extends TestCase
 
 	protected function setUp(): void
 	{
-		$this->server = new BlateLspServer();
+		$this->server = new BlateLspServer(
+			\dirname(__DIR__) . \DIRECTORY_SEPARATOR . 'vendor' . \DIRECTORY_SEPARATOR . 'autoload.php',
+		);
 		$this->ref    = new ReflectionClass($this->server);
 	}
-
 	// =========================================================================
 	// Utilities: positionToOffset
 	// =========================================================================
@@ -770,7 +771,7 @@ final class BlateLspServerTest extends TestCase
 		self::assertNotNull($hover);
 		$md = $hover['contents']['value'];
 		self::assertStringContainsString('BRACE_OPEN', $md);
-		self::assertStringContainsString('global variable', $md);
+		self::assertStringContainsString('Built-in variable', $md);
 		// The value of BRACE_OPEN is '{', shown as "{" in repr.
 		self::assertStringContainsString('"{"', $md);
 	}
