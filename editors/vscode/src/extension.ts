@@ -41,6 +41,11 @@ export function activate(context: vscode.ExtensionContext): void {
 		},
 	};
 
+	// Watch .blate.php and restart the server when it changes so that newly
+	// registered helpers and global vars are immediately visible in the LSP.
+	const configWatcher =
+		vscode.workspace.createFileSystemWatcher('**/.blate.php');
+
 	client = new LanguageClient(
 		'blate',
 		'Blate Language Server',
@@ -50,6 +55,15 @@ export function activate(context: vscode.ExtensionContext): void {
 
 	client.start();
 	context.subscriptions.push(client);
+
+	const restartOnConfigChange = (): void => {
+		client?.restart().catch(() => {});
+	};
+
+	configWatcher.onDidChange(restartOnConfigChange);
+	configWatcher.onDidCreate(restartOnConfigChange);
+	configWatcher.onDidDelete(restartOnConfigChange);
+	context.subscriptions.push(configWatcher);
 }
 
 export function deactivate(): Thenable<void> | undefined {
