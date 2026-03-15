@@ -22,9 +22,10 @@ use ReflectionClass;
  * Tests for the private helper methods of BlateLspServer using reflection.
  *
  * I/O-bound request handlers (handleCompletion, handleHover, handleRename,
- * handleCodeAction) write directly to STDOUT via fwrite() and cannot be
- * unit-tested without process-level output redirection. Those handlers are
- * thin wiring that delegate to the pure private methods tested here.
+ * handleCodeAction, logStartupInfo) write directly to STDOUT via fwrite() and
+ * cannot be unit-tested without process-level output redirection. Those
+ * handlers are thin wiring that delegate to the pure private methods tested
+ * here.
  *
  * @internal
  *
@@ -507,6 +508,76 @@ final class BlateLspServerTest extends TestCase
 		self::assertCount(1, $errors);
 		self::assertSame(['line' => 0, 'character' => 9], $errors[0]['range']['start']);
 		self::assertSame(['line' => 0, 'character' => 17], $errors[0]['range']['end']);
+	}
+
+	// =========================================================================
+	// Diagnostics: buildDollarHelperUnknownErrors
+	// =========================================================================
+
+	public function testDollarHelperUnknownErrorFires(): void
+	{
+		$errors = $this->call('buildDollarHelperUnknownErrors', '{$notRegistered9999(x)}');
+
+		self::assertCount(1, $errors);
+		self::assertSame('blate.helper.unknown', $errors[0]['code']);
+		self::assertSame(1, $errors[0]['severity']);
+		self::assertStringContainsString('notRegistered9999', $errors[0]['message']);
+	}
+
+	public function testDollarHelperUnknownNotFiredForRegisteredHelper(): void
+	{
+		// 'upper' is a built-in helper; {$upper(x)} is valid.
+		$errors = $this->call('buildDollarHelperUnknownErrors', '{$upper(x)}');
+
+		self::assertEmpty($errors);
+	}
+
+	public function testDollarHelperUnknownNotFiredForGlobalChainHead(): void
+	{
+		// $global is the global-vars-layer reference, not a helper name.
+		$errors = $this->call('buildDollarHelperUnknownErrors', '{$global.BRACE_OPEN}');
+
+		self::assertEmpty($errors);
+	}
+
+	public function testDollarHelperUnknownNotFiredForDoubleDollar(): void
+	{
+		// $$ is the DataContext reference. '$$ref(' would have the second $
+		// suppress the match via the negative lookbehind.
+		$errors = $this->call('buildDollarHelperUnknownErrors', '{$$notHelper(x)}');
+
+		self::assertEmpty($errors);
+	}
+
+	public function testDollarHelperUnknownSuppressedInComment(): void
+	{
+		$errors = $this->call('buildDollarHelperUnknownErrors', '{# $notRegistered(x) #}');
+
+		self::assertEmpty($errors);
+	}
+
+	public function testDollarHelperUnknownSuppressedInRawBlock(): void
+	{
+		$errors = $this->call('buildDollarHelperUnknownErrors', '{@raw}{$notRegistered(x)}{/raw}');
+
+		self::assertEmpty($errors);
+	}
+
+	public function testDollarHelperUnknownSuppressedInInlinePHP(): void
+	{
+		$errors = $this->call('buildDollarHelperUnknownErrors', '{~ $notRegistered(x); ~}');
+
+		self::assertEmpty($errors);
+	}
+
+	public function testDollarHelperUnknownRangePointsAtHelperName(): void
+	{
+		// '{$xyzzy9999(v)}': '$' at byte 1, name 'xyzzy9999' starts at byte 2.
+		$errors = $this->call('buildDollarHelperUnknownErrors', '{$xyzzy9999(v)}');
+
+		self::assertCount(1, $errors);
+		self::assertSame(['line' => 0, 'character' => 2], $errors[0]['range']['start']);
+		self::assertSame(['line' => 0, 'character' => 11], $errors[0]['range']['end']);
 	}
 
 	// =========================================================================
