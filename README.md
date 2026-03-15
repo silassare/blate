@@ -1104,7 +1104,7 @@ helper surface without a full sandbox.
 | Language server (LSP) | **Built-in PHP LSP server**                      | No official LSP         | No official LSP        |
 | Parse diagnostics     | Exact line/column squiggles                      | No                      | No                     |
 | Shadow warnings       | Unqualified helper and global-var access         | No                      | No                     |
-| Unknown global error  | `$global.UNKNOWN` flagged as error               | No                      | No                     |
+| Unknown ref errors    | `$global.UNKNOWN` and `$noSuchHelper()` flagged  | No                      | No                     |
 | Completions           | Blocks, helpers, global vars, in-scope variables | Snippets only           | No                     |
 | Hover documentation   | Helpers and global variables with descriptions   | No                      | No                     |
 | Variable rename       | In-document rename                               | No                      | No                     |

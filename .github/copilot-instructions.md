@@ -320,8 +320,19 @@ The `bin/blate-lsp` wrapper provides a convenient CLI entry point.
 | Code                   | Severity | Trigger                                                                      |
 | ---------------------- | -------- | ---------------------------------------------------------------------------- |
 | `blate.helper.shadow`  | Warning  | Unqualified helper call `{upper(...)}` that could be shadowed by render data |
+| `blate.helper.unknown` | Error    | `{$name(...)}` where `$name` is not a registered (and enabled) helper        |
 | `blate.global.shadow`  | Warning  | Bare global-var access `{BRACE_OPEN}` that could be shadowed by render data  |
 | `blate.global.unknown` | Error    | `{$global.FOO}` where `FOO` is not a registered global variable              |
+
+**Startup log** - on `initialize`, after loading `.blate.php`, the server sends a `window/logMessage` (type Log) to the VS Code output channel listing:
+
+- Composer autoload path loaded (or `(none)`)
+- Project config path loaded (or a hint that custom definitions were not loaded)
+- All registered global variables with their values/computed status and descriptions
+- All registered blocks
+- All registered helpers
+
+This makes it easy to debug why custom helpers, blocks, or global vars from a `.blate.php` are not available in completions/hover.
 
 **Hover and completions** surface the `description` option registered via
 `registerGlobalVar` / `registerComputedGlobalVar`. Both completion items and
@@ -329,9 +340,10 @@ hover cards include the description text when it is provided.
 
 **Testing approach** for `BlateLspServerTest`: all pure private helpers are
 called via `ReflectionClass`/`setAccessible`. I/O-bound handlers
-(`handleCompletion`, `handleHover`, `handleRename`, `handleCodeAction`) write
-directly to `STDOUT` with `fwrite()` and are intentionally not unit-tested; they
-are thin wiring over the pure methods that are tested.
+(`handleCompletion`, `handleHover`, `handleRename`, `handleCodeAction`,
+`logStartupInfo`) write directly to `STDOUT` with `fwrite()` and are
+intentionally not unit-tested; they are thin wiring over the pure methods that
+are tested.
 
 ### VS Code Extension
 
