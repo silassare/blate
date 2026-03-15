@@ -17,7 +17,7 @@ use Blate\Exceptions\BlateException;
 use LogicException;
 
 /**
- * Class TemplateParsed.
+ * Class BlateTemplateParsed.
  *
  * Abstract base class for all compiled template files.
  *
@@ -28,7 +28,7 @@ use LogicException;
  * At render time, an extends block calls injectSlot() on the parent template
  * to override individual slots before calling build().
  */
-abstract class TemplateParsed
+abstract class BlateTemplateParsed
 {
 	protected array $injected_slots = [];
 

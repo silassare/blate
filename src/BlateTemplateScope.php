@@ -18,7 +18,7 @@ namespace Blate;
  *
  * Snapshot of the currently executing template, accessible via Blate::scope().
  *
- * A scope is pushed onto a static stack before each TemplateParsed::build() call
+ * A scope is pushed onto a static stack before each BlateTemplateParsed::build() call
  * and popped in a finally block when it returns.  The stack grows for nested
  * templates ({@import} / {@extends}) so Blate::scope() always returns the
  * innermost (currently executing) template's scope.

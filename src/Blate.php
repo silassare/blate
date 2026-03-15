@@ -296,7 +296,7 @@ final class Blate
 	 *
 	 * @throws BlateException
 	 */
-	public function getParsedInstance(): TemplateParsed
+	public function getParsedInstance(): BlateTemplateParsed
 	{
 		$f_exists = false;
 		if (\file_exists($this->dst_path)) {
@@ -374,7 +374,7 @@ final class Blate
 	 * Return the scope of the currently executing template.
 	 *
 	 * Throws when called outside of a running template (i.e. from application
-	 * code that is not in the call stack of TemplateParsed::run()).
+	 * code that is not in the call stack of BlateTemplateParsed::run()).
 	 *
 	 * @throws BlateRuntimeException
 	 */
@@ -390,7 +390,7 @@ final class Blate
 	/**
 	 * Push a scope onto the stack.
 	 *
-	 * Called internally by TemplateParsed::run() before invoking build().
+	 * Called internally by BlateTemplateParsed::run() before invoking build().
 	 */
 	public static function pushScope(BlateTemplateScope $scope): void
 	{
@@ -400,7 +400,7 @@ final class Blate
 	/**
 	 * Pop the innermost scope from the stack.
 	 *
-	 * Called internally by TemplateParsed::run() after build() returns.
+	 * Called internally by BlateTemplateParsed::run() after build() returns.
 	 */
 	public static function popScope(): void
 	{

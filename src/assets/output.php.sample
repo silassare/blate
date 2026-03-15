@@ -15,7 +15,7 @@ if (Blate::register([
 	'compile_time'	=> {blate_compile_time},
 	'class_fqn'	    => '{blate_class_fqn}'
 ])) {
-	class {blate_class_name} extends TemplateParsed {
+	class {blate_class_name} extends BlateTemplateParsed {
 		{blate_class_body}
 	}
 }
