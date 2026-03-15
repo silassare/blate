@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Blate\Tests;
 
 use Blate\Blate;
+use Blate\BlateTemplateScope;
 use Blate\Exceptions\BlateException;
 use Blate\Exceptions\BlateRuntimeException;
 use Blate\Parser;
@@ -733,7 +734,7 @@ final class TemplateSyntaxTest extends TestCase
 
 		try {
 			Blate::fromString('{@if 1}yes{/if}')->parse(true);
-		} catch (BlateException|BlateRuntimeException $e) {
+		} catch (BlateException | BlateRuntimeException $e) {
 			$caught = true;
 		} finally {
 			Blate::enableBlock('if');
@@ -801,6 +802,104 @@ final class TemplateSyntaxTest extends TestCase
 	}
 
 	// =========================================================================
+	// Blate::scope() / BlateTemplateScope
+	// =========================================================================
+
+	/**
+	 * Blate::scope() throws BlateRuntimeException when called outside rendering.
+	 */
+	public function testScopeOutsideRenderThrows(): void
+	{
+		$this->expectException(BlateRuntimeException::class);
+		Blate::scope();
+	}
+
+	/**
+	 * Inside a helper, Blate::scope() returns a BlateTemplateScope with the
+	 * correct DataContext (user data accessible via ->data->get()) and the
+	 * Blate instance that owns the running template (->template).
+	 *
+	 * @throws BlateException
+	 */
+	public function testScopeInHelperHasDataAndTemplate(): void
+	{
+		$captured = null;
+
+		Blate::registerHelper('_testScopeCapture', static function () use (&$captured): string {
+			$captured = Blate::scope();
+
+			return '';
+		});
+
+		Blate::fromString('{$_testScopeCapture()}')->runGet(['item' => 'pen']);
+
+		self::assertInstanceOf(BlateTemplateScope::class, $captured);
+		self::assertSame('pen', $captured?->data->get('item'));
+		self::assertInstanceOf(Blate::class, $captured?->template);
+	}
+
+	/**
+	 * After runGet() returns normally the scope stack is empty: Blate::scope()
+	 * throws again.
+	 *
+	 * @throws BlateException
+	 */
+	public function testScopeStackClearedAfterRender(): void
+	{
+		Blate::fromString('ok')->runGet([]);
+
+		$caught = false;
+
+		try {
+			Blate::scope();
+		} catch (BlateRuntimeException) {
+			$caught = true;
+		}
+
+		self::assertTrue($caught, 'Scope stack must be empty after runGet() returns.');
+	}
+
+	/**
+	 * If rendering throws, the finally block in BlateTemplateParsed::run() must
+	 * still pop the scope so that Blate::scope() throws again after the
+	 * exception is caught.
+	 */
+	public function testScopeStackClearedAfterException(): void
+	{
+		$thrown = false;
+
+		try {
+			Blate::fromString('{~ throw new \RuntimeException("boom"); ~}')->runGet([]);
+		} catch (\Throwable) {
+			$thrown = true;
+		}
+
+		self::assertTrue($thrown, 'Template must have thrown.');
+
+		$caught = false;
+
+		try {
+			Blate::scope();
+		} catch (BlateRuntimeException) {
+			$caught = true;
+		}
+
+		self::assertTrue($caught, 'Scope stack must be empty after an exception during rendering.');
+	}
+
+	/**
+	 * With nested templates ({@import}), Blate::scope() returns the innermost
+	 * scope: inside the partial, scope()->template->getSrcPath() is the partial
+	 * file, not the outer template file.
+	 *
+	 * @throws BlateException
+	 */
+	public function testScopeNestedImport(): void
+	{
+		$this->runValid('scope-nested-import');
+	}
+
+	// =========================================================================
 	// Infrastructure
 	// =========================================================================
 
@@ -826,7 +925,7 @@ final class TemplateSyntaxTest extends TestCase
 				$parser->parse();
 				$output = $parser->getClassBody();
 			}
-		} catch (BlateException|BlateRuntimeException $e) {
+		} catch (BlateException | BlateRuntimeException $e) {
 			$error = $e->describe(false, false);
 			\file_put_contents($full_error_file, $e->describe(false, true));
 		}
@@ -864,7 +963,7 @@ final class TemplateSyntaxTest extends TestCase
 				$inject = include $inject_file;
 				$bl->runGet($inject);
 			}
-		} catch (BlateException|BlateRuntimeException $e) {
+		} catch (BlateException | BlateRuntimeException $e) {
 			$error = $e->describe(false, false);
 			\file_put_contents($full_error_file, $e->describe(false, true));
 		}

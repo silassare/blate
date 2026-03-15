@@ -1,0 +1,2 @@
+outer:{$scopeGetPath()}
+{@import './partial.blate' $$}

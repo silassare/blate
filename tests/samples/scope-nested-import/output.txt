@@ -1,0 +1,3 @@
+outer:template.blate
+inner:partial.blate
+
