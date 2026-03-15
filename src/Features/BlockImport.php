@@ -72,7 +72,7 @@ class BlockImport extends Block
 			"\n{blate_var} = Blate::fromPath({abs_path})->parse();\n"
 				. '{instance_var} = {blate_var}->getParsedInstance();' . "\n"
 				. '{context_var} = $this->createExtendsContext({blate_var}, {context});' . "\n"
-				. '{instance_var}->build({context_var});' . "\n",
+				. '{instance_var}->run({context_var});' . "\n",
 			[
 				'blate_var'    => $blate_var,
 				'abs_path'     => Helpers::quote($abs_path),

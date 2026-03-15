@@ -99,6 +99,8 @@ final class Message
 
 	public const INVALID_VAR_NAME = 'Invalid variable name "%s", variable name should match pattern: "%s"';
 
+	public const SCOPE_NOT_AVAILABLE = 'Blate::scope() called outside of a running template.';
+
 	/**
 	 * Interpolates a message template with values from the given chunk's location.
 	 *

@@ -30,7 +30,7 @@ use Throwable;
  */
 final class Blate
 {
-	public const VERSION = '1.1.0';
+	public const VERSION = '1.1.1';
 
 	public const VERSION_NAME = 'Blate ' . self::VERSION;
 
@@ -101,6 +101,11 @@ final class Blate
 	 * @var array<string, true>
 	 */
 	private static array $disabled_helpers = [];
+
+	/**
+	 * @var array<int, BlateTemplateScope>
+	 */
+	private static array $scope_stack = [];
 
 	private string $input;
 
@@ -235,7 +240,7 @@ final class Blate
 					->getClassBody();
 				$this->save();
 			}
-		} catch (BlateException|BlateRuntimeException $t) {
+		} catch (BlateException | BlateRuntimeException $t) {
 			throw $t->templateSource($this->template);
 		}
 
@@ -329,7 +334,7 @@ final class Blate
 		\ob_start();
 
 		try {
-			$instance->build(new DataContext($data, $this));
+			$instance->run(new DataContext($data, $this));
 		} catch (Throwable $e) {
 			\ob_end_clean();
 
@@ -363,6 +368,43 @@ final class Blate
 		}
 
 		return false;
+	}
+
+	/**
+	 * Return the scope of the currently executing template.
+	 *
+	 * Throws when called outside of a running template (i.e. from application
+	 * code that is not in the call stack of TemplateParsed::run()).
+	 *
+	 * @throws BlateRuntimeException
+	 */
+	public static function scope(): BlateTemplateScope
+	{
+		if (empty(self::$scope_stack)) {
+			throw new BlateRuntimeException(Message::SCOPE_NOT_AVAILABLE);
+		}
+
+		return self::$scope_stack[\count(self::$scope_stack) - 1];
+	}
+
+	/**
+	 * Push a scope onto the stack.
+	 *
+	 * Called internally by TemplateParsed::run() before invoking build().
+	 */
+	public static function pushScope(BlateTemplateScope $scope): void
+	{
+		self::$scope_stack[] = $scope;
+	}
+
+	/**
+	 * Pop the innermost scope from the stack.
+	 *
+	 * Called internally by TemplateParsed::run() after build() returns.
+	 */
+	public static function popScope(): void
+	{
+		\array_pop(self::$scope_stack);
 	}
 
 	/**
@@ -563,7 +605,7 @@ final class Blate
 
 		return \array_filter(
 			self::$helpers,
-			static fn (string $key): bool => !isset(self::$disabled_helpers[\ltrim($key, $prefix)]),
+			static fn(string $key): bool => !isset(self::$disabled_helpers[\ltrim($key, $prefix)]),
 			\ARRAY_FILTER_USE_KEY
 		);
 	}

@@ -132,7 +132,7 @@ class BlockExtends extends Block
 	public function onClose(): void
 	{
 		$this->parser->writeCode(Str::interpolate(
-			"\n{instance_var}->build({context_var});",
+			"\n{instance_var}->run({context_var});",
 			[
 				'instance_var' => $this->extends->getAttribute(Token::ATTR_EXTENDED_INSTANCE_VAR),
 				'context_var'  => $this->extends->getAttribute(Token::ATTR_EXTENDED_CONTEXT_VAR),

@@ -99,4 +99,24 @@ abstract class TemplateParsed
 	 * @param DataContext $context
 	 */
 	abstract public function build(DataContext $context): void;
+
+	/**
+	 * Push a BlateTemplateScope, call build(), then pop the scope.
+	 *
+	 * Use this method in place of build() at all call sites (runGet(),
+	 * {@import}, {@extends}) so that Blate::scope() is always available
+	 * inside helpers while a template is executing.
+	 *
+	 * @param DataContext $context
+	 */
+	public function run(DataContext $context): void
+	{
+		Blate::pushScope(new BlateTemplateScope($context, $context->getBlate()));
+
+		try {
+			$this->build($context);
+		} finally {
+			Blate::popScope();
+		}
+	}
 }
