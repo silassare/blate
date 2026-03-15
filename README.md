@@ -867,6 +867,18 @@ in completions and hover without reloading the editor window.
 `composer.json`. It returns the absolute path of that directory, or `null`
 if none is found before the filesystem root.
 
+### Inspecting loaded configs
+
+`Blate::getLoadedConfigs()` returns a `list<string>` of the real paths of all
+`.blate.php` files that have been loaded so far (via `autoLoad()` or any other
+path). Useful for debugging or logging which config files are active:
+
+```php
+foreach (Blate::getLoadedConfigs() as $path) {
+    echo "Loaded: $path\n";
+}
+```
+
 ---
 
 ## Disabling Blocks and Helpers
