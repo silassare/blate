@@ -324,15 +324,36 @@ The `bin/blate-lsp` wrapper provides a convenient CLI entry point.
 | `blate.global.shadow`  | Warning  | Bare global-var access `{BRACE_OPEN}` that could be shadowed by render data  |
 | `blate.global.unknown` | Error    | `{$global.FOO}` where `FOO` is not a registered global variable              |
 
-**Startup log** - on `initialize`, after loading `.blate.php`, the server sends a `window/logMessage` (type Log) to the VS Code output channel listing:
+**Startup and registry logging** - the server logs via `window/logMessage` (type Log) to the VS Code output channel:
 
-- Composer autoload path loaded (or `(none)`)
-- Project config path loaded (or a hint that custom definitions were not loaded)
-- All registered global variables with their values/computed status and descriptions
-- All registered blocks
-- All registered helpers
+- On `initialize`: `logStartupInfo()` emits composer autoload path, all loaded `.blate.php` config paths, and the full registry (globals, blocks, helpers). Any errors thrown while loading `.blate.php` are shown as `window/showMessage` Error popups (with full PHP stack trace) so the user sees them immediately, and are also included in the startup log.
+- On subsequent registry changes: `logRegistryUpdate()` is triggered (throttled - once per dispatch cycle) whenever `BlateRegistryChangedEvent` fires. This event is dispatched by `Blate::registerBlock()`, `registerHelper()`, `registerGlobalVar()`, and `registerComputedGlobalVar()` after each successful registration. Logs updated config paths and registry.
+- On `initialized`: sends `client/registerCapability` to watch `**/.blate.php`. When the root `.blate.php` changes, the server calls `exit(0)` (triggering a VS Code language-client restart) so the new config loads from a clean slate.
 
-This makes it easy to debug why custom helpers, blocks, or global vars from a `.blate.php` are not available in completions/hover.
+**Autoload and config loading** - separation of responsibilities:
+
+- `editors/lsp/server.php`: walks up from `__DIR__` to find `ROOT/vendor/autoload.php`; passes the autoload path to `BlateLspServer`.
+- `BlateLspServer` constructor: subscribes to `BlateRegistryChangedEvent`. `handleInitialize` resolves the workspace root from LSP params, loads `{workspace}/vendor/autoload.php` (if different from the bootstrap autoload), then calls `Blate::autoLoad({workspace})` which loads `{workspace}/.blate.php` if it exists.
+- The host project may also call `Blate::autoLoad(ANOTHER_DIR)` independently. Since LSP server and host share the same PHP process and `Blate` static state, all registrations are visible and trigger events.
+- `Blate::getLoadedConfigs()` returns `list<string>` of real paths of all loaded `.blate.php` files.
+
+**Startup log** example logged to the VS Code output channel:
+
+```
+[blate-lsp] Server initialized (Blate 1.1.1)
+
+Composer autoload : /path/to/project/vendor/autoload.php
+Loaded configs    : /path/to/project/.blate.php
+
+Global variables (4):
+  BLATE_VERSION = "1.1.1"  -- Engine version string
+  BRACE_CLOSE = "}"
+  BRACE_OPEN = "{"
+  ...
+
+Blocks (12): capture, comment, each, extends, if, ...
+Helpers (18): abs, chunk, date, json, lower, ...
+```
 
 **Hover and completions** surface the `description` option registered via
 `registerGlobalVar` / `registerComputedGlobalVar`. Both completion items and
