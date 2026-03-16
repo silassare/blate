@@ -18,6 +18,7 @@ use Blate\Exceptions\BlateParserException;
 use Blate\Expressions\Expression;
 use Blate\Interfaces\TokenInterface;
 use Blate\Token;
+use Override;
 use PHPUtils\Str;
 
 /**
@@ -56,6 +57,7 @@ class BlockRepeat extends Block
 	/**
 	 * {@inheritDoc}
 	 */
+	#[Override]
 	public function getName(): string
 	{
 		return self::NAME;
@@ -66,6 +68,7 @@ class BlockRepeat extends Block
 	 *
 	 * @throws BlateParserException
 	 */
+	#[Override]
 	public function onOpen(): void
 	{
 		$this->lexer->nextIs(Token::T_WHITESPACE);
@@ -136,6 +139,7 @@ class BlockRepeat extends Block
 	/**
 	 * {@inheritDoc}
 	 */
+	#[Override]
 	public function onClose(): void
 	{
 		$this->parser->writeCode('}');
@@ -145,6 +149,7 @@ class BlockRepeat extends Block
 	/**
 	 * {@inheritDoc}
 	 */
+	#[Override]
 	public function requireClose(): bool
 	{
 		return true;

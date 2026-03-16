@@ -16,6 +16,7 @@ namespace Blate\Features;
 use Blate\Blate;
 use Blate\Exceptions\BlateParserException;
 use Blate\Token;
+use Override;
 
 /**
  * Class BlockComment.
@@ -33,6 +34,7 @@ class BlockComment extends Block
 	/**
 	 * {@inheritDoc}
 	 */
+	#[Override]
 	public function getName(): string
 	{
 		return self::NAME;
@@ -43,6 +45,7 @@ class BlockComment extends Block
 	 *
 	 * @throws BlateParserException
 	 */
+	#[Override]
 	public function onOpen(): void
 	{
 		$reader = $this->lexer->getReader();
@@ -58,6 +61,7 @@ class BlockComment extends Block
 	/**
 	 * {@inheritDoc}
 	 */
+	#[Override]
 	public function requireClose(): bool
 	{
 		return false;

@@ -18,6 +18,7 @@ use Blate\Expressions\Expression;
 use Blate\Interfaces\TokenInterface;
 use Blate\Message;
 use Blate\Token;
+use Override;
 
 /**
  * Class BlockSwitch.
@@ -55,6 +56,7 @@ class BlockSwitch extends Block
 	/**
 	 * {@inheritDoc}
 	 */
+	#[Override]
 	public function getName(): string
 	{
 		return self::NAME;
@@ -65,6 +67,7 @@ class BlockSwitch extends Block
 	 *
 	 * @throws BlateParserException
 	 */
+	#[Override]
 	public function onOpen(): void
 	{
 		$this->lexer->nextIs(Token::T_WHITESPACE);
@@ -78,6 +81,7 @@ class BlockSwitch extends Block
 	 *
 	 * @throws BlateParserException
 	 */
+	#[Override]
 	public function onBreakPoint(TokenInterface $token): void
 	{
 		if ($this->default_found) {
@@ -114,6 +118,7 @@ class BlockSwitch extends Block
 	/**
 	 * {@inheritDoc}
 	 */
+	#[Override]
 	public function onClose(): void
 	{
 		if ($this->has_branch || $this->default_found) {
@@ -124,6 +129,7 @@ class BlockSwitch extends Block
 	/**
 	 * {@inheritDoc}
 	 */
+	#[Override]
 	public function requireClose(): bool
 	{
 		return true;

@@ -15,6 +15,7 @@ namespace Blate;
 
 use ArrayAccess;
 use LogicException;
+use Override;
 
 /**
  * Class GlobalVarsContext.
@@ -153,6 +154,7 @@ final class GlobalVarsContext implements ArrayAccess
 	/**
 	 * {@inheritDoc}
 	 */
+	#[Override]
 	public function offsetExists(mixed $offset): bool
 	{
 		return \array_key_exists($offset, $this->vars) || isset($this->computed[$offset]);
@@ -161,6 +163,7 @@ final class GlobalVarsContext implements ArrayAccess
 	/**
 	 * {@inheritDoc}
 	 */
+	#[Override]
 	public function offsetGet(mixed $offset): mixed
 	{
 		if (\array_key_exists($offset, $this->vars)) {
@@ -179,6 +182,7 @@ final class GlobalVarsContext implements ArrayAccess
 	 *
 	 * @throws LogicException always - GlobalVarsContext is managed by Blate, not written via array syntax
 	 */
+	#[Override]
 	public function offsetSet(mixed $offset, mixed $value): void
 	{
 		throw new LogicException('GlobalVarsContext is read-only via array syntax. Use Blate::registerGlobalVar() or Blate::registerComputedGlobalVar().');
@@ -189,6 +193,7 @@ final class GlobalVarsContext implements ArrayAccess
 	 *
 	 * @throws LogicException always
 	 */
+	#[Override]
 	public function offsetUnset(mixed $offset): void
 	{
 		throw new LogicException('GlobalVarsContext entries cannot be unset.');

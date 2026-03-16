@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Blate;
 
 use Blate\Interfaces\ChunkInterface;
+use Override;
 use PHPUtils\Traits\ArrayCapableTrait;
 use RuntimeException;
 
@@ -76,6 +77,7 @@ class StringChunk implements ChunkInterface
 	/**
 	 * {@inheritDoc}
 	 */
+	#[Override]
 	public function setExpected(mixed $expected): static
 	{
 		$this->expected = $expected;
@@ -86,6 +88,7 @@ class StringChunk implements ChunkInterface
 	/**
 	 * {@inheritDoc}
 	 */
+	#[Override]
 	public function getExpected(): mixed
 	{
 		return $this->expected;
@@ -94,6 +97,7 @@ class StringChunk implements ChunkInterface
 	/**
 	 * {@inheritDoc}
 	 */
+	#[Override]
 	public function setUnexpected(mixed $unexpected): static
 	{
 		$this->unexpected = $unexpected;
@@ -104,6 +108,7 @@ class StringChunk implements ChunkInterface
 	/**
 	 * {@inheritDoc}
 	 */
+	#[Override]
 	public function getUnexpected(): mixed
 	{
 		if ($this->unexpected) {
@@ -116,6 +121,7 @@ class StringChunk implements ChunkInterface
 	/**
 	 * {@inheritDoc}
 	 */
+	#[Override]
 	public function getValue(): string
 	{
 		return !empty($this->value) ? $this->value : \substr($this->reader->getInput(), $this->start_cursor, $this->end_cursor - $this->start_cursor);
@@ -124,6 +130,7 @@ class StringChunk implements ChunkInterface
 	/**
 	 * {@inheritDoc}
 	 */
+	#[Override]
 	public function setValue(mixed $value): static
 	{
 		if (!$this->locked) {
@@ -143,6 +150,7 @@ class StringChunk implements ChunkInterface
 	/**
 	 * {@inheritDoc}
 	 */
+	#[Override]
 	public function eof(): bool
 	{
 		return $this->eof;
@@ -151,6 +159,7 @@ class StringChunk implements ChunkInterface
 	/**
 	 * {@inheritDoc}
 	 */
+	#[Override]
 	public function getLocationString(bool $full = false): string
 	{
 		if ($full) {
@@ -163,6 +172,7 @@ class StringChunk implements ChunkInterface
 	/**
 	 * {@inheritDoc}
 	 */
+	#[Override]
 	public function getLocation(): array
 	{
 		return [
@@ -180,6 +190,7 @@ class StringChunk implements ChunkInterface
 	/**
 	 * {@inheritDoc}
 	 */
+	#[Override]
 	public function toArray(): array
 	{
 		return [

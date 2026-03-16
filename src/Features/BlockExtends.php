@@ -20,6 +20,7 @@ use Blate\Interfaces\BlockInterface;
 use Blate\Interfaces\TokenInterface;
 use Blate\Message;
 use Blate\Token;
+use Override;
 use PHPUtils\FS\PathUtils;
 use PHPUtils\Str;
 
@@ -46,6 +47,7 @@ class BlockExtends extends Block
 	/**
 	 * {@inheritDoc}
 	 */
+	#[Override]
 	public function getName(): string
 	{
 		return self::NAME;
@@ -54,6 +56,7 @@ class BlockExtends extends Block
 	/**
 	 * {@inheritDoc}
 	 */
+	#[Override]
 	public function onChildBlockFound(BlockInterface $block): void
 	{
 		if (BlockSlot::NAME !== $block->getName()) {
@@ -64,6 +67,7 @@ class BlockExtends extends Block
 	/**
 	 * {@inheritDoc}
 	 */
+	#[Override]
 	public function onChildContentFound(TokenInterface $token): void
 	{
 		if (!\preg_match('~^\s+$~', $token->getValue())) {
@@ -74,6 +78,7 @@ class BlockExtends extends Block
 	/**
 	 * {@inheritDoc}
 	 */
+	#[Override]
 	public function onChildExpressionFound(TokenInterface $token, bool $escape): void
 	{
 		throw BlateParserException::withToken(Message::UNEXPECTED, $token);
@@ -84,6 +89,7 @@ class BlockExtends extends Block
 	 *
 	 * @throws BlateParserException
 	 */
+	#[Override]
 	public function onOpen(): void
 	{
 		$this->extends = $this->lexer->current();
@@ -129,6 +135,7 @@ class BlockExtends extends Block
 	/**
 	 * {@inheritDoc}
 	 */
+	#[Override]
 	public function onClose(): void
 	{
 		$this->parser->writeCode(Str::interpolate(
@@ -143,6 +150,7 @@ class BlockExtends extends Block
 	/**
 	 * {@inheritDoc}
 	 */
+	#[Override]
 	public function requireClose(): bool
 	{
 		return true;

@@ -19,6 +19,7 @@ use Blate\Expressions\Expression;
 use Blate\Interfaces\TokenInterface;
 use Blate\Message;
 use Blate\Token;
+use Override;
 use PHPUtils\Str;
 
 /**
@@ -63,6 +64,7 @@ class BlockEach extends Block
 	/**
 	 * {@inheritDoc}
 	 */
+	#[Override]
 	public function getName(): string
 	{
 		return self::NAME;
@@ -73,6 +75,7 @@ class BlockEach extends Block
 	 *
 	 * @throws BlateParserException
 	 */
+	#[Override]
 	public function onOpen(): void
 	{
 		// each value[:key[:index]] in list
@@ -202,6 +205,7 @@ class BlockEach extends Block
 	/**
 	 * {@inheritDoc}
 	 */
+	#[Override]
 	public function onBreakPoint(TokenInterface $token): void
 	{
 		if (self::BREAKPOINT_ELSE !== $token->getValue()) {
@@ -218,6 +222,7 @@ class BlockEach extends Block
 	/**
 	 * {@inheritDoc}
 	 */
+	#[Override]
 	public function onClose(): void
 	{
 		$this->parser->writeCode("}\n");
@@ -230,6 +235,7 @@ class BlockEach extends Block
 	/**
 	 * {@inheritDoc}
 	 */
+	#[Override]
 	public function requireClose(): bool
 	{
 		return true;

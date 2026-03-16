@@ -20,6 +20,7 @@ use Blate\Interfaces\LexerInterface;
 use Blate\Interfaces\TokenInterface;
 use Blate\Message;
 use Blate\Parser;
+use Override;
 
 /**
  * Class Block.
@@ -56,6 +57,7 @@ abstract class Block implements BlockInterface
 	/**
 	 * {@inheritDoc}
 	 */
+	#[Override]
 	public function getToken(): TokenInterface
 	{
 		return $this->token;
@@ -64,11 +66,13 @@ abstract class Block implements BlockInterface
 	/**
 	 * {@inheritDoc}
 	 */
+	#[Override]
 	public function onChildBlockFound(BlockInterface $block): void {}
 
 	/**
 	 * {@inheritDoc}
 	 */
+	#[Override]
 	public function onChildContentFound(TokenInterface $token): void
 	{
 		$this->parser->write($token->getValue());
@@ -77,6 +81,7 @@ abstract class Block implements BlockInterface
 	/**
 	 * {@inheritDoc}
 	 */
+	#[Override]
 	public function onChildExpressionFound(TokenInterface $token, bool $escape): void
 	{
 		$this->parser->writeExpression((new Expression())->get($this->lexer), $escape);
@@ -85,6 +90,7 @@ abstract class Block implements BlockInterface
 	/**
 	 * {@inheritDoc}
 	 */
+	#[Override]
 	public function onClose(): void {}
 
 	/**
@@ -92,6 +98,7 @@ abstract class Block implements BlockInterface
 	 *
 	 * @throws BlateParserException
 	 */
+	#[Override]
 	public function onBreakPoint(TokenInterface $token): void
 	{
 		throw BlateParserException::withToken(Message::BLOCK_BREAKPOINT_UNEXPECTED, $token);

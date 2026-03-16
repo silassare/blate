@@ -18,6 +18,7 @@ use Blate\Expressions\Expression;
 use Blate\Helpers\Helpers;
 use Blate\Message;
 use Blate\Token;
+use Override;
 use PHPUtils\FS\PathUtils;
 use PHPUtils\Str;
 
@@ -39,6 +40,7 @@ class BlockImport extends Block
 	/**
 	 * {@inheritDoc}
 	 */
+	#[Override]
 	public function getName(): string
 	{
 		return self::NAME;
@@ -49,6 +51,7 @@ class BlockImport extends Block
 	 *
 	 * @throws BlateParserException
 	 */
+	#[Override]
 	public function onOpen(): void
 	{
 		$path_token = $this->lexer->nextIs(Token::T_STRING, null, true);
@@ -86,6 +89,7 @@ class BlockImport extends Block
 	/**
 	 * {@inheritDoc}
 	 */
+	#[Override]
 	public function requireClose(): bool
 	{
 		return false;

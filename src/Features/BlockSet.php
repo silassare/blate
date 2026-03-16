@@ -18,6 +18,7 @@ use Blate\Exceptions\BlateParserException;
 use Blate\Expressions\Expression;
 use Blate\Interfaces\TokenInterface;
 use Blate\Token;
+use Override;
 use PHPUtils\Str;
 
 /**
@@ -39,6 +40,7 @@ class BlockSet extends Block
 	/**
 	 * {@inheritDoc}
 	 */
+	#[Override]
 	public function getName(): string
 	{
 		return self::NAME;
@@ -49,6 +51,7 @@ class BlockSet extends Block
 	 *
 	 * @throws BlateParserException
 	 */
+	#[Override]
 	public function onOpen(): void
 	{
 		handle_var:
@@ -82,6 +85,7 @@ class BlockSet extends Block
 	/**
 	 * {@inheritDoc}
 	 */
+	#[Override]
 	public function requireClose(): bool
 	{
 		return false;

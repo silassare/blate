@@ -19,6 +19,7 @@ use Blate\Interfaces\TokenHandlerInterface;
 use Blate\Interfaces\TokenInterface;
 use Blate\Message;
 use Blate\Token;
+use Override;
 
 /**
  * Class Dot.
@@ -41,6 +42,7 @@ class Dot implements TokenHandlerInterface
 	 *
 	 * @throws BlateParserException when dot appears outside a valid chain context
 	 */
+	#[Override]
 	public function handle(ParserInterface $parser, TokenInterface $token, bool $is_head): void
 	{
 		$current = $token;

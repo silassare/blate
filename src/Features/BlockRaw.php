@@ -16,6 +16,7 @@ namespace Blate\Features;
 use Blate\Blate;
 use Blate\Exceptions\BlateParserException;
 use Blate\Token;
+use Override;
 
 /**
  * Class BlockRaw.
@@ -37,6 +38,7 @@ class BlockRaw extends Block
 	/**
 	 * {@inheritDoc}
 	 */
+	#[Override]
 	public function getName(): string
 	{
 		return self::NAME;
@@ -47,6 +49,7 @@ class BlockRaw extends Block
 	 *
 	 * @throws BlateParserException
 	 */
+	#[Override]
 	public function onOpen(): void
 	{
 		$this->lexer->nextIs(Token::T_TAG_CLOSE, null, true);
@@ -62,6 +65,7 @@ class BlockRaw extends Block
 	/**
 	 * {@inheritDoc}
 	 */
+	#[Override]
 	public function requireClose(): bool
 	{
 		return true;

@@ -15,6 +15,7 @@ namespace Blate\Features;
 
 use Blate\Exceptions\BlateParserException;
 use Blate\Token;
+use Override;
 
 /**
  * Class BlockScoped.
@@ -32,6 +33,7 @@ class BlockScoped extends Block
 	/**
 	 * {@inheritDoc}
 	 */
+	#[Override]
 	public function getName(): string
 	{
 		return self::NAME;
@@ -42,6 +44,7 @@ class BlockScoped extends Block
 	 *
 	 * @throws BlateParserException
 	 */
+	#[Override]
 	public function onOpen(): void
 	{
 		$this->parser->newDataContext();
@@ -51,6 +54,7 @@ class BlockScoped extends Block
 	/**
 	 * {@inheritDoc}
 	 */
+	#[Override]
 	public function onClose(): void
 	{
 		$this->parser->popDataContext();
@@ -59,6 +63,7 @@ class BlockScoped extends Block
 	/**
 	 * {@inheritDoc}
 	 */
+	#[Override]
 	public function requireClose(): bool
 	{
 		return true;

@@ -16,6 +16,7 @@ namespace Blate;
 use Blate\Exceptions\BlateParserException;
 use Blate\Interfaces\LexerInterface;
 use Blate\Interfaces\TokenInterface;
+use Override;
 
 /**
  * Class Lexer.
@@ -72,6 +73,7 @@ class Lexer implements LexerInterface
 	/**
 	 * {@inheritDoc}
 	 */
+	#[Override]
 	public function getReader(): StringReader
 	{
 		return $this->reader;
@@ -80,6 +82,7 @@ class Lexer implements LexerInterface
 	/**
 	 * {@inheritDoc}
 	 */
+	#[Override]
 	public function getCursor(): int
 	{
 		return $this->token_cursor;
@@ -88,6 +91,7 @@ class Lexer implements LexerInterface
 	/**
 	 * {@inheritDoc}
 	 */
+	#[Override]
 	public function current(): ?TokenInterface
 	{
 		if (!isset($this->stack[$this->token_cursor])) {
@@ -100,6 +104,7 @@ class Lexer implements LexerInterface
 	/**
 	 * {@inheritDoc}
 	 */
+	#[Override]
 	public function move(): ?TokenInterface
 	{
 		if (!isset($this->stack[$this->token_cursor + 1])) {
@@ -118,6 +123,7 @@ class Lexer implements LexerInterface
 	/**
 	 * {@inheritDoc}
 	 */
+	#[Override]
 	public function lookBackward(bool $ignore_whitespace = false): ?TokenInterface
 	{
 		if ($ignore_whitespace) {
@@ -146,6 +152,7 @@ class Lexer implements LexerInterface
 	/**
 	 * {@inheritDoc}
 	 */
+	#[Override]
 	public function lookForward(bool $ignore_whitespace = false): ?TokenInterface
 	{
 		$this->saveCurrentState();
@@ -164,6 +171,7 @@ class Lexer implements LexerInterface
 	/**
 	 * {@inheritDoc}
 	 */
+	#[Override]
 	public function saveCurrentState(): self
 	{
 		$this->states[] = [
@@ -180,6 +188,7 @@ class Lexer implements LexerInterface
 	/**
 	 * {@inheritDoc}
 	 */
+	#[Override]
 	public function restorePreviousState(): self
 	{
 		$state = \array_pop($this->states);
@@ -202,6 +211,7 @@ class Lexer implements LexerInterface
 	 *
 	 * @throws BlateParserException
 	 */
+	#[Override]
 	public function tokenize(): array
 	{
 		while (true) {
@@ -216,6 +226,7 @@ class Lexer implements LexerInterface
 	/**
 	 * {@inheritDoc}
 	 */
+	#[Override]
 	public function getTokensTree(): array
 	{
 		return $this->tree;
@@ -226,6 +237,7 @@ class Lexer implements LexerInterface
 	 *
 	 * @throws BlateParserException
 	 */
+	#[Override]
 	public function nextIs(?int $type = null, ?string $value = null, bool $ignore_whitespace = false): TokenInterface
 	{
 		while ($token = $this->move()) {
@@ -262,6 +274,7 @@ class Lexer implements LexerInterface
 	 *
 	 * @throws BlateParserException
 	 */
+	#[Override]
 	public function nextIsOneOf(array $types, bool $ignore_whitespace = false): TokenInterface
 	{
 		while ($token = $this->move()) {

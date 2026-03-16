@@ -25,6 +25,7 @@ use Blate\Interfaces\ParserInterface;
 use Blate\Interfaces\TokenInterface;
 use Blate\Message;
 use Blate\Token;
+use Override;
 
 /**
  * Class ExpressionParser.
@@ -61,6 +62,7 @@ class ExpressionParser implements ParserInterface
 	/**
 	 * {@inheritDoc}
 	 */
+	#[Override]
 	public function getActiveChain(TokenInterface $token): ?TokenInterface
 	{
 		return $this->expressionContext->getActiveChain($token);
@@ -69,6 +71,7 @@ class ExpressionParser implements ParserInterface
 	/**
 	 * {@inheritDoc}
 	 */
+	#[Override]
 	public function setActiveChain(TokenInterface $token, ?TokenInterface $chain_head): void
 	{
 		$this->expressionContext->setActiveChain($token, $chain_head);
@@ -77,6 +80,7 @@ class ExpressionParser implements ParserInterface
 	/**
 	 * {@inheritDoc}
 	 */
+	#[Override]
 	public function whileInChildrenOf(TokenInterface $parent): callable
 	{
 		return $this->expressionContext->whileInChildrenOf($parent);
@@ -85,6 +89,7 @@ class ExpressionParser implements ParserInterface
 	/**
 	 * {@inheritDoc}
 	 */
+	#[Override]
 	public function getLexer(): LexerInterface
 	{
 		return $this->lexer;
@@ -93,6 +98,7 @@ class ExpressionParser implements ParserInterface
 	/**
 	 * {@inheritDoc}
 	 */
+	#[Override]
 	public function write(string|TokenInterface $str): static
 	{
 		if ($str instanceof TokenInterface) {
@@ -107,6 +113,7 @@ class ExpressionParser implements ParserInterface
 	/**
 	 * {@inheritDoc}
 	 */
+	#[Override]
 	public function getOutput(): string
 	{
 		return $this->output;
@@ -129,6 +136,7 @@ class ExpressionParser implements ParserInterface
 	 *
 	 * @throws BlateParserException on unexpected tokens, dangling operators, or unclosed groups
 	 */
+	#[Override]
 	public function parse(?callable $while_true = null, ?array $options = []): static
 	{
 		/** @var TokenInterface[] $close_stack */

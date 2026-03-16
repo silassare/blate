@@ -18,6 +18,7 @@ use Blate\Exceptions\BlateParserException;
 use Blate\Interfaces\TokenInterface;
 use Blate\Message;
 use Blate\Token;
+use Override;
 use PHPUtils\Str;
 
 /**
@@ -50,6 +51,7 @@ class BlockSlot extends Block
 	/**
 	 * {@inheritDoc}
 	 */
+	#[Override]
 	public function getName(): string
 	{
 		return self::NAME;
@@ -60,6 +62,7 @@ class BlockSlot extends Block
 	 *
 	 * @throws BlateParserException
 	 */
+	#[Override]
 	public function onOpen(): void
 	{
 		$name_token = $this->lexer->nextIs(Token::T_NAME, null, true);
@@ -113,6 +116,7 @@ class BlockSlot extends Block
 	/**
 	 * {@inheritDoc}
 	 */
+	#[Override]
 	public function onClose(): void
 	{
 		$name  = $this->slot->getValue();
@@ -159,6 +163,7 @@ class BlockSlot extends Block
 		}
 	}
 
+	#[Override]
 	public function onBreakPoint(TokenInterface $token): void
 	{
 		if (self::SLOT_DEFAULT !== $token->getValue()) {
@@ -189,6 +194,7 @@ class BlockSlot extends Block
 	/**
 	 * {@inheritDoc}
 	 */
+	#[Override]
 	public function requireClose(): bool
 	{
 		return true;

@@ -16,6 +16,7 @@ namespace Blate\Expressions\Grammar;
 use Blate\Interfaces\ParserInterface;
 use Blate\Interfaces\TokenHandlerInterface;
 use Blate\Interfaces\TokenInterface;
+use Override;
 
 /**
  * Class AtomicValue.
@@ -29,6 +30,7 @@ class AtomicValue implements TokenHandlerInterface
 	/**
 	 * {@inheritDoc}
 	 */
+	#[Override]
 	public function handle(ParserInterface $parser, TokenInterface $token, bool $is_head): void
 	{
 		$current = $token;

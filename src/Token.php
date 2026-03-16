@@ -16,6 +16,7 @@ namespace Blate;
 use Blate\Interfaces\ChunkInterface;
 use Blate\Interfaces\TokenInterface;
 use LogicException;
+use Override;
 use PHPUtils\Traits\ArrayCapableTrait;
 use ReflectionClass;
 
@@ -144,6 +145,7 @@ class Token implements TokenInterface
 	/**
 	 * {@inheritDoc}
 	 */
+	#[Override]
 	public function getRef(): string
 	{
 		return $this->ref;
@@ -152,6 +154,7 @@ class Token implements TokenInterface
 	/**
 	 * {@inheritDoc}
 	 */
+	#[Override]
 	public function getType(): int
 	{
 		return $this->type;
@@ -160,6 +163,7 @@ class Token implements TokenInterface
 	/**
 	 * {@inheritDoc}
 	 */
+	#[Override]
 	public function getChunk(): ChunkInterface
 	{
 		return $this->chunk;
@@ -168,6 +172,7 @@ class Token implements TokenInterface
 	/**
 	 * {@inheritDoc}
 	 */
+	#[Override]
 	public function getValue(): string
 	{
 		return $this->chunk->getValue();
@@ -176,6 +181,7 @@ class Token implements TokenInterface
 	/**
 	 * {@inheritDoc}
 	 */
+	#[Override]
 	public function isGroupOpener(): bool
 	{
 		return self::T_TAG_OPEN === $this->type
@@ -187,6 +193,7 @@ class Token implements TokenInterface
 	/**
 	 * {@inheritDoc}
 	 */
+	#[Override]
 	public function isGroupCloser(): bool
 	{
 		return self::T_TAG_CLOSE === $this->type
@@ -198,6 +205,7 @@ class Token implements TokenInterface
 	/**
 	 * {@inheritDoc}
 	 */
+	#[Override]
 	public function isGroupCloserOf(TokenInterface $opener): bool
 	{
 		return match ($opener->getType()) {
@@ -212,6 +220,7 @@ class Token implements TokenInterface
 	/**
 	 * {@inheritDoc}
 	 */
+	#[Override]
 	public function isComparator(): bool
 	{
 		return match ($this->type) {
@@ -223,6 +232,7 @@ class Token implements TokenInterface
 	/**
 	 * {@inheritDoc}
 	 */
+	#[Override]
 	public function isOperator(): bool
 	{
 		return match ($this->type) {
@@ -234,6 +244,7 @@ class Token implements TokenInterface
 	/**
 	 * {@inheritDoc}
 	 */
+	#[Override]
 	public function isLogicalCondition(): bool
 	{
 		return match ($this->type) {
@@ -275,6 +286,7 @@ class Token implements TokenInterface
 	/**
 	 * {@inheritDoc}
 	 */
+	#[Override]
 	public function getChildren(): array
 	{
 		return $this->children;
@@ -283,6 +295,7 @@ class Token implements TokenInterface
 	/**
 	 * {@inheritDoc}
 	 */
+	#[Override]
 	public function addChild(TokenInterface $token): static
 	{
 		if (!$this->isGroupOpener()) {
@@ -297,6 +310,7 @@ class Token implements TokenInterface
 	/**
 	 * {@inheritDoc}
 	 */
+	#[Override]
 	public function getParent(): ?self
 	{
 		return $this->parent;
@@ -305,6 +319,7 @@ class Token implements TokenInterface
 	/**
 	 * {@inheritDoc}
 	 */
+	#[Override]
 	public function setParent(?TokenInterface $parent): static
 	{
 		$this->parent = $parent;
@@ -315,6 +330,7 @@ class Token implements TokenInterface
 	/**
 	 * {@inheritDoc}
 	 */
+	#[Override]
 	public function getAttribute(string $name): mixed
 	{
 		return $this->attributes[$name] ?? null;
@@ -323,6 +339,7 @@ class Token implements TokenInterface
 	/**
 	 * {@inheritDoc}
 	 */
+	#[Override]
 	public function setAttribute(string $name, mixed $value): static
 	{
 		$this->attributes[$name] = $value;
@@ -333,6 +350,7 @@ class Token implements TokenInterface
 	/**
 	 * JSON magic method.
 	 */
+	#[Override]
 	public function toArray(): array
 	{
 		return [

@@ -16,6 +16,7 @@ namespace Blate\Features;
 use Blate\Blate;
 use Blate\Exceptions\BlateParserException;
 use Blate\Token;
+use Override;
 use PHPUtils\Str;
 
 /**
@@ -42,6 +43,7 @@ class BlockCapture extends Block
 	/**
 	 * {@inheritDoc}
 	 */
+	#[Override]
 	public function getName(): string
 	{
 		return self::NAME;
@@ -52,6 +54,7 @@ class BlockCapture extends Block
 	 *
 	 * @throws BlateParserException
 	 */
+	#[Override]
 	public function onOpen(): void
 	{
 		$var_token      = $this->lexer->nextIs(Token::T_NAME, null, true);
@@ -63,6 +66,7 @@ class BlockCapture extends Block
 	/**
 	 * {@inheritDoc}
 	 */
+	#[Override]
 	public function onClose(): void
 	{
 		$this->parser->writeCode(Str::interpolate(
@@ -77,6 +81,7 @@ class BlockCapture extends Block
 	/**
 	 * {@inheritDoc}
 	 */
+	#[Override]
 	public function requireClose(): bool
 	{
 		return true;

@@ -20,6 +20,7 @@ use Blate\Interfaces\TokenHandlerInterface;
 use Blate\Interfaces\TokenInterface;
 use Blate\Message;
 use Blate\Token;
+use Override;
 
 /**
  * Class VarName.
@@ -50,6 +51,7 @@ class VarName implements TokenHandlerInterface
 	/**
 	 * {@inheritDoc}
 	 */
+	#[Override]
 	public function handle(ParserInterface $parser, TokenInterface $token, bool $is_head): void
 	{
 		$current    = $token;

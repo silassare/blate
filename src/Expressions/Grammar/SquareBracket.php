@@ -19,6 +19,7 @@ use Blate\Interfaces\TokenHandlerInterface;
 use Blate\Interfaces\TokenInterface;
 use Blate\Message;
 use Blate\Token;
+use Override;
 
 /**
  * Class SquareBracket.
@@ -40,6 +41,7 @@ class SquareBracket implements TokenHandlerInterface
 	 *
 	 * @throws BlateParserException when [ appears in an invalid position
 	 */
+	#[Override]
 	public function handle(ParserInterface $parser, TokenInterface $token, bool $is_head): void
 	{
 		$current   = $token;

@@ -16,6 +16,7 @@ namespace Blate\Features;
 use Blate\Exceptions\BlateParserException;
 use Blate\Helpers\Helpers;
 use Blate\Token;
+use Override;
 use PHPUtils\FS\PathUtils;
 use PHPUtils\Str;
 
@@ -35,6 +36,7 @@ class BlockImportRaw extends Block
 	/**
 	 * {@inheritDoc}
 	 */
+	#[Override]
 	public function getName(): string
 	{
 		return self::NAME;
@@ -45,6 +47,7 @@ class BlockImportRaw extends Block
 	 *
 	 * @throws BlateParserException
 	 */
+	#[Override]
 	public function onOpen(): void
 	{
 		$path_token = $this->lexer->nextIs(Token::T_STRING, null, true);
@@ -66,6 +69,7 @@ class BlockImportRaw extends Block
 	/**
 	 * {@inheritDoc}
 	 */
+	#[Override]
 	public function requireClose(): bool
 	{
 		return false;

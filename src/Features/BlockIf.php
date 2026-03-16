@@ -18,6 +18,7 @@ use Blate\Expressions\Expression;
 use Blate\Interfaces\TokenInterface;
 use Blate\Message;
 use Blate\Token;
+use Override;
 
 /**
  * Class BlockIf.
@@ -45,6 +46,7 @@ class BlockIf extends Block
 	/**
 	 * {@inheritDoc}
 	 */
+	#[Override]
 	public function getName(): string
 	{
 		return self::NAME;
@@ -55,6 +57,7 @@ class BlockIf extends Block
 	 *
 	 * @throws BlateParserException
 	 */
+	#[Override]
 	public function onOpen(): void
 	{
 		$this->lexer->nextIs(Token::T_WHITESPACE);
@@ -69,6 +72,7 @@ class BlockIf extends Block
 	/**
 	 * {@inheritDoc}
 	 */
+	#[Override]
 	public function onBreakPoint(TokenInterface $token): void
 	{
 		if ($this->else_found) {
@@ -100,6 +104,7 @@ class BlockIf extends Block
 	/**
 	 * {@inheritDoc}
 	 */
+	#[Override]
 	public function onClose(): void
 	{
 		$this->parser->writeCode('}');
@@ -108,6 +113,7 @@ class BlockIf extends Block
 	/**
 	 * {@inheritDoc}
 	 */
+	#[Override]
 	public function requireClose(): bool
 	{
 		return true;
