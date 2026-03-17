@@ -1,0 +1,6 @@
+use App\Http\Controllers\UserController;
+
+return new UserController();
+
+// path: C:\Users\foo
+// path2: C:\Users\bar\UserController

@@ -1,0 +1,6 @@
+use {=namespace}\{=class_name};
+
+return new {=class_name}();
+
+// path: C:\Users\foo
+// path2: C:\Users\bar\{=class_name}

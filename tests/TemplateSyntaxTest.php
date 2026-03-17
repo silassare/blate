@@ -119,6 +119,20 @@ final class TemplateSyntaxTest extends TestCase
 		$this->runValid('template-valid');
 	}
 
+	/**
+	 * Backslash characters in raw template content (e.g. namespace separators)
+	 * must be emitted as valid PHP string literals.
+	 *
+	 * Regression: Helpers::quote() only escaped single quotes, leaving bare
+	 * backslashes that generate broken PHP code such as echo '\'.
+	 *
+	 * @throws BlateException
+	 */
+	public function testTemplateBackslashInRawContent(): void
+	{
+		$this->runValid('template-backslash');
+	}
+
 	// =========================================================================
 	// Expressions
 	// =========================================================================
