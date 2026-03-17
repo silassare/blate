@@ -174,6 +174,29 @@ Inside a dot-chain they remain normal property lookups.
 {foo.null}                -- property lookup, not a literal
 ```
 
+### String Literal Escaping
+
+String literals in expressions follow the same escape rules as PHP
+single-quoted and double-quoted strings:
+
+- `\'` — escaped single quote inside a single-quoted string
+- `\\` — escaped backslash (produces one `\` character)
+- A trailing `\` before the closing quote (e.g. `'boo\'`) is treated as an
+  escaped quote, so the string never closes and a parse error is thrown — same
+  as PHP. Use `\\` to end a string with a literal backslash: `'boo\\'`.
+
+```blate
+{foo['bar\\baz']}     -- key is bar\baz (one backslash)
+{foo['it\'s fine']}   -- key is it's fine
+```
+
+This escaping applies only to string literals **inside expressions** (`{...}`).
+Backslashes in raw template text outside tags are passed through unchanged.
+
+```blate
+use {=namespace}\{=class_name};   -- \ is literal text between two expressions
+```
+
 ### Pipe Filters
 
 Apply a helper as a filter with `|`. The left-hand expression becomes the first

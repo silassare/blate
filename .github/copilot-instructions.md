@@ -88,6 +88,12 @@ The cached files live next to their source under `blate_cache/<version>/<hash[0:
 $$                   -- reference to the raw DataContext inside expressions
 true / false / null  -- PHP literals at expression head (any case: TRUE, FALSE, NULL)
                      -- inside a dot-chain (foo.true, foo.null) they are normal property lookups
+-- String literals in expressions follow PHP escape rules:
+--   \\  -> one backslash      'bar\\baz' produces bar\baz
+--   \'  -> escaped quote      'it\'s'   produces it's
+--   a trailing \ before the closing quote (e.g. 'boo\') is an error (same as PHP)
+-- Backslashes in raw template text outside tags pass through unchanged:
+--   use {=namespace}\{=class_name};   -- \ is plain text between two expressions
 ```
 
 ---
