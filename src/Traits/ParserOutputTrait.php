@@ -14,7 +14,6 @@ declare(strict_types=1);
 namespace Blate\Traits;
 
 use Blate\Blate;
-use Blate\Helpers\Helpers;
 use Blate\TypedStack;
 use PHPUtils\Store\Store;
 
@@ -153,10 +152,24 @@ trait ParserOutputTrait
 	}
 
 	/**
+	 * Returns a valid PHP string literal for the given value.
+	 *
+	 * Uses var_export() to ensure backslashes, single quotes, and any other
+	 * characters that require escaping are handled correctly in generated code.
+	 *
+	 * @param string $str the value to encode
+	 */
+	public function phpStringLiteral(string $str): string
+	{
+		return \var_export($str, true);
+	}
+
+	/**
 	 * Appends an echo statement for the given literal string value.
 	 *
-	 * The value is quoted via Helpers::quote() so it is emitted as a PHP string
-	 * literal, avoiding variable interpolation or injection.
+	 * The value is encoded via phpStringLiteral() so it is emitted as a valid
+	 * PHP string literal, properly escaping backslashes, single quotes, and
+	 * any other characters that require escaping.
 	 *
 	 * @param string $str the literal text to echo
 	 *
@@ -164,7 +177,7 @@ trait ParserOutputTrait
 	 */
 	public function write(string $str): static
 	{
-		$code = \PHP_EOL . 'echo ' . Helpers::quote($str) . ';';
+		$code = \PHP_EOL . 'echo ' . $this->phpStringLiteral($str) . ';';
 
 		if ($this->ts_slots->getActive()) {
 			$this->ts_slots->write($code);

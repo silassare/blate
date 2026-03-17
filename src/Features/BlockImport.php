@@ -78,7 +78,7 @@ class BlockImport extends Block
 				. '{instance_var}->run({context_var});' . "\n",
 			[
 				'blate_var'    => $blate_var,
-				'abs_path'     => Helpers::quote($abs_path),
+				'abs_path'     => $this->parser->phpStringLiteral($abs_path),
 				'instance_var' => $instance_var,
 				'context_var'  => $context_var,
 				'context'      => $context,

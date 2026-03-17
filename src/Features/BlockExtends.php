@@ -124,7 +124,7 @@ class BlockExtends extends Block
 				. '{context_var} = $this->createExtendsContext({blate_var}, {context});' . "\n",
 			[
 				'blate_var'    => $extended_blate_var,
-				'abs_path'     => Helpers::quote($abs_path),
+				'abs_path'     => $this->parser->phpStringLiteral($abs_path),
 				'instance_var' => $extended_instance_var,
 				'context_var'  => $extended_context_var,
 				'context'      => $context,

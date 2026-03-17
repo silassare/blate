@@ -59,7 +59,7 @@ class BlockImportRaw extends Block
 		$this->parser->writeCode(
 			\PHP_EOL . Str::interpolate(
 				'echo Blate::loadFile({abs_path});',
-				['abs_path' => Helpers::quote($abs_path)]
+				['abs_path' => $this->parser->phpStringLiteral($abs_path)]
 			) . \PHP_EOL
 		);
 
