@@ -320,7 +320,7 @@ final class BlateLspServerTest extends TestCase
 		$vars    = $this->call('scanVariables', $content);
 
 		self::assertSame(\array_unique($vars), $vars);
-		self::assertCount(1, \array_filter($vars, static fn ($v) => 'x' === $v));
+		self::assertCount(1, \array_filter($vars, static fn($v) => 'x' === $v));
 	}
 
 	public function testScanVariablesReturnsEmptyForNoDeclarations(): void
@@ -628,7 +628,7 @@ final class BlateLspServerTest extends TestCase
 			$byLabel[$item['label']] = $item;
 		}
 
-		// BRACE_OPEN has a description set in bootstrap.php.
+		// BRACE_OPEN has a description set.
 		self::assertArrayHasKey('BRACE_OPEN', $byLabel);
 		self::assertArrayHasKey('documentation', $byLabel['BRACE_OPEN']);
 		self::assertStringContainsString('literal', \strtolower((string) $byLabel['BRACE_OPEN']['documentation']));
@@ -781,13 +781,13 @@ final class BlateLspServerTest extends TestCase
 		$hover = $this->call('buildHover', '{BRACE_OPEN}', 1);
 
 		self::assertNotNull($hover);
-		// bootstrap.php registers BRACE_OPEN with a description about literal brace.
+		// BRACE_OPEN has a description about literal brace.
 		self::assertStringContainsString('literal', \strtolower($hover['contents']['value']));
 	}
 
 	public function testHoverOnComputedGlobalVarShowsComputedLabel(): void
 	{
-		Blate::registerComputedGlobalVar('BLATE_LSP_TEST_COMPUTED', static fn () => 'test', ['editable' => true]);
+		Blate::registerComputedGlobalVar('BLATE_LSP_TEST_COMPUTED', static fn() => 'test', ['editable' => true]);
 
 		// '{BLATE_LSP_TEST_COMPUTED}': cursor at offset 1 (on 'B').
 		$hover = $this->call('buildHover', '{BLATE_LSP_TEST_COMPUTED}', 1);

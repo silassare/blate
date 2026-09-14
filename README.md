@@ -746,8 +746,8 @@ Blate::registerHelper('i18n', function (string $key, DataContext $ctx) {
 
 ## Global Variables
 
-Global variables are values registered once at application bootstrap time and
-available in every template without being part of the per-render data. They
+Global variables are values registered once and available in every template
+without being part of the per-render data. They
 sit between the helpers layer and the user data in the resolution stack, so
 user data can shadow them when needed.
 
@@ -873,6 +873,18 @@ Blate::autoLoad('/path/to/project');  // explicit root
 `autoLoad()` returns `true` when the file was loaded, `false` when `.blate.php`
 was not found or the project root could not be determined. Double-calls with
 the same resolved path are silently skipped.
+
+**Or only when a template is first used.** Blate registers its own blocks,
+helpers and globals when it is first used -- a template compiled or rendered,
+or the registries read -- and `Blate::onFirstUse()` defers yours the same way,
+so a run that renders no template (an API call) pays nothing for either:
+
+```php
+Blate::onFirstUse(static function (): void {
+    Blate::autoLoad('/path/to/project');
+    Blate::setCacheDir('/path/to/cache');
+});
+```
 
 **The LSP loads it automatically.** When the language server receives the editor
 workspace root it calls `Blate::autoLoad($root)` so that project-specific
