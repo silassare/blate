@@ -11,6 +11,10 @@
 
 declare(strict_types=1);
 
+// Blate's built-in blocks, global variables and helpers: registered when Blate is first used
+// (Blate::builtins()), so a program that loads Blate without rendering a template pays nothing for
+// them.
+
 use Blate\Blate;
 use Blate\Features\BlockCapture;
 use Blate\Features\BlockComment;

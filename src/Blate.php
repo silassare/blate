@@ -109,6 +109,15 @@ final class Blate
 	 */
 	private static array $scope_stack = [];
 
+	private static bool $builtins_registered = false;
+
+	private static bool $used = false;
+
+	/**
+	 * @var list<callable(): void>
+	 */
+	private static array $on_first_use = [];
+
 	private string $input;
 
 	private string $output = '';
@@ -128,6 +137,9 @@ final class Blate
 	 */
 	private function __construct(private string $template, private bool $is_url = true, bool $timed_class_name = false)
 	{
+		// before the cache directory is read: a deferred set-up may be what sets it
+		self::firstUse();
+
 		if ($this->is_url) {
 			$this->template = PathUtils::resolve(BLATE_TEMPLATE_RESOLVE_DIR, $this->template);
 			$this->input    = self::loadFile($this->template);
@@ -323,7 +335,7 @@ final class Blate
 					->getClassBody();
 				$this->save();
 			}
-		} catch (BlateException|BlateRuntimeException $t) {
+		} catch (BlateException | BlateRuntimeException $t) {
 			throw $t->templateSource($this->template);
 		}
 
@@ -527,6 +539,8 @@ final class Blate
 	 */
 	public static function registerBlock(string $name, string $block_class): void
 	{
+		self::builtins();
+
 		if (!\preg_match(self::BLOCK_NAME_PATTERN, $name)) {
 			throw new BlateRuntimeException(\sprintf(Message::INVALID_BLOCK_NAME, $name, self::BLOCK_NAME_PATTERN));
 		}
@@ -547,6 +561,8 @@ final class Blate
 	 */
 	public static function disableBlock(string $name): void
 	{
+		self::builtins();
+
 		if (!isset(self::$blocks[$name])) {
 			throw new BlateRuntimeException(\sprintf(Message::BLOCK_NOT_REGISTERED, $name));
 		}
@@ -573,6 +589,8 @@ final class Blate
 	 */
 	public static function isBlockEnabled(string $name): bool
 	{
+		self::firstUse();
+
 		return isset(self::$blocks[$name]) && !isset(self::$disabled_blocks[$name]);
 	}
 
@@ -614,6 +632,8 @@ final class Blate
 	 */
 	public static function registerHelper(string $name, callable $helper): void
 	{
+		self::builtins();
+
 		if (!\preg_match(self::HELPER_NAME_PATTERN, $name)) {
 			throw new BlateRuntimeException(\sprintf(Message::INVALID_HELPER_NAME, $name, self::HELPER_NAME_PATTERN));
 		}
@@ -640,6 +660,8 @@ final class Blate
 	 */
 	public static function disableHelper(string $name): void
 	{
+		self::builtins();
+
 		$canonical = \ltrim($name, self::HELPER_PREFIX_CHAR);
 
 		if (!isset(self::$helpers[$canonical])) {
@@ -668,6 +690,8 @@ final class Blate
 	 */
 	public static function isHelperEnabled(string $name): bool
 	{
+		self::firstUse();
+
 		$canonical = \ltrim($name, self::HELPER_PREFIX_CHAR);
 
 		return isset(self::$helpers[$canonical]) && !isset(self::$disabled_helpers[$canonical]);
@@ -682,6 +706,8 @@ final class Blate
 	 */
 	public static function getHelpers(): array
 	{
+		self::firstUse();
+
 		if (empty(self::$disabled_helpers)) {
 			return self::$helpers;
 		}
@@ -690,7 +716,7 @@ final class Blate
 
 		return \array_filter(
 			self::$helpers,
-			static fn (string $key): bool => !isset(self::$disabled_helpers[\ltrim($key, $prefix)]),
+			static fn(string $key): bool => !isset(self::$disabled_helpers[\ltrim($key, $prefix)]),
 			\ARRAY_FILTER_USE_KEY
 		);
 	}
@@ -702,6 +728,8 @@ final class Blate
 	 */
 	public static function getBlocks(): array
 	{
+		self::firstUse();
+
 		return self::$blocks;
 	}
 
@@ -715,6 +743,8 @@ final class Blate
 	 */
 	public static function getBlockInstance(Parser $parser, TokenInterface $token): ?BlockInterface
 	{
+		self::firstUse();
+
 		$name = $token->getValue();
 
 		if (isset(self::$blocks[$name]) && !isset(self::$disabled_blocks[$name])) {
@@ -748,6 +778,8 @@ final class Blate
 	 */
 	public static function registerGlobalVar(string $name, mixed $value, array $options = []): void
 	{
+		self::builtins();
+
 		$ctx = self::globalVarsContext();
 
 		if ($ctx->isConst($name)) {
@@ -787,6 +819,8 @@ final class Blate
 	 */
 	public static function registerComputedGlobalVar(string $name, callable $factory, array $options = []): void
 	{
+		self::builtins();
+
 		$ctx = self::globalVarsContext();
 
 		if ($ctx->isConst($name)) {
@@ -819,7 +853,61 @@ final class Blate
 	 */
 	public static function getGlobalVars(): GlobalVarsContext
 	{
+		self::firstUse();
+
 		return self::globalVarsContext();
+	}
+
+	/**
+	 * Runs a callable when Blate is first used: a template compiled or rendered, or the blocks, helpers
+	 * or global variables read. The built-ins are registered before it; a callable added after the
+	 * first use runs at once.
+	 *
+	 * For the set-up only templates need -- loading a `.blate.php`, registering helpers, setting the
+	 * cache directory -- in a program that renders none on most runs, such as an API serving JSON.
+	 *
+	 * @param callable(): void $callback
+	 */
+	public static function onFirstUse(callable $callback): void
+	{
+		if (self::$used) {
+			$callback();
+
+			return;
+		}
+
+		self::$on_first_use[] = $callback;
+	}
+
+	/**
+	 * Registers the built-in blocks, global variables and helpers (`builtins.php`), once. Every
+	 * registration calls it first, so one still cannot replace a built-in.
+	 */
+	private static function builtins(): void
+	{
+		if (!self::$builtins_registered) {
+			self::$builtins_registered = true;
+
+			require __DIR__ . \DIRECTORY_SEPARATOR . 'builtins.php';
+		}
+	}
+
+	/**
+	 * What the first use runs: the built-ins, then the callables {@see onFirstUse()} queued, in order.
+	 */
+	private static function firstUse(): void
+	{
+		self::builtins();
+
+		if (self::$used) {
+			return;
+		}
+
+		self::$used = true;
+
+		while (null !== ($callback = \array_shift(self::$on_first_use))) {
+			$callback();
+		}
 	}
 
 	/**

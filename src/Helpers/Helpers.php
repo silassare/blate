@@ -28,8 +28,6 @@ class Helpers
 {
 	/**
 	 * Registers all built-in helpers with Blate.
-	 *
-	 * Called once at bootstrap time (src/bootstrap.php).
 	 */
 	public static function register(): void
 	{
@@ -829,7 +827,7 @@ class Helpers
 	 */
 	public static function sortBy(array $data, string $key): array
 	{
-		\usort($data, static fn ($a, $b) => ($a[$key] ?? null) <=> ($b[$key] ?? null));
+		\usort($data, static fn($a, $b) => ($a[$key] ?? null) <=> ($b[$key] ?? null));
 
 		return $data;
 	}
@@ -934,7 +932,7 @@ class Helpers
 			return \array_values(\array_filter($data));
 		}
 
-		return \array_values(\array_filter($data, static fn ($item) => $item === $value));
+		return \array_values(\array_filter($data, static fn($item) => $item === $value));
 	}
 
 	// =========================================================================

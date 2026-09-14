@@ -52,7 +52,6 @@ The cached files live next to their source under `blate_cache/<version>/<hash[0:
 | `src/BlateTemplateScope.php`       | Snapshot of the executing template: `data` (DataContext) + `template` (Blate); returned by `Blate::scope()`                                  |
 | `src/Features/Block*.php`          | Built-in block implementations (`BlockIf`, `BlockEach`, `BlockSlot`, `BlockExtends`, etc.)                                                   |
 | `src/Expressions/`                 | Expression parser + grammar rules (`Grammar/VarName.php`, `Operator.php`, etc.)                                                              |
-| `src/bootstrap.php`                | Registers all built-in blocks and helpers at autoload time                                                                                   |
 | `src/assets/output.php.sample`     | Scaffold for compiled template files                                                                                                         |
 | `src/Lsp/BlateLspServer.php`       | LSP server implementation (diagnostics, completions, hover, rename, code actions) over stdio                                                 |
 | `editors/lsp/server.php`           | LSP entry point: bootstraps Composer and starts `BlateLspServer`                                                                             |
@@ -103,7 +102,7 @@ true / false / null  -- PHP literals at expression head (any case: TRUE, FALSE, 
 1. Extend `Blate\Features\Block` and implement `BlockInterface`.
 2. Define a `public const NAME = 'myblock';` constant.
 3. Implement the lifecycle hooks: `onOpen()`, `onClose()`, `onBreakPoint()`, `onChildBlockFound()`, `onChildContentFound()`, `onChildExpressionFound()`, `requireClose()`.
-4. Register in `bootstrap.php` (or your app bootstrap):
+4. Register in your app bootstrap:
    ```php
    Blate::registerBlock(MyBlock::NAME, MyBlock::class);
    ```
@@ -120,7 +119,11 @@ Blate::registerHelper('myHelper', function (mixed $value): string {
 });
 ```
 
-Built-in helpers are in `src/Helpers/Helpers.php` and registered in `bootstrap.php`.
+Built-in helpers are in `src/Helpers/Helpers.php`. The built-in blocks, helpers and
+globals are registered by `src/builtins.php` when Blate is first used (`Blate::builtins()`,
+called by every registry method and by the constructor): a program
+that loads Blate without rendering a template pays nothing for them. A registration still
+cannot replace a built-in, since registering runs them first.
 
 Prefer `{$helperName(...)}` over `{helperName(...)}` in all generated template
 code. The bare form resolves through the full scope stack and will silently
@@ -191,11 +194,11 @@ inline within template expressions:
 
 ## Global Variables
 
-Global variables are registered once at bootstrap and available in every template
+Global variables are registered once and available in every template
 without being part of the per-render data. They sit between the helpers layer and
 user data in the `DataContext` resolution stack; user data shadows them.
 
-Built-in globals (registered in `bootstrap.php`):
+Built-in globals (registered by `src/builtins.php` on first use):
 
 | Name                 | Value                 |
 | -------------------- | --------------------- |
@@ -272,6 +275,13 @@ not found or no project root could be discovered. Already-loaded paths (by
 
 `Blate::findProjectRoot(string $start): ?string` is the helper that walks up
 from `$start` looking for `composer.json`.
+
+**Deferring the set-up**: `Blate::onFirstUse(callable)` runs a callable when Blate is
+first used -- a template constructed (compiled or rendered), or the blocks, helpers or
+global variables read -- after the built-ins; one added after the first use runs at once.
+A program that renders templates on few of its runs (an API) defers its `autoLoad()`,
+registrations and `setCacheDir()` there. The constructor runs it before reading the cache
+directory, so a deferred `setCacheDir()` applies to the first template.
 
 The **LSP server** calls `Blate::autoLoad($workspaceRoot)` automatically when
 the editor sends the `initialize` request, so completions and hover reflect
