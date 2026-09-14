@@ -320,7 +320,7 @@ final class BlateLspServerTest extends TestCase
 		$vars    = $this->call('scanVariables', $content);
 
 		self::assertSame(\array_unique($vars), $vars);
-		self::assertCount(1, \array_filter($vars, static fn($v) => 'x' === $v));
+		self::assertCount(1, \array_filter($vars, static fn ($v) => 'x' === $v));
 	}
 
 	public function testScanVariablesReturnsEmptyForNoDeclarations(): void
@@ -787,7 +787,7 @@ final class BlateLspServerTest extends TestCase
 
 	public function testHoverOnComputedGlobalVarShowsComputedLabel(): void
 	{
-		Blate::registerComputedGlobalVar('BLATE_LSP_TEST_COMPUTED', static fn() => 'test', ['editable' => true]);
+		Blate::registerComputedGlobalVar('BLATE_LSP_TEST_COMPUTED', static fn () => 'test', ['editable' => true]);
 
 		// '{BLATE_LSP_TEST_COMPUTED}': cursor at offset 1 (on 'B').
 		$hover = $this->call('buildHover', '{BLATE_LSP_TEST_COMPUTED}', 1);

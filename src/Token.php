@@ -225,7 +225,7 @@ class Token implements TokenInterface
 	{
 		return match ($this->type) {
 			self::T_EQ, self::T_NOT_EQ, self::T_GT_OR_GT_EQ, self::T_LT_OR_LT_EQ => true,
-			default => false,
+			default                                                              => false,
 		};
 	}
 
@@ -237,7 +237,7 @@ class Token implements TokenInterface
 	{
 		return match ($this->type) {
 			self::T_OPERATOR, self::T_NOT, self::T_COMMA => true,
-			default => false,
+			default                                      => false,
 		};
 	}
 
@@ -249,7 +249,7 @@ class Token implements TokenInterface
 	{
 		return match ($this->type) {
 			self::T_COND_AND, self::T_COND_OR, self::T_NULL_COALESCE => true,
-			default => false,
+			default                                                  => false,
 		};
 	}
 
