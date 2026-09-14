@@ -40,10 +40,7 @@
 	"autoload": {
 		"psr-4": {
 			"Blate\\": "src/"
-		},
-		"files": [
-			"src/bootstrap.php"
-		]
+		}
 	},
 	"autoload-dev": {
 		"psr-4": {
