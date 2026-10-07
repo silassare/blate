@@ -886,10 +886,18 @@ Blate::onFirstUse(static function (): void {
 });
 ```
 
-**The LSP loads it automatically.** When the language server receives the editor
-workspace root it calls `Blate::autoLoad($root)` so that project-specific
-helpers and global variables appear in completions and hover documentation
-without any manual configuration.
+**The LSP loads it automatically**, so project-specific helpers and global
+variables appear in completions, hover documentation and diagnostics without any
+manual configuration. For each template you open it loads the project that
+template belongs to: the nearest directory at or above the file holding a
+`.blate.php`. The workspace root need not be that project, which may sit in any
+subdirectory of it (`backend/`, `api/`, ...), and a template outside the
+workspace is loaded all the same.
+
+It also loads the `.blate.php` of the packages that project installed, read from
+Composer's `installed.json`: a package that ships one registers its template API
+there and loads it from its own boot code, which no editor runs. The packages
+register first, so the project has the last word on a name they both want.
 
 **The VS Code extension restarts the LSP automatically** when `.blate.php` is
 saved, created, or deleted, so changes to your config are reflected immediately

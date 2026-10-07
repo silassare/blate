@@ -1124,7 +1124,7 @@ final class TemplateSyntaxTest extends TestCase
 				$output = $parser->getClassBody();
 			}
 		} catch (BlateException|BlateRuntimeException $e) {
-			$error = $e->describe(false, false);
+			$error = self::withoutProjectRoot($e->describe(false, false));
 			\file_put_contents($full_error_file, $e->describe(false, true));
 		}
 
@@ -1162,7 +1162,7 @@ final class TemplateSyntaxTest extends TestCase
 				$bl->runGet($inject);
 			}
 		} catch (BlateException|BlateRuntimeException $e) {
-			$error = $e->describe(false, false);
+			$error = self::withoutProjectRoot($e->describe(false, false));
 			\file_put_contents($full_error_file, $e->describe(false, true));
 		}
 
@@ -1176,5 +1176,24 @@ final class TemplateSyntaxTest extends TestCase
 			$expected = \file_get_contents($error_file);
 			self::assertSame($expected, $error);
 		}
+	}
+
+	/**
+	 * An error as `error.txt` records it: the paths it names relative to the
+	 * project, never the path this checkout happens to sit at, which belongs
+	 * to no one else's machine.
+	 */
+	private static function withoutProjectRoot(string $text): string
+	{
+		$root = \dirname(__DIR__);
+		$real = \realpath($root);
+
+		$text = \str_replace($root . \DIRECTORY_SEPARATOR, '', $text);
+
+		if (false !== $real && $real !== $root) {
+			$text = \str_replace($real . \DIRECTORY_SEPARATOR, '', $text);
+		}
+
+		return $text;
 	}
 }

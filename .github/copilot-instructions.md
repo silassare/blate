@@ -283,9 +283,11 @@ A program that renders templates on few of its runs (an API) defers its `autoLoa
 registrations and `setCacheDir()` there. The constructor runs it before reading the cache
 directory, so a deferred `setCacheDir()` applies to the first template.
 
-The **LSP server** calls `Blate::autoLoad($workspaceRoot)` automatically when
-the editor sends the `initialize` request, so completions and hover reflect
-project-specific helpers/globals without any editor configuration.
+The **LSP server** loads it automatically, so completions, hover and
+diagnostics reflect project-specific helpers and globals without any editor
+configuration: the project of each opened document (the nearest `.blate.php`
+at or above it), the `.blate.php` of the packages that project installed, and
+the workspace root when it is itself a project. See the LSP section below.
 
 ---
 
@@ -340,26 +342,39 @@ The `bin/blate-lsp` wrapper provides a convenient CLI entry point.
 | `blate.global.shadow`  | Warning  | Bare global-var access `{BRACE_OPEN}` that could be shadowed by render data  |
 | `blate.global.unknown` | Error    | `{$global.FOO}` where `FOO` is not a registered global variable              |
 
+All four scanners read the document through `blankDeadZones()`, which replaces
+what Blate does not parse as an expression with spaces of the same byte length,
+so match offsets stay those of the document: plain text, `{# #}`, `{~ ~}`,
+`{@raw}...{/raw}`, and **string literals** -- a name inside a literal is text, so
+`{$map('lang', lang)}` names a key and a variable and only the variable can be
+shadowed. Add a scanner and it reads that content, not the raw document.
+
 **Startup and registry logging** - the server logs via `window/logMessage` (type Log) to the VS Code output channel:
 
 - On `initialize`: `logStartupInfo()` emits composer autoload path, all loaded `.blate.php` config paths, and the full registry (globals, blocks, helpers). Any errors thrown while loading `.blate.php` are shown as `window/showMessage` Error popups (with full PHP stack trace) so the user sees them immediately, and are also included in the startup log.
 - On subsequent registry changes: `logRegistryUpdate()` is triggered (throttled - once per dispatch cycle) whenever `BlateRegistryChangedEvent` fires. This event is dispatched by `Blate::registerBlock()`, `registerHelper()`, `registerGlobalVar()`, and `registerComputedGlobalVar()` after each successful registration. Logs updated config paths and registry.
-- On `initialized`: sends `client/registerCapability` to watch `**/.blate.php`. When the root `.blate.php` changes, the server calls `exit(0)` (triggering a VS Code language-client restart) so the new config loads from a clean slate.
+- On `initialized`: sends `client/registerCapability` to watch `**/.blate.php`. When any of them changes, the server calls `exit(0)` (triggering a VS Code language-client restart) so the new config loads from a clean slate: a registration cannot be undone, and the project may sit in any subdirectory of the workspace.
 
 **Autoload and config loading** - separation of responsibilities:
 
 - `editors/lsp/server.php`: walks up from `__DIR__` to find `ROOT/vendor/autoload.php`; passes the autoload path to `BlateLspServer`.
-- `BlateLspServer` constructor: subscribes to `BlateRegistryChangedEvent`. `handleInitialize` resolves the workspace root from LSP params, loads `{workspace}/vendor/autoload.php` (if different from the bootstrap autoload), then calls `Blate::autoLoad({workspace})` which loads `{workspace}/.blate.php` if it exists.
+- `BlateLspServer` constructor: subscribes to `BlateRegistryChangedEvent`.
+- **A project is loaded per document, not per workspace** (`loadProjectOf()`, called from `textDocument/didOpen`): `findProjectRootOf()` walks up from the document's own directory to the nearest `.blate.php`, or failing that to the nearest `composer.json`, whose autoloader the editor still needs; the workspace root is the fallback. The workspace root alone says nothing: a project commonly sits in a subdirectory of it (`backend/`, `api/`, ...), and `Blate::autoLoad()` only ever walks up. `handleInitialize` loads the workspace root the same way, which covers the project that is its own workspace.
+- **`loadProject($root)` loads a root once** (`$loadedRoots`, by real path): `{root}/vendor/autoload.php`, then the `.blate.php` of every package `{root}/vendor/composer/installed.json` lists that ships one (`packageConfigDirs()`), then `{root}/.blate.php`. A package registers before the project that installed it, since a registration cannot be replaced and the project must have the last word on a shared name.
+- **A package's config matters**: a package registers its template API there and loads it from its own boot code at runtime (OZone's `.blate.php` calls `BlatePlugin::register()`, loaded by its boot hook through `Blate::autoLoad(OZ_OZONE_DIR)`). The editor boots nothing, so without that sweep every helper and global variable a package brings reads as unknown.
+- Errors thrown while loading reach the editor through `reportLoadError()`: a `window/showMessage` Error at once once the handshake is done, with the startup summary before that.
 - The host project may also call `Blate::autoLoad(ANOTHER_DIR)` independently. Since LSP server and host share the same PHP process and `Blate` static state, all registrations are visible and trigger events.
 - `Blate::getLoadedConfigs()` returns `list<string>` of real paths of all loaded `.blate.php` files.
+- One process holds one registry: two projects of one workspace that register the same helper name collide (the second throws `HELPER_ALREADY_REGISTERED`, reported to the editor), and nothing can be unregistered between them.
 
 **Startup log** example logged to the VS Code output channel:
 
 ```
 [blate-lsp] Server initialized (Blate 1.1.1)
 
-Composer autoload : /path/to/project/vendor/autoload.php
-Loaded configs    : /path/to/project/.blate.php
+Composer autoload : /path/to/blate/vendor/autoload.php
+Workspace root    : /path/to/workspace
+Loaded configs    : /path/to/workspace/backend/vendor/silassare/ozone/.blate.php, /path/to/workspace/backend/.blate.php
 
 Global variables (4):
   BLATE_VERSION = "1.1.1"  -- Engine version string

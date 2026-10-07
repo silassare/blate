@@ -36,12 +36,24 @@ final class BlateLspServerTest extends TestCase
 	private BlateLspServer $server;
 	private ReflectionClass $ref;
 
+	/** @var list<string> the directories a test made, removed when it ends */
+	private array $temp = [];
+
 	protected function setUp(): void
 	{
 		$this->server = new BlateLspServer(
 			\dirname(__DIR__) . \DIRECTORY_SEPARATOR . 'vendor' . \DIRECTORY_SEPARATOR . 'autoload.php',
 		);
 		$this->ref    = new ReflectionClass($this->server);
+	}
+
+	protected function tearDown(): void
+	{
+		foreach ($this->temp as $dir) {
+			$this->removeDir($dir);
+		}
+
+		$this->temp = [];
 	}
 	// =========================================================================
 	// Utilities: positionToOffset
@@ -215,6 +227,83 @@ final class BlateLspServerTest extends TestCase
 
 		self::assertStringContainsString('upper', $result);
 		self::assertStringContainsString('name', $result);
+	}
+
+	public function testBlankDeadZonesBlanksStringLiterals(): void
+	{
+		$content = "{\$map('lang', lang)}";
+		$result  = $this->call('blankDeadZones', $content);
+
+		// The key is text; the value is the variable the scanners look for.
+		self::assertSame(\strlen($content), \strlen($result));
+		self::assertSame("{\$map(      , lang)}", $result);
+	}
+
+	public function testBlankDeadZonesBlanksDoubleQuotedLiterals(): void
+	{
+		self::assertSame("{\$map(      , lang)}", $this->call('blankDeadZones', '{$map("lang", lang)}'));
+	}
+
+	public function testBlankDeadZonesKeepsAnEscapedQuoteInsideALiteral(): void
+	{
+		// The literal ends at the unescaped quote, not at the escaped one.
+		$content = "{\$t('it\\'s', name)}";
+		$result  = $this->call('blankDeadZones', $content);
+
+		self::assertSame(\strlen($content), \strlen($result));
+		self::assertStringNotContainsString('it', $result);
+		self::assertStringContainsString('name', $result);
+	}
+
+	public function testBlankDeadZonesKeepsALiteralEndingWithAnEscapedBackslash(): void
+	{
+		$content = "{\$concat('a\\\\', upper)}";
+		$result  = $this->call('blankDeadZones', $content);
+
+		self::assertSame(\strlen($content), \strlen($result));
+		self::assertStringContainsString('upper', $result);
+		self::assertStringNotContainsString("'a", $result);
+	}
+
+	// =========================================================================
+	// Diagnostics: names inside a string literal are text
+	// =========================================================================
+
+	public function testGlobalVarShadowWarnsForABareAccess(): void
+	{
+		$warns = $this->call('buildGlobalVarShadowWarnings', '{BRACE_OPEN}');
+
+		self::assertCount(1, $warns);
+		self::assertSame('blate.global.shadow', $warns[0]['code']);
+	}
+
+	public function testGlobalVarShadowIgnoresAQuotedName(): void
+	{
+		self::assertSame([], $this->call('buildGlobalVarShadowWarnings', "{\$map('BRACE_OPEN', 1)}"));
+	}
+
+	public function testGlobalVarShadowWarnsOnceForAQuotedNameAndItsVariable(): void
+	{
+		$warns = $this->call('buildGlobalVarShadowWarnings', "{\$map('BRACE_OPEN', BRACE_OPEN)}");
+
+		self::assertCount(1, $warns);
+		// The variable, at offset 20, not the key at offset 6.
+		self::assertSame(['line' => 0, 'character' => 20], $warns[0]['range']['start']);
+	}
+
+	public function testHelperShadowIgnoresACallInsideAQuotedName(): void
+	{
+		self::assertSame([], $this->call('buildHelperShadowWarnings', "{\$json('upper(x)')}"));
+	}
+
+	public function testDollarHelperUnknownIgnoresACallInsideAQuotedName(): void
+	{
+		self::assertSame([], $this->call('buildDollarHelperUnknownErrors', "{\$json('\$noSuchHelper(x)')}"));
+	}
+
+	public function testGlobalRefUnknownIgnoresAQuotedReference(): void
+	{
+		self::assertSame([], $this->call('buildGlobalRefUnknownErrors', "{\$json('\$global.NO_SUCH_VAR')}"));
 	}
 
 	public function testBlankDeadZonesMultiLineCommentLengthPreserved(): void
@@ -901,6 +990,154 @@ final class BlateLspServerTest extends TestCase
 		self::assertSame(['line' => 0, 'character' => 1], $edits[0]['range']['start']);
 		// Second occurrence: line 2, chars 1..4
 		self::assertSame(['line' => 2, 'character' => 1], $edits[1]['range']['start']);
+	}
+
+	// =========================================================================
+	// Project discovery: findProjectRootOf, packageConfigDirs
+	// =========================================================================
+
+	public function testFindProjectRootOfWalksUpToTheConfigBesideComposer(): void
+	{
+		$root = $this->tempDir();
+		$this->write($root . '/backend/composer.json');
+		$this->write($root . '/backend/.blate.php', '<?php');
+		$this->makeDir($root . '/backend/app/Modules/Site/templates');
+
+		self::assertSame(
+			\realpath($root . '/backend'),
+			$this->call('findProjectRootOf', $root . '/backend/app/Modules/Site/templates')
+		);
+	}
+
+	public function testFindProjectRootOfPrefersTheNearestConfig(): void
+	{
+		$root = $this->tempDir();
+		$this->write($root . '/composer.json');
+		$this->write($root . '/.blate.php', '<?php');
+		$this->write($root . '/backend/composer.json');
+		$this->write($root . '/backend/.blate.php', '<?php');
+
+		self::assertSame(
+			\realpath($root . '/backend'),
+			$this->call('findProjectRootOf', $root . '/backend')
+		);
+	}
+
+	public function testFindProjectRootOfFallsBackToTheComposerProject(): void
+	{
+		$root = $this->tempDir();
+		$this->write($root . '/composer.json');
+		$this->makeDir($root . '/src/views');
+
+		self::assertSame(
+			\realpath($root),
+			$this->call('findProjectRootOf', $root . '/src/views')
+		);
+	}
+
+	public function testFindProjectRootOfReturnsNullForAPathThatIsNotThere(): void
+	{
+		self::assertNull($this->call('findProjectRootOf', $this->tempDir() . '/gone'));
+	}
+
+	public function testPackageConfigDirsReadsComposerInstalledJson(): void
+	{
+		$root = $this->tempDir();
+
+		// Shipping a config, and listed: taken.
+		$this->write($root . '/vendor/acme/pack/composer.json');
+		$this->write($root . '/vendor/acme/pack/.blate.php', '<?php');
+		// No config: nothing to load.
+		$this->write($root . '/vendor/acme/plain/composer.json');
+		// A config without a composer.json beside it: `Blate::autoLoad()` would
+		// walk up and hand it the project above instead.
+		$this->write($root . '/vendor/acme/loose/.blate.php', '<?php');
+
+		$this->write($root . '/vendor/composer/installed.json', \json_encode([
+			'packages' => [
+				['name' => 'acme/pack', 'install-path' => '../acme/pack'],
+				['name' => 'acme/plain', 'install-path' => '../acme/plain'],
+				['name' => 'acme/loose', 'install-path' => '../acme/loose'],
+			],
+		]));
+
+		self::assertSame(
+			[\realpath($root . '/vendor/acme/pack')],
+			$this->call('packageConfigDirs', $root)
+		);
+	}
+
+	public function testPackageConfigDirsReadsAListWithoutInstallPath(): void
+	{
+		$root = $this->tempDir();
+		$this->write($root . '/vendor/acme/pack/composer.json');
+		$this->write($root . '/vendor/acme/pack/.blate.php', '<?php');
+		$this->write($root . '/vendor/composer/installed.json', \json_encode([
+			['name' => 'acme/pack'],
+		]));
+
+		self::assertSame(
+			[\realpath($root . '/vendor/acme/pack')],
+			$this->call('packageConfigDirs', $root)
+		);
+	}
+
+	public function testPackageConfigDirsWithoutInstalledJson(): void
+	{
+		self::assertSame([], $this->call('packageConfigDirs', $this->tempDir()));
+	}
+
+	public function testPackageConfigDirsWithBrokenInstalledJson(): void
+	{
+		$root = $this->tempDir();
+		$this->write($root . '/vendor/composer/installed.json', 'not json');
+
+		self::assertSame([], $this->call('packageConfigDirs', $root));
+	}
+
+	/**
+	 * A directory of this test, removed when it ends.
+	 */
+	private function tempDir(): string
+	{
+		$dir = \sys_get_temp_dir() . '/blate_lsp_test_' . \uniqid('', true);
+
+		\mkdir($dir, 0755, true);
+		$this->temp[] = $dir;
+
+		return $dir;
+	}
+
+	private function makeDir(string $dir): void
+	{
+		if (!\is_dir($dir)) {
+			\mkdir($dir, 0755, true);
+		}
+	}
+
+	private function write(string $path, string $content = '{}'): void
+	{
+		$this->makeDir(\dirname($path));
+		\file_put_contents($path, $content);
+	}
+
+	private function removeDir(string $dir): void
+	{
+		foreach (\scandir($dir) ?: [] as $entry) {
+			if ('.' === $entry || '..' === $entry) {
+				continue;
+			}
+
+			$path = $dir . \DIRECTORY_SEPARATOR . $entry;
+
+			if (\is_dir($path)) {
+				$this->removeDir($path);
+			} else {
+				\unlink($path);
+			}
+		}
+
+		\rmdir($dir);
 	}
 
 	/**

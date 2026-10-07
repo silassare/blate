@@ -62,6 +62,14 @@ class BlateLspServer
 	private ?string $workspaceRoot = null;
 
 	/**
+	 * Project roots already loaded, by real path: a project is loaded once,
+	 * whichever of its documents reaches the server first.
+	 *
+	 * @var array<string, true>
+	 */
+	private array $loadedRoots = [];
+
+	/**
 	 * Names of helpers registered during bootstrap, before any .blate.php is loaded.
 	 * Used to distinguish built-in helpers from project/custom helpers.
 	 *
@@ -353,32 +361,12 @@ class BlateLspServer
 	{
 		$this->workspaceRoot = $this->resolveWorkspaceRoot($params);
 
+		// The workspace root is loaded when it is itself a project; when the
+		// project sits in a subdirectory of it (`backend/`, `api/`, ...) there
+		// is nothing to load here, and the project of each document is loaded
+		// as the document opens.
 		if (null !== $this->workspaceRoot) {
-			// Load the workspace project's vendor/autoload.php so that any
-			// custom classes referenced in .blate.php are available.
-			$projectAutoload = $this->workspaceRoot
-				. \DIRECTORY_SEPARATOR . 'vendor'
-				. \DIRECTORY_SEPARATOR . 'autoload.php';
-
-			if (\is_file($projectAutoload) && $projectAutoload !== $this->autoloadPath) {
-				try {
-					require_once $projectAutoload;
-				} catch (Throwable $e) {
-					$msg = 'Failed to load project autoload: ' . $e->getMessage()
-						. "\n" . $e->getTraceAsString();
-					\fwrite(\STDERR, '[blate-lsp] ' . $msg . "\n");
-					$this->loadErrors[] = $msg;
-				}
-			}
-
-			try {
-				Blate::autoLoad($this->workspaceRoot);
-			} catch (Throwable $e) {
-				$msg = 'Failed to load .blate.php: ' . $e->getMessage()
-					. "\n" . $e->getTraceAsString();
-				\fwrite(\STDERR, '[blate-lsp] ' . $msg . "\n");
-				$this->loadErrors[] = $msg;
-			}
+			$this->loadProject($this->workspaceRoot);
 		}
 
 		$this->respond($id, [
@@ -444,20 +432,16 @@ class BlateLspServer
 	/**
 	 * Handles workspace/didChangeWatchedFiles.
 	 *
-	 * Restarts the server (exit 0) when the root .blate.php is modified so
-	 * the VS Code language client spawns a fresh process with updated config.
+	 * Restarts the server (exit 0) when any `.blate.php` is written so the
+	 * language client spawns a fresh process with the new registrations: a
+	 * registration cannot be undone, and the project may be any subdirectory
+	 * of the workspace, not only its root.
 	 *
 	 * @param array<string, mixed> $params
 	 */
 	private function handleDidChangeWatchedFiles(array $params): void
 	{
-		if (null === $this->workspaceRoot) {
-			return;
-		}
-
-		$changes    = $params['changes'] ?? [];
-		$rootConfig = $this->workspaceRoot . \DIRECTORY_SEPARATOR . '.blate.php';
-		$realRoot   = \realpath($rootConfig);
+		$changes = $params['changes'] ?? [];
 
 		foreach ($changes as $change) {
 			$path = $this->fileUriToPath((string) ($change['uri'] ?? ''));
@@ -466,10 +450,7 @@ class BlateLspServer
 				continue;
 			}
 
-			$real = \realpath($path) ?: $path;
-
-			// Restart when the root .blate.php changes.
-			if (false !== $realRoot && $real === $realRoot) {
+			if ('.blate.php' === \basename($path)) {
 				exit(0);
 			}
 		}
@@ -506,24 +487,18 @@ class BlateLspServer
 			$lines[] = '';
 		}
 
-		// Show the autoload that was used to bootstrap blate itself, and the
-		// workspace project autoload when it differs (host project scenario).
+		// The autoload that bootstrapped blate itself, then the workspace, which
+		// is loaded as a project when it is one. The project of a document that
+		// lies elsewhere, in a subdirectory or outside, is loaded when it opens.
 		$lines[] = 'Composer autoload : ' . $this->autoloadPath;
 
 		if (null !== $this->workspaceRoot) {
-			$projectAutoload = $this->workspaceRoot
-				. \DIRECTORY_SEPARATOR . 'vendor'
-				. \DIRECTORY_SEPARATOR . 'autoload.php';
-
-			if ($projectAutoload !== $this->autoloadPath) {
-				$lines[] = 'Project autoload  : ' . $projectAutoload
-					. (\is_file($projectAutoload) ? '' : ' (not found)');
-			}
+			$lines[] = 'Workspace root    : ' . $this->workspaceRoot;
 		}
 
 		$configs = Blate::getLoadedConfigs();
 		$lines[] = 'Loaded configs    : ' . (empty($configs)
-			? '(none - custom helpers/vars/blocks not loaded)'
+			? '(none yet - the project of a document is loaded when it opens)'
 			: \implode(', ', $configs));
 
 		$this->appendRegistryLines($lines);
@@ -584,11 +559,211 @@ class BlateLspServer
 		// Registered and enabled helpers (without $-prefixed duplicates).
 		$helperNames = \array_filter(
 			\array_keys(Blate::getHelpers()),
-			static fn (string $n): bool => !\str_starts_with($n, '$')
+			static fn(string $n): bool => !\str_starts_with($n, '$')
 		);
 		\sort($helperNames);
 		$lines[] = '';
 		$lines[] = 'Helpers (' . \count($helperNames) . '): ' . \implode(', ', $helperNames);
+	}
+
+	/**
+	 * Loads the project a document belongs to, before the document is read.
+	 *
+	 * Called for every opened document: a workspace holds the project in any
+	 * subdirectory it likes, and may hold several of them.
+	 */
+	private function loadProjectOf(string $uri): void
+	{
+		$path = $this->fileUriToPath($uri);
+
+		if (null === $path) {
+			return;
+		}
+
+		$root = $this->findProjectRootOf(\dirname($path)) ?? $this->workspaceRoot;
+
+		if (null !== $root) {
+			$this->loadProject($root);
+		}
+	}
+
+	/**
+	 * The project a document belongs to: the nearest directory at or above it
+	 * holding a `.blate.php`, or failing that the nearest one holding a
+	 * `composer.json`, whose autoloader is what the editor still needs.
+	 *
+	 * `Blate::autoLoad()` only ever walks up, so the workspace root is no help
+	 * on its own when the project is below it.
+	 *
+	 * @param string $start absolute path of the directory to start from
+	 */
+	private function findProjectRootOf(string $start): ?string
+	{
+		$dir = \realpath($start);
+
+		if (false === $dir) {
+			return null;
+		}
+
+		$composer = null;
+
+		while (true) {
+			if (\is_file($dir . \DIRECTORY_SEPARATOR . '.blate.php')) {
+				return $dir;
+			}
+
+			if (null === $composer && \is_file($dir . \DIRECTORY_SEPARATOR . 'composer.json')) {
+				$composer = $dir;
+			}
+
+			$parent = \dirname($dir);
+
+			if ($parent === $dir) {
+				// Reached the filesystem root: the nearest Composer project, if
+				// any, is still where the classes a config would use come from.
+				return $composer;
+			}
+
+			$dir = $parent;
+		}
+	}
+
+	/**
+	 * Loads a project root once: its Composer autoloader, the `.blate.php` of
+	 * the packages it installed, then its own.
+	 *
+	 * A registration cannot be replaced, so the packages register first and
+	 * the project that installed them has the last word on a shared name.
+	 */
+	private function loadProject(string $root): void
+	{
+		$real = \realpath($root);
+
+		if (false === $real || isset($this->loadedRoots[$real])) {
+			return;
+		}
+
+		$this->loadedRoots[$real] = true;
+
+		// The project's own autoloader, so the classes its config and its
+		// packages' configs name are there to be loaded.
+		$autoload = $real . \DIRECTORY_SEPARATOR . 'vendor' . \DIRECTORY_SEPARATOR . 'autoload.php';
+
+		if (\is_file($autoload) && $autoload !== $this->autoloadPath) {
+			try {
+				require_once $autoload;
+			} catch (Throwable $e) {
+				$this->reportLoadError('Failed to load the autoloader of ' . $real, $e);
+			}
+		}
+
+		foreach ($this->packageConfigDirs($real) as $dir) {
+			$this->loadConfigOf($dir);
+		}
+
+		$this->loadConfigOf($real);
+	}
+
+	/** Loads the `.blate.php` of one directory, reporting what it throws. */
+	private function loadConfigOf(string $dir): void
+	{
+		try {
+			Blate::autoLoad($dir);
+		} catch (Throwable $e) {
+			$this->reportLoadError(
+				'Failed to load ' . $dir . \DIRECTORY_SEPARATOR . '.blate.php',
+				$e
+			);
+		}
+	}
+
+	/**
+	 * The directories of the packages a project installed that ship a
+	 * `.blate.php`, read from Composer's own `installed.json`.
+	 *
+	 * A package registers its template API in that file and loads it from its own boot code at
+	 * runtime. The editor boots nothing, so the server reads them itself, or
+	 * every helper and global variable a package brings reads as unknown.
+	 *
+	 * @return list<string>
+	 */
+	private function packageConfigDirs(string $root): array
+	{
+		$vendor = $root . \DIRECTORY_SEPARATOR . 'vendor' . \DIRECTORY_SEPARATOR . 'composer';
+		$file   = $vendor . \DIRECTORY_SEPARATOR . 'installed.json';
+
+		if (!\is_file($file)) {
+			return [];
+		}
+
+		$data = \json_decode((string) \file_get_contents($file), true);
+
+		if (!\is_array($data)) {
+			return [];
+		}
+
+		// Composer 2 wraps the list in `packages`; Composer 1 wrote a plain list.
+		$packages = $data['packages'] ?? $data;
+
+		if (!\is_array($packages)) {
+			return [];
+		}
+
+		$dirs = [];
+
+		foreach ($packages as $package) {
+			if (!\is_array($package)) {
+				continue;
+			}
+
+			$path = $package['install-path'] ?? null;
+			$name = $package['name'] ?? null;
+
+			if (\is_string($path)) {
+				// Relative to vendor/composer, where installed.json lives.
+				$dir = $vendor . \DIRECTORY_SEPARATOR . $path;
+			} elseif (\is_string($name)) {
+				$dir = $root . \DIRECTORY_SEPARATOR . 'vendor' . \DIRECTORY_SEPARATOR . $name;
+			} else {
+				continue;
+			}
+
+			$real = \realpath($dir);
+
+			// Both files: `Blate::autoLoad()` walks up to the `composer.json`
+			// beside the config, and a package without one would hand it the
+			// project above, loading that config out of turn.
+			if (
+				false === $real
+				|| !\is_file($real . \DIRECTORY_SEPARATOR . '.blate.php')
+				|| !\is_file($real . \DIRECTORY_SEPARATOR . 'composer.json')
+			) {
+				continue;
+			}
+
+			$dirs[] = $real;
+		}
+
+		return $dirs;
+	}
+
+	/**
+	 * Records an error met while loading a project, for the server log and for
+	 * the editor: at once once the handshake is done, with the startup summary
+	 * before that.
+	 */
+	private function reportLoadError(string $what, Throwable $e): void
+	{
+		$msg = $what . ': ' . $e->getMessage() . "\n" . $e->getTraceAsString();
+		\fwrite(\STDERR, '[blate-lsp] ' . $msg . "\n");
+		$this->loadErrors[] = $msg;
+
+		if ($this->initialized) {
+			$this->notify('window/showMessage', [
+				'type'    => 1,   // MessageType.Error
+				'message' => '[blate-lsp] ' . $msg,
+			]);
+		}
 	}
 
 	/**
@@ -651,6 +826,7 @@ class BlateLspServer
 		$uri              = (string) ($params['textDocument']['uri'] ?? '');
 		$content          = (string) ($params['textDocument']['text'] ?? '');
 		$this->docs[$uri] = $content;
+		$this->loadProjectOf($uri);
 		$this->diagnose($uri, $content);
 	}
 
@@ -791,7 +967,7 @@ class BlateLspServer
 					$this->buildGlobalRefUnknownErrors($content),
 				),
 			]);
-		} catch (BlateParserException|BlateRuntimeException $e) {
+		} catch (BlateParserException | BlateRuntimeException $e) {
 			$chunk = $e->getChunk();
 
 			if (null !== $chunk) {
@@ -1060,6 +1236,7 @@ class BlateLspServer
 	 *  - {# ... #}        template comments (stripped at compile time)
 	 *  - {~ ... ~}        inline PHP blocks (raw PHP, not Blate expressions)
 	 *  - {@raw}...{/raw}  literal-content blocks (no Blate parsing inside)
+	 *  - 'text' "text"    string literals, which are text and not names
 	 *
 	 * Replacing with spaces of the same byte length keeps all byte offsets
 	 * identical to the original, so match positions remain accurate.
@@ -1085,7 +1262,17 @@ class BlateLspServer
 			$result .= (0 === $i % 2) ? \str_repeat(' ', \strlen($part)) : $part;
 		}
 
-		return $result;
+		// Blank the string literals left in the tags: the lexer reads each as
+		// one token, so a name inside one is text. In {$map('lang', lang)} only
+		// the second `lang` is a variable, and only it can be shadowed.
+		// The escape is the backslash, as Lexer::computeToken() reads it.
+		return \preg_replace_callback(
+			'/\'(?:\\\\.|[^\'\\\\])*\'|"(?:\\\\.|[^"\\\\])*"/s',
+			static function (array $m): string {
+				return \str_repeat(' ', \strlen($m[0]));
+			},
+			$result
+		) ?? $result;
 	}
 
 	// =========================================================================
