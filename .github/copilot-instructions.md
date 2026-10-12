@@ -297,7 +297,9 @@ A `Makefile` at the project root wraps all common tasks:
 
 ```sh
 make install      # composer install
-make test         # run PHPUnit test suite
+make check        # cs + psalm: the gate for every change
+make check-full   # the same two with their caches ignored
+make test         # run PHPUnit test suite (FILE=tests/FooTest.php, FILTER=testBar narrow it)
 make psalm        # run Psalm static analysis
 make cs           # check code style (no auto-fix)
 make fix          # psalm + oliup-cs fix
@@ -306,11 +308,23 @@ make ext-watch    # watch-mode build for the VS Code extension
 make ext-clean    # remove editors/vscode/out and editors/vscode/node_modules
 ```
 
+**Three tiers of re-running**, the cadence of every repository of the suite, with the same words
+everywhere (the `Makefile`'s own comments say what each one skips):
+
+- `make check` -- **every change**: code style and static analysis, both cached (phpcs also forks
+  over this machine's cores). `make check-full` is the same two with the caches ignored.
+- `make test FILE=... FILTER=...` -- **a feature is done**: one file or one case. The whole suite
+  runs in seconds here, so this buys focus rather than time.
+- `make test` -- **end of a cycle, and before anything is handed over**.
+
+The tiers are about re-running, never about writing: a feature's test is written with the feature.
+A failure in a narrowed run is repeated with the full target before it is believed or reported.
+
 The underlying commands are also available directly:
 
 ```sh
 ./vendor/bin/phpunit --testdox --do-not-cache-result
-./vendor/bin/psalm --no-cache
+./vendor/bin/psalm
 ./vendor/bin/oliup-cs fix
 ```
 

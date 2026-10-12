@@ -11,3 +11,6 @@
 
 error.full.txt
 tests/.cache
+
+# phpcs
+.phpcs.cache
