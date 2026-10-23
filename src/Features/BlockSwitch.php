@@ -41,11 +41,11 @@ use Override;
  */
 class BlockSwitch extends Block
 {
-	public const NAME = 'switch';
+	public const string NAME = 'switch';
 
-	public const BREAKPOINT_CASE = 'case';
+	public const string BREAKPOINT_CASE = 'case';
 
-	public const BREAKPOINT_DEFAULT = 'default';
+	public const string BREAKPOINT_DEFAULT = 'default';
 
 	private string $switch_var = '';
 

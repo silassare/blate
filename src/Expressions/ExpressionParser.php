@@ -40,10 +40,10 @@ use Override;
 class ExpressionParser implements ParserInterface
 {
 	/** Passed in $options to allow T_COMMA as argument separator. */
-	public const IN_FUNC_CALL_ARGS = 1;
+	public const int IN_FUNC_CALL_ARGS = 1;
 
 	/** Passed in $options to allow an empty expression (e.g., zero-argument function calls). */
-	public const ALLOW_EMPTY = 2;
+	public const int ALLOW_EMPTY = 2;
 
 	protected string $output = '';
 

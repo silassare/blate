@@ -31,7 +31,7 @@ use Override;
  */
 class BlockPhp extends Block
 {
-	public const NAME = 'php';
+	public const string NAME = 'php';
 
 	/**
 	 * {@inheritDoc}

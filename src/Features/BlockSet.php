@@ -35,7 +35,7 @@ use PHPUtils\Str;
  */
 class BlockSet extends Block
 {
-	public const NAME = 'set';
+	public const string NAME = 'set';
 
 	/**
 	 * {@inheritDoc}

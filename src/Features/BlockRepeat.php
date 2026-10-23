@@ -48,7 +48,7 @@ use PHPUtils\Str;
  */
 class BlockRepeat extends Block
 {
-	public const NAME = 'repeat';
+	public const string NAME = 'repeat';
 
 	private ?string $count_var = null;
 

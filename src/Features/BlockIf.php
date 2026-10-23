@@ -35,11 +35,11 @@ use Override;
  */
 class BlockIf extends Block
 {
-	public const NAME = 'if';
+	public const string NAME = 'if';
 
-	public const BREAKPOINT_ELSE = 'else';
+	public const string BREAKPOINT_ELSE = 'else';
 
-	public const BREAKPOINT_ELSE_IF = 'elseif';
+	public const string BREAKPOINT_ELSE_IF = 'elseif';
 
 	private bool $else_found = false;
 

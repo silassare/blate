@@ -48,7 +48,7 @@ use ReflectionProperty;
 class SimpleChain
 {
 	private mixed $current;
-	private mixed $current_key =  '';
+	private mixed $current_key = '';
 
 	private bool $is_head = true;
 

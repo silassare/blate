@@ -35,7 +35,7 @@ use PHPUtils\Str;
  */
 class BlockImport extends Block
 {
-	public const NAME = 'import';
+	public const string NAME = 'import';
 
 	/**
 	 * {@inheritDoc}

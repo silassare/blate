@@ -559,7 +559,7 @@ class BlateLspServer
 		// Registered and enabled helpers (without $-prefixed duplicates).
 		$helperNames = \array_filter(
 			\array_keys(Blate::getHelpers()),
-			static fn(string $n): bool => !\str_starts_with($n, '$')
+			static fn (string $n): bool => !\str_starts_with($n, '$')
 		);
 		\sort($helperNames);
 		$lines[] = '';
@@ -967,7 +967,7 @@ class BlateLspServer
 					$this->buildGlobalRefUnknownErrors($content),
 				),
 			]);
-		} catch (BlateParserException | BlateRuntimeException $e) {
+		} catch (BlateParserException|BlateRuntimeException $e) {
 			$chunk = $e->getChunk();
 
 			if (null !== $chunk) {
@@ -1267,7 +1267,7 @@ class BlateLspServer
 		// the second `lang` is a variable, and only it can be shadowed.
 		// The escape is the backslash, as Lexer::computeToken() reads it.
 		return \preg_replace_callback(
-			'/\'(?:\\\\.|[^\'\\\\])*\'|"(?:\\\\.|[^"\\\\])*"/s',
+			'/\'(?:\\\.|[^\'\\\])*\'|"(?:\\\.|[^"\\\])*"/s',
 			static function (array $m): string {
 				return \str_repeat(' ', \strlen($m[0]));
 			},

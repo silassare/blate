@@ -29,7 +29,7 @@ use Override;
  */
 class BlockComment extends Block
 {
-	public const NAME = 'comment';
+	public const string NAME = 'comment';
 
 	/**
 	 * {@inheritDoc}

@@ -236,12 +236,12 @@ final class BlateLspServerTest extends TestCase
 
 		// The key is text; the value is the variable the scanners look for.
 		self::assertSame(\strlen($content), \strlen($result));
-		self::assertSame("{\$map(      , lang)}", $result);
+		self::assertSame('{$map(      , lang)}', $result);
 	}
 
 	public function testBlankDeadZonesBlanksDoubleQuotedLiterals(): void
 	{
-		self::assertSame("{\$map(      , lang)}", $this->call('blankDeadZones', '{$map("lang", lang)}'));
+		self::assertSame('{$map(      , lang)}', $this->call('blankDeadZones', '{$map("lang", lang)}'));
 	}
 
 	public function testBlankDeadZonesKeepsAnEscapedQuoteInsideALiteral(): void

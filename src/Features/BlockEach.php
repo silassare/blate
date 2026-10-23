@@ -53,9 +53,9 @@ use PHPUtils\Str;
  */
 class BlockEach extends Block
 {
-	public const NAME = 'each';
+	public const string NAME = 'each';
 
-	public const BREAKPOINT_ELSE = 'else';
+	public const string BREAKPOINT_ELSE = 'else';
 
 	private string $had_var = '';
 

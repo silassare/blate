@@ -36,7 +36,7 @@ use PHPUtils\Str;
  */
 class BlockCapture extends Block
 {
-	public const NAME = 'capture';
+	public const string NAME = 'capture';
 
 	private string $var_name = '';
 

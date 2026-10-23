@@ -33,7 +33,7 @@ use Override;
  */
 class BlockRaw extends Block
 {
-	public const NAME = 'raw';
+	public const string NAME = 'raw';
 
 	/**
 	 * {@inheritDoc}

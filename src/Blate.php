@@ -31,43 +31,43 @@ use Throwable;
  */
 final class Blate
 {
-	public const VERSION = '1.1.1';
+	public const string VERSION = '1.1.1';
 
-	public const VERSION_NAME = 'Blate ' . self::VERSION;
+	public const string VERSION_NAME = 'Blate ' . self::VERSION;
 
-	public const COMPILE_DIR_NAME = 'blate_cache' . \DIRECTORY_SEPARATOR . self::VERSION;
+	public const string COMPILE_DIR_NAME = 'blate_cache' . \DIRECTORY_SEPARATOR . self::VERSION;
 
-	public const TAG_OPENER = '{';
+	public const string TAG_OPENER = '{';
 
-	public const TAG_CLOSER = '}';
+	public const string TAG_CLOSER = '}';
 
-	public const BLOCK_OPEN = '@';
+	public const string BLOCK_OPEN = '@';
 
-	public const BLOCK_BREAKPOINT = ':';
+	public const string BLOCK_BREAKPOINT = ':';
 
-	public const BLOCK_CLOSE = '/';
+	public const string BLOCK_CLOSE = '/';
 
-	public const BLOCK_COMMENT = '#';
+	public const string BLOCK_COMMENT = '#';
 
-	public const BLOCK_PHP = '~';
+	public const string BLOCK_PHP = '~';
 
-	public const BLOCK_SAFE_ECHO = '=';
+	public const string BLOCK_SAFE_ECHO = '=';
 
-	public const DATA_CONTEXT_VAR = '$context';
+	public const string DATA_CONTEXT_VAR = '$context';
 
-	public const DATA_CONTEXT_REF = '$$';
+	public const string DATA_CONTEXT_REF = '$$';
 
-	public const HELPER_PREFIX_CHAR = '$';
+	public const string HELPER_PREFIX_CHAR = '$';
 
-	public const GLOBAL_CONTEXT_REF = '$global';
+	public const string GLOBAL_CONTEXT_REF = '$global';
 
-	public const SLOT_METHOD_PREFIX = 'slot_';
+	public const string SLOT_METHOD_PREFIX = 'slot_';
 
-	public const BLOCK_NAME_PATTERN = '~^[a-z_][a-z0-9_]*$~i';
+	public const string BLOCK_NAME_PATTERN = '~^[a-z_][a-z0-9_]*$~i';
 
-	public const HELPER_NAME_PATTERN = '~^[a-z_][a-z0-9$_]*$~i';
+	public const string HELPER_NAME_PATTERN = '~^[a-z_][a-z0-9$_]*$~i';
 
-	public const VAR_NAME_PATTERN = '~^[a-z_][a-z0-9$_]*$~i';
+	public const string VAR_NAME_PATTERN = '~^[a-z_][a-z0-9$_]*$~i';
 
 	private static int $var_counter = 0;
 

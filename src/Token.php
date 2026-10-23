@@ -41,75 +41,75 @@ class Token implements TokenInterface
 {
 	use ArrayCapableTrait;
 
-	public const T_UNKNOWN  = 1;
+	public const int T_UNKNOWN  = 1;
 
-	public const T_RAW_DATA = 2;
+	public const int T_RAW_DATA = 2;
 
-	public const T_HASH = 3;
+	public const int T_HASH = 3;
 
-	public const T_COLON = 4;
+	public const int T_COLON = 4;
 
-	public const T_DNUMBER = 5;
+	public const int T_DNUMBER = 5;
 
-	public const T_WHITESPACE = 6;
+	public const int T_WHITESPACE = 6;
 
-	public const T_NAME = 7;
+	public const int T_NAME = 7;
 
-	public const T_DOT = 8;
+	public const int T_DOT = 8;
 
-	public const T_STRING = 9;
+	public const int T_STRING = 9;
 
-	public const T_OPERATOR = 10;
+	public const int T_OPERATOR = 10;
 
-	public const T_COMMA = 11;
+	public const int T_COMMA = 11;
 
-	public const T_COND_AND = 12;
+	public const int T_COND_AND = 12;
 
-	public const T_COND_OR = 13;
+	public const int T_COND_OR = 13;
 
-	public const T_EQ = 14;
+	public const int T_EQ = 14;
 
-	public const T_NOT_EQ = 15;
+	public const int T_NOT_EQ = 15;
 
-	public const T_NOT = 16;
+	public const int T_NOT = 16;
 
-	public const T_LT_OR_LT_EQ = 17;
+	public const int T_LT_OR_LT_EQ = 17;
 
-	public const T_GT_OR_GT_EQ = 18;
+	public const int T_GT_OR_GT_EQ = 18;
 
-	public const T_PAREN_OPEN = 19;
+	public const int T_PAREN_OPEN = 19;
 
-	public const T_PAREN_CLOSE = 20;
+	public const int T_PAREN_CLOSE = 20;
 
-	public const T_SQUARE_BRACKET_OPEN = 21;
+	public const int T_SQUARE_BRACKET_OPEN = 21;
 
-	public const T_SQUARE_BRACKET_CLOSE = 22;
+	public const int T_SQUARE_BRACKET_CLOSE = 22;
 
-	public const T_CURLY_BRACKET_OPEN = 23;
+	public const int T_CURLY_BRACKET_OPEN = 23;
 
-	public const T_CURLY_BRACKET_CLOSE = 24;
+	public const int T_CURLY_BRACKET_CLOSE = 24;
 
-	public const T_TAG_OPEN = 25;
+	public const int T_TAG_OPEN = 25;
 
-	public const T_TAG_CLOSE = 26;
+	public const int T_TAG_CLOSE = 26;
 
-	public const T_PIPE = 27;
+	public const int T_PIPE = 27;
 
-	public const T_AT = 28;
+	public const int T_AT = 28;
 
-	public const T_TILDE = 29;
+	public const int T_TILDE = 29;
 
-	public const T_NULL_COALESCE = 30;
+	public const int T_NULL_COALESCE = 30;
 
-	public const T_SEMICOLON = 31;
+	public const int T_SEMICOLON = 31;
 
-	public const ATTR_IN_TREE = 'in_tree';
+	public const string ATTR_IN_TREE = 'in_tree';
 
-	public const ATTR_ACTIVE_CHAIN = 'active_chain';
+	public const string ATTR_ACTIVE_CHAIN = 'active_chain';
 
-	public const ATTR_EXTENDED_BLATE_VAR    = 'extended_blate_var';
-	public const ATTR_EXTENDED_INSTANCE_VAR = 'extended_instance_var';
-	public const ATTR_EXTENDED_CONTEXT_VAR  = 'extended_context_var';
+	public const string ATTR_EXTENDED_BLATE_VAR    = 'extended_blate_var';
+	public const string ATTR_EXTENDED_INSTANCE_VAR = 'extended_instance_var';
+	public const string ATTR_EXTENDED_CONTEXT_VAR  = 'extended_context_var';
 
 	/**
 	 * @var TokenInterface[]
@@ -259,7 +259,7 @@ class Token implements TokenInterface
 	public static function getTypeName(int $type): string
 	{
 		/** @var array<int, string> $types_names */
-		static $types_names =  [];
+		static $types_names = [];
 
 		if (empty($types_names)) {
 			$o         = new ReflectionClass(static::class);

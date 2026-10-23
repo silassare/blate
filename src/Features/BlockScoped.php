@@ -28,7 +28,7 @@ use Override;
  */
 class BlockScoped extends Block
 {
-	public const NAME = 'scoped';
+	public const string NAME = 'scoped';
 
 	/**
 	 * {@inheritDoc}

@@ -40,7 +40,7 @@ use PHPUtils\Str;
  */
 class BlockExtends extends Block
 {
-	public const NAME = 'extends';
+	public const string NAME = 'extends';
 
 	private TokenInterface $extends;
 

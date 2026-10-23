@@ -28,7 +28,7 @@ namespace Blate;
  * synchronous -- it never suspends control between the push and the pop.
  * It is NOT safe for preemptive threading (e.g. pthreads / parallel extension).
  */
-final class BlateTemplateScope
+final readonly class BlateTemplateScope
 {
 	/**
 	 * BlateTemplateScope constructor.
@@ -37,7 +37,7 @@ final class BlateTemplateScope
 	 * @param Blate       $template the Blate instance for the executing template
 	 */
 	public function __construct(
-		public readonly DataContext $data,
-		public readonly Blate $template,
+		public DataContext $data,
+		public Blate $template,
 	) {}
 }

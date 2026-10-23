@@ -42,8 +42,8 @@ use PHPUtils\Str;
  */
 class BlockSlot extends Block
 {
-	public const NAME         = 'slot';
-	public const SLOT_DEFAULT = 'default';
+	public const string NAME         = 'slot';
+	public const string SLOT_DEFAULT = 'default';
 
 	private TokenInterface $slot;
 	private string $slot_inject_arg;

@@ -31,7 +31,7 @@ use PHPUtils\Str;
  */
 class BlockImportRaw extends Block
 {
-	public const NAME = 'import_raw';
+	public const string NAME = 'import_raw';
 
 	/**
 	 * {@inheritDoc}
