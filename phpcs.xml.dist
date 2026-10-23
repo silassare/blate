@@ -12,6 +12,15 @@
     <!-- Path to our coding standard folder -->
     <rule ref="vendor/oliup/oliup-cs-php/src"/>
 
-    <!-- You should use at least PHP 8.1 -->
-	<config name="testVersion" value="8.1-"/>
+	<!--
+		A template built-in is named after the keyword it implements, and PHP reserves those words:
+		`Helpers::_if()`, `_default()`, `_range()`, ... The underscore is that convention, not a
+		marker of visibility, and renaming them would rename the template functions themselves.
+	-->
+	<rule ref="PSR2.Methods.MethodDeclaration.Underscore">
+		<exclude-pattern>*/src/Helpers/Helpers.php</exclude-pattern>
+	</rule>
+
+    <!-- You should use at least PHP 8.3 -->
+	<config name="testVersion" value="8.3-"/>
 </ruleset>
