@@ -1145,9 +1145,6 @@ final class BlateLspServerTest extends TestCase
 	 */
 	private function call(string $method, mixed ...$args): mixed
 	{
-		$m = $this->ref->getMethod($method);
-		$m->setAccessible(true);
-
-		return $m->invoke($this->server, ...$args);
+		return $this->ref->getMethod($method)->invoke($this->server, ...$args);
 	}
 }

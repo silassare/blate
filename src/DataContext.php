@@ -100,18 +100,17 @@ class DataContext
 	public function get(mixed $key): mixed
 	{
 		$i = \count($this->stack);
+		$value = null;
 
 		while ($i--) {
 			$ctx = $this->stack[$i];
 
-			$found = SimpleChain::has($ctx, $key, $value);
-
-			if ($found) {
-				return $value;
+			if (SimpleChain::has($ctx, $key, $value)) {
+				break;
 			}
 		}
 
-		return null;
+		return $value;
 	}
 
 	/**

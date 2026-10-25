@@ -836,7 +836,7 @@ class BlateLspServer
 		$uri     = (string) ($params['textDocument']['uri'] ?? '');
 		$changes = $params['contentChanges'] ?? [];
 		// Full sync (change mode 1): the last entry contains the complete text.
-		$content          = (string) (\end($changes)['text'] ?? '');
+		$content          = (string) (\array_last($changes)['text'] ?? '');
 		$this->docs[$uri] = $content;
 		$this->diagnose($uri, $content);
 	}

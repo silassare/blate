@@ -536,7 +536,9 @@ class Helpers
 			default => \STR_PAD_RIGHT,
 		};
 
-		return \str_pad($str, $length, $pad_str, $type);
+		// Characters, not bytes: a template author padding a word with an accent in it means the
+		// word as it reads.
+		return \mb_str_pad($str, $length, $pad_str, $type);
 	}
 
 	/**
@@ -623,9 +625,7 @@ class Helpers
 	 */
 	public static function first(array $data): mixed
 	{
-		$key = \array_key_first($data);
-
-		return null !== $key ? $data[$key] : null;
+		return \array_first($data);
 	}
 
 	/**
@@ -637,9 +637,7 @@ class Helpers
 	 */
 	public static function last(array $data): mixed
 	{
-		$key = \array_key_last($data);
-
-		return null !== $key ? $data[$key] : null;
+		return \array_last($data);
 	}
 
 	/**
