@@ -79,11 +79,6 @@ abstract class BlateTemplateParsed
 	}
 
 	/**
-	 * @param Blate $to_extends
-	 * @param mixed $data
-	 *
-	 * @return DataContext
-	 *
 	 * @throws BlateException
 	 */
 	public function createExtendsContext(Blate $to_extends, mixed $data): DataContext
@@ -95,9 +90,6 @@ abstract class BlateTemplateParsed
 		return new DataContext($data, $to_extends);
 	}
 
-	/**
-	 * @param DataContext $context
-	 */
 	abstract public function build(DataContext $context): void;
 
 	/**
@@ -106,8 +98,6 @@ abstract class BlateTemplateParsed
 	 * Use this method in place of build() at all call sites (runGet(),
 	 * {@import}, {@extends}) so that Blate::scope() is always available
 	 * inside helpers while a template is executing.
-	 *
-	 * @param DataContext $context
 	 */
 	public function run(DataContext $context): void
 	{

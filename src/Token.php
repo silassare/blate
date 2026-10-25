@@ -123,10 +123,6 @@ class Token implements TokenInterface
 
 	/**
 	 * Token constructor.
-	 *
-	 * @param ChunkInterface      $chunk
-	 * @param int                 $type
-	 * @param null|TokenInterface $parent
 	 */
 	public function __construct(protected ChunkInterface $chunk, protected int $type, protected ?TokenInterface $parent = null)
 	{
@@ -134,53 +130,35 @@ class Token implements TokenInterface
 		$this->ref = 't' . self::$counter++ . '_l' . $location['line'] . '_i' . $location['index'];
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function __toString(): string
 	{
 		return \sprintf('"%s" (%s) %s.', $this->chunk->getValue(), self::getTypeName($this->type), $this->chunk->getLocationString());
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function getRef(): string
 	{
 		return $this->ref;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function getType(): int
 	{
 		return $this->type;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function getChunk(): ChunkInterface
 	{
 		return $this->chunk;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function getValue(): string
 	{
 		return $this->chunk->getValue();
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function isGroupOpener(): bool
 	{
@@ -190,9 +168,6 @@ class Token implements TokenInterface
 			|| self::T_CURLY_BRACKET_OPEN === $this->type;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function isGroupCloser(): bool
 	{
@@ -202,9 +177,6 @@ class Token implements TokenInterface
 			|| self::T_CURLY_BRACKET_CLOSE === $this->type;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function isGroupCloserOf(TokenInterface $opener): bool
 	{
@@ -217,9 +189,6 @@ class Token implements TokenInterface
 		};
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function isComparator(): bool
 	{
@@ -229,9 +198,6 @@ class Token implements TokenInterface
 		};
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function isOperator(): bool
 	{
@@ -241,9 +207,6 @@ class Token implements TokenInterface
 		};
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function isLogicalCondition(): bool
 	{
@@ -283,18 +246,12 @@ class Token implements TokenInterface
 		return \array_map([self::class, 'getTypeName'], $types);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function getChildren(): array
 	{
 		return $this->children;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function addChild(TokenInterface $token): static
 	{
@@ -307,18 +264,12 @@ class Token implements TokenInterface
 		return $this;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function getParent(): ?self
 	{
 		return $this->parent;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function setParent(?TokenInterface $parent): static
 	{
@@ -327,18 +278,12 @@ class Token implements TokenInterface
 		return $this;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function getAttribute(string $name): mixed
 	{
 		return $this->attributes[$name] ?? null;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function setAttribute(string $name, mixed $value): static
 	{

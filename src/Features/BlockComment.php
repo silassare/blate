@@ -31,9 +31,6 @@ class BlockComment extends Block
 {
 	public const string NAME = 'comment';
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function getName(): string
 	{
@@ -41,8 +38,6 @@ class BlockComment extends Block
 	}
 
 	/**
-	 * {@inheritDoc}
-	 *
 	 * @throws BlateParserException
 	 */
 	#[Override]
@@ -58,9 +53,6 @@ class BlockComment extends Block
 		$this->lexer->nextIs(Token::T_TAG_CLOSE);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function requireClose(): bool
 	{

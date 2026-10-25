@@ -37,9 +37,6 @@ class BlockSet extends Block
 {
 	public const string NAME = 'set';
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function getName(): string
 	{
@@ -47,8 +44,6 @@ class BlockSet extends Block
 	}
 
 	/**
-	 * {@inheritDoc}
-	 *
 	 * @throws BlateParserException
 	 */
 	#[Override]
@@ -82,9 +77,6 @@ class BlockSet extends Block
 		}
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function requireClose(): bool
 	{

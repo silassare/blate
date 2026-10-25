@@ -54,9 +54,6 @@ class BlockRepeat extends Block
 
 	private ?string $index_var = null;
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function getName(): string
 	{
@@ -64,8 +61,6 @@ class BlockRepeat extends Block
 	}
 
 	/**
-	 * {@inheritDoc}
-	 *
 	 * @throws BlateParserException
 	 */
 	#[Override]
@@ -136,9 +131,6 @@ class BlockRepeat extends Block
 		$this->parser->writeCode($code);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function onClose(): void
 	{
@@ -146,9 +138,6 @@ class BlockRepeat extends Block
 		$this->parser->popDataContext();
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function requireClose(): bool
 	{

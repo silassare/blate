@@ -51,53 +51,36 @@ class ExpressionParser implements ParserInterface
 
 	/**
 	 * ExpressionParser constructor.
-	 *
-	 * @param LexerInterface $lexer
 	 */
 	public function __construct(protected LexerInterface $lexer)
 	{
 		$this->expressionContext = new ExpressionContext();
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function getActiveChain(TokenInterface $token): ?TokenInterface
 	{
 		return $this->expressionContext->getActiveChain($token);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function setActiveChain(TokenInterface $token, ?TokenInterface $chain_head): void
 	{
 		$this->expressionContext->setActiveChain($token, $chain_head);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function whileInChildrenOf(TokenInterface $parent): callable
 	{
 		return $this->expressionContext->whileInChildrenOf($parent);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function getLexer(): LexerInterface
 	{
 		return $this->lexer;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function write(string|TokenInterface $str): static
 	{
@@ -110,9 +93,6 @@ class ExpressionParser implements ParserInterface
 		return $this;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function getOutput(): string
 	{

@@ -70,27 +70,18 @@ class Lexer implements LexerInterface
 		$this->digits      = \array_fill_keys(\range(0, 9), 1);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function getReader(): StringReader
 	{
 		return $this->reader;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function getCursor(): int
 	{
 		return $this->token_cursor;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function current(): ?TokenInterface
 	{
@@ -101,9 +92,6 @@ class Lexer implements LexerInterface
 		return $this->stack[$this->token_cursor] ?? null;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function move(): ?TokenInterface
 	{
@@ -120,9 +108,6 @@ class Lexer implements LexerInterface
 		return $this->stack[++$this->token_cursor];
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function lookBackward(bool $ignore_whitespace = false): ?TokenInterface
 	{
@@ -149,9 +134,6 @@ class Lexer implements LexerInterface
 		return null;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function lookForward(bool $ignore_whitespace = false): ?TokenInterface
 	{
@@ -168,9 +150,6 @@ class Lexer implements LexerInterface
 		return $token;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function saveCurrentState(): self
 	{
@@ -185,9 +164,6 @@ class Lexer implements LexerInterface
 		return $this;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function restorePreviousState(): self
 	{
@@ -207,8 +183,6 @@ class Lexer implements LexerInterface
 	}
 
 	/**
-	 * {@inheritDoc}
-	 *
 	 * @throws BlateParserException
 	 */
 	#[Override]
@@ -223,9 +197,6 @@ class Lexer implements LexerInterface
 		return $this->tree;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function getTokensTree(): array
 	{
@@ -233,8 +204,6 @@ class Lexer implements LexerInterface
 	}
 
 	/**
-	 * {@inheritDoc}
-	 *
 	 * @throws BlateParserException
 	 */
 	#[Override]
@@ -270,8 +239,6 @@ class Lexer implements LexerInterface
 	}
 
 	/**
-	 * {@inheritDoc}
-	 *
 	 * @throws BlateParserException
 	 */
 	#[Override]

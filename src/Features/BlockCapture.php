@@ -40,9 +40,6 @@ class BlockCapture extends Block
 
 	private string $var_name = '';
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function getName(): string
 	{
@@ -50,8 +47,6 @@ class BlockCapture extends Block
 	}
 
 	/**
-	 * {@inheritDoc}
-	 *
 	 * @throws BlateParserException
 	 */
 	#[Override]
@@ -63,9 +58,6 @@ class BlockCapture extends Block
 		$this->parser->writeCode('ob_start();');
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function onClose(): void
 	{
@@ -78,9 +70,6 @@ class BlockCapture extends Block
 		));
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function requireClose(): bool
 	{

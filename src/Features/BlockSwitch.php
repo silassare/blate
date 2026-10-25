@@ -53,9 +53,6 @@ class BlockSwitch extends Block
 
 	private bool $default_found = false;
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function getName(): string
 	{
@@ -63,8 +60,6 @@ class BlockSwitch extends Block
 	}
 
 	/**
-	 * {@inheritDoc}
-	 *
 	 * @throws BlateParserException
 	 */
 	#[Override]
@@ -77,8 +72,6 @@ class BlockSwitch extends Block
 	}
 
 	/**
-	 * {@inheritDoc}
-	 *
 	 * @throws BlateParserException
 	 */
 	#[Override]
@@ -115,9 +108,6 @@ class BlockSwitch extends Block
 		}
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function onClose(): void
 	{
@@ -126,9 +116,6 @@ class BlockSwitch extends Block
 		}
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function requireClose(): bool
 	{

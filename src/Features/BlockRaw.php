@@ -35,9 +35,6 @@ class BlockRaw extends Block
 {
 	public const string NAME = 'raw';
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function getName(): string
 	{
@@ -45,8 +42,6 @@ class BlockRaw extends Block
 	}
 
 	/**
-	 * {@inheritDoc}
-	 *
 	 * @throws BlateParserException
 	 */
 	#[Override]
@@ -62,9 +57,6 @@ class BlockRaw extends Block
 		$this->parser->write($chunk->getValue());
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function requireClose(): bool
 	{

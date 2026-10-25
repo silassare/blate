@@ -42,9 +42,6 @@ class DataContext
 
 	/**
 	 * DataContext constructor.
-	 *
-	 * @param array|object $data
-	 * @param Blate        $blate
 	 */
 	public function __construct(array|object $data, private Blate $blate)
 	{
@@ -57,9 +54,6 @@ class DataContext
 		}
 	}
 
-	/**
-	 * @return Blate
-	 */
 	public function getBlate(): Blate
 	{
 		return $this->blate;
@@ -97,8 +91,6 @@ class DataContext
 
 	/**
 	 * @param string $_location compile-time source location 'line:index' (unused, kept for compiled template compatibility)
-	 *
-	 * @return SimpleChain
 	 */
 	public function chain(string $_location = ''): SimpleChain
 	{

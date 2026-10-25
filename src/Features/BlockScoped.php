@@ -30,9 +30,6 @@ class BlockScoped extends Block
 {
 	public const string NAME = 'scoped';
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function getName(): string
 	{
@@ -40,8 +37,6 @@ class BlockScoped extends Block
 	}
 
 	/**
-	 * {@inheritDoc}
-	 *
 	 * @throws BlateParserException
 	 */
 	#[Override]
@@ -51,18 +46,12 @@ class BlockScoped extends Block
 		$this->lexer->nextIs(Token::T_TAG_CLOSE, null, true);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function onClose(): void
 	{
 		$this->parser->popDataContext();
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function requireClose(): bool
 	{

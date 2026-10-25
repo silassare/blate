@@ -39,9 +39,6 @@ class StringReader
 
 	protected array $digits;
 
-	/**
-	 * @param string $input
-	 */
 	public function __construct(protected string $input)
 	{
 		$this->length = \strlen($this->input);
@@ -209,9 +206,6 @@ class StringReader
 		return $result->setValue($acc);
 	}
 
-	/**
-	 * @return null|StringChunk
-	 */
 	public function getChunkIfNextIs(string $chunk, ?string $escape_char = null): ?StringChunk
 	{
 		if (null !== $escape_char && $escape_char === $this->previous()) {

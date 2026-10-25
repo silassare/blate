@@ -61,9 +61,6 @@ class BlockEach extends Block
 
 	private bool $else_found = false;
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function getName(): string
 	{
@@ -71,8 +68,6 @@ class BlockEach extends Block
 	}
 
 	/**
-	 * {@inheritDoc}
-	 *
 	 * @throws BlateParserException
 	 */
 	#[Override]
@@ -202,9 +197,6 @@ class BlockEach extends Block
 		$this->parser->writeCode($code);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function onBreakPoint(TokenInterface $token): void
 	{
@@ -219,9 +211,6 @@ class BlockEach extends Block
 		$this->parser->tagClose();
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function onClose(): void
 	{
@@ -232,9 +221,6 @@ class BlockEach extends Block
 		}
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function requireClose(): bool
 	{

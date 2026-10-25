@@ -39,8 +39,6 @@ use Override;
 class Parenthesis implements TokenHandlerInterface
 {
 	/**
-	 * {@inheritDoc}
-	 *
 	 * @throws BlateParserException when ( appears in an invalid position
 	 */
 	#[Override]

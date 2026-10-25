@@ -38,8 +38,6 @@ use Override;
 class Dot implements TokenHandlerInterface
 {
 	/**
-	 * {@inheritDoc}
-	 *
 	 * @throws BlateParserException when dot appears outside a valid chain context
 	 */
 	#[Override]

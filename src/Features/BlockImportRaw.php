@@ -33,9 +33,6 @@ class BlockImportRaw extends Block
 {
 	public const string NAME = 'import_raw';
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function getName(): string
 	{
@@ -43,8 +40,6 @@ class BlockImportRaw extends Block
 	}
 
 	/**
-	 * {@inheritDoc}
-	 *
 	 * @throws BlateParserException
 	 */
 	#[Override]
@@ -66,9 +61,6 @@ class BlockImportRaw extends Block
 		$this->lexer->nextIs(Token::T_TAG_CLOSE, null, true);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function requireClose(): bool
 	{

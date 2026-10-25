@@ -46,56 +46,36 @@ abstract class Block implements BlockInterface
 	 */
 	protected array $children = [];
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function __construct(protected Parser $parser, protected TokenInterface $token)
 	{
 		$this->lexer = $this->parser->getLexer();
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function getToken(): TokenInterface
 	{
 		return $this->token;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function onChildBlockFound(BlockInterface $block): void {}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function onChildContentFound(TokenInterface $token): void
 	{
 		$this->parser->write($token->getValue());
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function onChildExpressionFound(TokenInterface $token, bool $escape): void
 	{
 		$this->parser->writeExpression((new Expression())->get($this->lexer), $escape);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function onClose(): void {}
 
 	/**
-	 * {@inheritDoc}
-	 *
 	 * @throws BlateParserException
 	 */
 	#[Override]

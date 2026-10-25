@@ -56,8 +56,6 @@ class StringChunk implements ChunkInterface
 
 	/**
 	 * StringChunk constructor.
-	 *
-	 * @param StringReader $reader
 	 */
 	public function __construct(protected StringReader $reader)
 	{
@@ -66,17 +64,11 @@ class StringChunk implements ChunkInterface
 		$this->start_line_index  = $reader->getLineIndex();
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function __toString(): string
 	{
 		return $this->getLocationString();
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function setExpected(mixed $expected): static
 	{
@@ -85,18 +77,12 @@ class StringChunk implements ChunkInterface
 		return $this;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function getExpected(): mixed
 	{
 		return $this->expected;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function setUnexpected(mixed $unexpected): static
 	{
@@ -105,9 +91,6 @@ class StringChunk implements ChunkInterface
 		return $this;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function getUnexpected(): mixed
 	{
@@ -118,18 +101,12 @@ class StringChunk implements ChunkInterface
 		return $this->getValue();
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function getValue(): string
 	{
 		return !empty($this->value) ? $this->value : \substr($this->reader->getInput(), $this->start_cursor, $this->end_cursor - $this->start_cursor);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function setValue(mixed $value): static
 	{
@@ -147,18 +124,12 @@ class StringChunk implements ChunkInterface
 		return $this;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function eof(): bool
 	{
 		return $this->eof;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function getLocationString(bool $full = false): string
 	{
@@ -169,9 +140,6 @@ class StringChunk implements ChunkInterface
 		return \sprintf('Line %s index %s', $this->start_line_number, $this->start_line_index);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function getLocation(): array
 	{
@@ -187,9 +155,6 @@ class StringChunk implements ChunkInterface
 		];
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function toArray(): array
 	{

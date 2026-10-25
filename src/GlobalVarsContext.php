@@ -87,9 +87,6 @@ final class GlobalVarsContext implements ArrayAccess
 	/**
 	 * Register (or update) a static global variable.
 	 *
-	 * @param string      $name
-	 * @param mixed       $value
-	 * @param bool        $editable
 	 * @param null|string $description optional LSP hover / completion description
 	 */
 	public function registerVar(string $name, mixed $value, bool $editable, ?string $description = null): void
@@ -110,9 +107,7 @@ final class GlobalVarsContext implements ArrayAccess
 	 *
 	 * The factory is called on every access with no arguments. No memoization.
 	 *
-	 * @param string            $name
 	 * @param callable(): mixed $factory
-	 * @param bool              $editable
 	 * @param null|string       $description optional LSP hover / completion description
 	 */
 	public function registerComputed(string $name, callable $factory, bool $editable, ?string $description = null): void
@@ -143,26 +138,18 @@ final class GlobalVarsContext implements ArrayAccess
 	 * Returns the description registered for a variable, or null if none was provided.
 	 *
 	 * @param string $name the variable name
-	 *
-	 * @return null|string
 	 */
 	public function getDescription(string $name): ?string
 	{
 		return $this->descriptions[$name] ?? null;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function offsetExists(mixed $offset): bool
 	{
 		return \array_key_exists($offset, $this->vars) || isset($this->computed[$offset]);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function offsetGet(mixed $offset): mixed
 	{
@@ -178,8 +165,6 @@ final class GlobalVarsContext implements ArrayAccess
 	}
 
 	/**
-	 * {@inheritDoc}
-	 *
 	 * @throws LogicException always - GlobalVarsContext is managed by Blate, not written via array syntax
 	 */
 	#[Override]
@@ -189,8 +174,6 @@ final class GlobalVarsContext implements ArrayAccess
 	}
 
 	/**
-	 * {@inheritDoc}
-	 *
 	 * @throws LogicException always
 	 */
 	#[Override]

@@ -37,9 +37,6 @@ class BlockImport extends Block
 {
 	public const string NAME = 'import';
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function getName(): string
 	{
@@ -47,8 +44,6 @@ class BlockImport extends Block
 	}
 
 	/**
-	 * {@inheritDoc}
-	 *
 	 * @throws BlateParserException
 	 */
 	#[Override]
@@ -86,9 +81,6 @@ class BlockImport extends Block
 		));
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function requireClose(): bool
 	{

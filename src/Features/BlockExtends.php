@@ -44,18 +44,12 @@ class BlockExtends extends Block
 
 	private TokenInterface $extends;
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function getName(): string
 	{
 		return self::NAME;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function onChildBlockFound(BlockInterface $block): void
 	{
@@ -64,9 +58,6 @@ class BlockExtends extends Block
 		}
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function onChildContentFound(TokenInterface $token): void
 	{
@@ -75,9 +66,6 @@ class BlockExtends extends Block
 		}
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function onChildExpressionFound(TokenInterface $token, bool $escape): void
 	{
@@ -85,8 +73,6 @@ class BlockExtends extends Block
 	}
 
 	/**
-	 * {@inheritDoc}
-	 *
 	 * @throws BlateParserException
 	 */
 	#[Override]
@@ -132,9 +118,6 @@ class BlockExtends extends Block
 		));
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function onClose(): void
 	{
@@ -147,9 +130,6 @@ class BlockExtends extends Block
 		));
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function requireClose(): bool
 	{

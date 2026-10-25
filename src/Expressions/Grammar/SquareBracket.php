@@ -37,8 +37,6 @@ use Override;
 class SquareBracket implements TokenHandlerInterface
 {
 	/**
-	 * {@inheritDoc}
-	 *
 	 * @throws BlateParserException when [ appears in an invalid position
 	 */
 	#[Override]

@@ -30,9 +30,6 @@ trait BlateExceptionTrait
 
 	private ?ChunkInterface $chunk = null;
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public function __toString(): string
 	{
 		return $this->describe(true, true);
@@ -40,8 +37,6 @@ trait BlateExceptionTrait
 
 	/**
 	 * Define template source.
-	 *
-	 * @param string $template
 	 *
 	 * @return $this
 	 */
@@ -76,8 +71,6 @@ trait BlateExceptionTrait
 
 	/**
 	 * Gets the chunk associated with this exception, if any.
-	 *
-	 * @return null|ChunkInterface
 	 */
 	public function getChunk(): ?ChunkInterface
 	{

@@ -38,9 +38,6 @@ use Override;
  */
 class Operator implements TokenHandlerInterface
 {
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function handle(ParserInterface $parser, TokenInterface $token, bool $is_head): void
 	{

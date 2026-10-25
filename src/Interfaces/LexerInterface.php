@@ -32,8 +32,6 @@ interface LexerInterface
 
 	/**
 	 * Move the cursor.
-	 *
-	 * @return ?TokenInterface
 	 */
 	public function move(): ?TokenInterface;
 

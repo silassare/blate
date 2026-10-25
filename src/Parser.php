@@ -49,9 +49,6 @@ class Parser
 	 */
 	private int $var_counter = 0;
 
-	/**
-	 * @param Blate $blate
-	 */
 	public function __construct(protected Blate $blate)
 	{
 		$this->lexer = new Lexer($this->blate->getInput());
@@ -61,17 +58,11 @@ class Parser
 		$this->ts_extends = new TypedStack();
 	}
 
-	/**
-	 * @return Blate
-	 */
 	public function getBlate(): Blate
 	{
 		return $this->blate;
 	}
 
-	/**
-	 * @return Lexer
-	 */
 	public function getLexer(): Lexer
 	{
 		return $this->lexer;

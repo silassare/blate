@@ -200,8 +200,6 @@ final class Blate
 
 	/**
 	 * Get the configured global cache directory, or null if none is set.
-	 *
-	 * @return null|string
 	 */
 	public static function getCacheDir(): ?string
 	{
@@ -311,8 +309,6 @@ final class Blate
 
 	/**
 	 * Get the input.
-	 *
-	 * @return string
 	 */
 	public function getInput(): string
 	{
@@ -358,8 +354,6 @@ final class Blate
 
 	/**
 	 * Get the source path.
-	 *
-	 * @return null|string
 	 */
 	public function getSrcPath(): ?string
 	{
@@ -368,8 +362,6 @@ final class Blate
 
 	/**
 	 * Get the source directory.
-	 *
-	 * @return string
 	 */
 	public function getSrcDir(): string
 	{
@@ -378,8 +370,6 @@ final class Blate
 
 	/**
 	 * Get the destination path.
-	 *
-	 * @return string
 	 */
 	public function getDestPath(): string
 	{
@@ -509,8 +499,6 @@ final class Blate
 	 * instead, which uses a per-instance counter safe for concurrent use in
 	 * persistent runtimes (Swoole, RoadRunner, PHP Fibers).  This static
 	 * method is kept for backward compatibility with external callers.
-	 *
-	 * @return string
 	 */
 	public static function createVar(): string
 	{
@@ -521,8 +509,6 @@ final class Blate
 	 * Get a slot method name.
 	 *
 	 * @param string $name the slot name
-	 *
-	 * @return string
 	 */
 	public static function slotMethodName(string $name): string
 	{
@@ -584,8 +570,6 @@ final class Blate
 	 * Returns true when the block is registered and not disabled.
 	 *
 	 * @param string $name the block name
-	 *
-	 * @return bool
 	 */
 	public static function isBlockEnabled(string $name): bool
 	{
@@ -685,8 +669,6 @@ final class Blate
 	 * Returns true when the helper is registered and not disabled.
 	 *
 	 * @param string $name the helper name (with or without the '$' prefix)
-	 *
-	 * @return bool
 	 */
 	public static function isHelperEnabled(string $name): bool
 	{
@@ -735,11 +717,6 @@ final class Blate
 
 	/**
 	 * Returns a new block instance.
-	 *
-	 * @param Parser         $parser
-	 * @param TokenInterface $token
-	 *
-	 * @return null|BlockInterface
 	 */
 	public static function getBlockInstance(Parser $parser, TokenInterface $token): ?BlockInterface
 	{

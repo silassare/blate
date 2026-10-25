@@ -33,9 +33,6 @@ class BlockPhp extends Block
 {
 	public const string NAME = 'php';
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function getName(): string
 	{
@@ -43,8 +40,6 @@ class BlockPhp extends Block
 	}
 
 	/**
-	 * {@inheritDoc}
-	 *
 	 * @throws BlateParserException
 	 */
 	#[Override]
@@ -62,9 +57,6 @@ class BlockPhp extends Block
 		$this->lexer->nextIs(Token::T_TAG_CLOSE);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function requireClose(): bool
 	{

@@ -48,9 +48,6 @@ class BlockSlot extends Block
 	private TokenInterface $slot;
 	private string $slot_inject_arg;
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function getName(): string
 	{
@@ -58,8 +55,6 @@ class BlockSlot extends Block
 	}
 
 	/**
-	 * {@inheritDoc}
-	 *
 	 * @throws BlateParserException
 	 */
 	#[Override]
@@ -113,9 +108,6 @@ class BlockSlot extends Block
 		$this->parser->tagClose();
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function onClose(): void
 	{
@@ -191,9 +183,6 @@ class BlockSlot extends Block
 		$this->parser->tagClose();
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function requireClose(): bool
 	{

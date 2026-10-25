@@ -97,8 +97,6 @@ interface TokenInterface extends ArrayCapableInterface, \Stringable
 	/**
 	 * Sets token parent.
 	 *
-	 * @param null|TokenInterface $parent
-	 *
 	 * @return $this
 	 */
 	public function setParent(?self $parent): static;

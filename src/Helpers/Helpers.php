@@ -114,8 +114,6 @@ class Helpers
 	 *
 	 * @param mixed      $target The target
 	 * @param int|string $prop   The property name
-	 *
-	 * @return bool
 	 */
 	public static function has(mixed $target, int|string $prop): bool
 	{
@@ -133,8 +131,6 @@ class Helpers
 	 *
 	 * @param mixed       $value The value to inspect
 	 * @param null|string $type  The expected type
-	 *
-	 * @return bool|string
 	 */
 	public static function type(mixed $value, ?string $type = null): bool|string
 	{
@@ -156,8 +152,6 @@ class Helpers
 	 *
 	 * @param mixed  $value The value to cast
 	 * @param string $type  The target type
-	 *
-	 * @return mixed
 	 */
 	public static function cast(mixed $value, string $type): mixed
 	{
@@ -176,8 +170,6 @@ class Helpers
 	 *
 	 * @param mixed $value    The value to test
 	 * @param mixed $fallback The fallback value
-	 *
-	 * @return mixed
 	 */
 	public static function _default(mixed $value, mixed $fallback): mixed
 	{
@@ -193,8 +185,6 @@ class Helpers
 	 * @param bool  $condition The condition
 	 * @param mixed $a         The value returned when true
 	 * @param mixed $b         The value returned when false
-	 *
-	 * @return mixed
 	 */
 	public static function _if(bool $condition, mixed $a, mixed $b): mixed
 	{
@@ -209,8 +199,6 @@ class Helpers
 	 * Escape a value for use in HTML text and attributes (htmlspecialchars).
 	 *
 	 * @param mixed $value The value to escape
-	 *
-	 * @return string
 	 */
 	public static function escape(mixed $value): string
 	{
@@ -224,8 +212,6 @@ class Helpers
 	 * prevention in UTF-8 documents without corrupting multibyte characters.
 	 *
 	 * @param mixed $untrusted The value to escape
-	 *
-	 * @return string
 	 */
 	public static function escapeHtml(mixed $untrusted): string
 	{
@@ -258,8 +244,6 @@ class Helpers
 	 *                                                  null -> "", true -> "true".
 	 *                                                  Pass 1 from templates (boolean
 	 *                                                  literals resolve as variable names).
-	 *
-	 * @return string
 	 */
 	public static function attrs(array $data, bool|int $raw = false): string
 	{
@@ -301,8 +285,6 @@ class Helpers
 	 * Wrap a string in single quotes, escaping internal single quotes.
 	 *
 	 * @param string $str The string to quote
-	 *
-	 * @return string
 	 */
 	public static function quote(string $str): string
 	{
@@ -314,8 +296,6 @@ class Helpers
 	 * Remove surrounding single or double quotes from a string.
 	 *
 	 * @param string $str The string to unquote
-	 *
-	 * @return string
 	 */
 	public static function unquote(string $str): string
 	{
@@ -334,8 +314,6 @@ class Helpers
 	 * Concatenate strings.
 	 *
 	 * @param string ...$args The strings to concatenate
-	 *
-	 * @return string
 	 */
 	public static function concat(string ...$args): string
 	{
@@ -346,8 +324,6 @@ class Helpers
 	 * Convert a string to uppercase (multibyte-safe).
 	 *
 	 * @param string $str The input string
-	 *
-	 * @return string
 	 */
 	public static function upper(string $str): string
 	{
@@ -358,8 +334,6 @@ class Helpers
 	 * Convert a string to lowercase (multibyte-safe).
 	 *
 	 * @param string $str The input string
-	 *
-	 * @return string
 	 */
 	public static function lower(string $str): string
 	{
@@ -370,8 +344,6 @@ class Helpers
 	 * Uppercase the first character of a string (multibyte-safe).
 	 *
 	 * @param string $str The input string
-	 *
-	 * @return string
 	 */
 	public static function ucfirst(string $str): string
 	{
@@ -387,8 +359,6 @@ class Helpers
 	 *
 	 * @param string $str   The input string
 	 * @param string $chars Characters to strip (default: whitespace)
-	 *
-	 * @return string
 	 */
 	public static function trim(string $str, string $chars = " \t\n\r\0\x0B"): string
 	{
@@ -401,8 +371,6 @@ class Helpers
 	 * @param string       $str     The subject string
 	 * @param array|string $search  The value(s) to search for
 	 * @param array|string $replace The replacement value(s)
-	 *
-	 * @return string
 	 */
 	public static function replace(string $str, array|string $search, array|string $replace): string
 	{
@@ -436,8 +404,6 @@ class Helpers
 	 * @param string   $str    The input string
 	 * @param int      $start  The starting index
 	 * @param null|int $length The length (optional, null = to end of string)
-	 *
-	 * @return string
 	 */
 	public static function substr(string $str, int $start, ?int $length = null): string
 	{
@@ -454,8 +420,6 @@ class Helpers
 	 * @param string $str    The input string
 	 * @param int    $length The maximum number of characters
 	 * @param string $suffix The suffix to append when truncated (default: '...')
-	 *
-	 * @return string
 	 */
 	public static function truncate(string $str, int $length, string $suffix = '...'): string
 	{
@@ -470,8 +434,6 @@ class Helpers
 	 * Insert HTML line breaks before all newlines in a string.
 	 *
 	 * @param string $str The input string
-	 *
-	 * @return string
 	 */
 	public static function nl2br(string $str): string
 	{
@@ -482,8 +444,6 @@ class Helpers
 	 * URL-encode a string using RFC 3986 encoding.
 	 *
 	 * @param string $str The string to encode
-	 *
-	 * @return string
 	 */
 	public static function url(string $str): string
 	{
@@ -499,8 +459,6 @@ class Helpers
 	 * @param mixed $value  The value to encode
 	 * @param int   $flags  JSON encoding flags (default: JSON_HEX_TAG | JSON_HEX_AMP | JSON_THROW_ON_ERROR)
 	 * @param bool  $pretty When true, pretty-print the JSON output
-	 *
-	 * @return string
 	 */
 	public static function json(mixed $value, int $flags = \JSON_HEX_TAG | \JSON_HEX_AMP | \JSON_THROW_ON_ERROR, bool $pretty = false): string
 	{
@@ -516,8 +474,6 @@ class Helpers
 	 *
 	 * @param string $str    The input string
 	 * @param string $prefix The prefix to check
-	 *
-	 * @return bool
 	 */
 	public static function startsWith(string $str, string $prefix): bool
 	{
@@ -529,8 +485,6 @@ class Helpers
 	 *
 	 * @param string $str    The input string
 	 * @param string $suffix The suffix to check
-	 *
-	 * @return bool
 	 */
 	public static function endsWith(string $str, string $suffix): bool
 	{
@@ -545,8 +499,6 @@ class Helpers
 	 *
 	 * @param array|string $haystack The string or array to search
 	 * @param mixed        $needle   The value to search for
-	 *
-	 * @return bool
 	 */
 	public static function contains(array|string $haystack, mixed $needle): bool
 	{
@@ -562,8 +514,6 @@ class Helpers
 	 *
 	 * @param string $str   The string to repeat
 	 * @param int    $times The number of repetitions
-	 *
-	 * @return string
 	 */
 	public static function repeat(string $str, int $times): string
 	{
@@ -577,8 +527,6 @@ class Helpers
 	 * @param int    $length  The target length
 	 * @param string $pad_str The padding character(s) (default: ' ')
 	 * @param string $side    Where to apply padding: 'right' (default), 'left', or 'both'
-	 *
-	 * @return string
 	 */
 	public static function pad(string $str, int $length, string $pad_str = ' ', string $side = 'right'): string
 	{
@@ -596,8 +544,6 @@ class Helpers
 	 *
 	 * @param string $format  The format string
 	 * @param mixed  ...$args The values to insert
-	 *
-	 * @return string
 	 */
 	public static function _sprintf(string $format, mixed ...$args): string
 	{
@@ -609,8 +555,6 @@ class Helpers
 	 *
 	 * @param string       $str     The input string
 	 * @param array|string $allowed Tags to keep, e.g. '<p><br>' or ['p', 'br'] (optional)
-	 *
-	 * @return string
 	 */
 	public static function stripTags(string $str, array|string $allowed = ''): string
 	{
@@ -626,8 +570,6 @@ class Helpers
 	 *
 	 * @param array<string> $data The array of strings
 	 * @param string        $glue The glue (default: '')
-	 *
-	 * @return string
 	 */
 	public static function join(array $data, string $glue = ''): string
 	{
@@ -638,8 +580,6 @@ class Helpers
 	 * Get the keys of an array.
 	 *
 	 * @param array $data The array
-	 *
-	 * @return array
 	 */
 	public static function keys(array $data): array
 	{
@@ -650,8 +590,6 @@ class Helpers
 	 * Get the values of an array, re-indexed from zero.
 	 *
 	 * @param array $data The array
-	 *
-	 * @return array
 	 */
 	public static function values(array $data): array
 	{
@@ -662,8 +600,6 @@ class Helpers
 	 * Get the length of a string, array, or countable value.
 	 *
 	 * @param mixed $value The value
-	 *
-	 * @return int
 	 */
 	public static function length(mixed $value): int
 	{
@@ -684,8 +620,6 @@ class Helpers
 	 * Returns null for an empty array.
 	 *
 	 * @param array $data The input array
-	 *
-	 * @return mixed
 	 */
 	public static function first(array $data): mixed
 	{
@@ -700,8 +634,6 @@ class Helpers
 	 * Returns null for an empty array.
 	 *
 	 * @param array $data The input array
-	 *
-	 * @return mixed
 	 */
 	public static function last(array $data): mixed
 	{
@@ -716,8 +648,6 @@ class Helpers
 	 * @param array    $data   The input array
 	 * @param int      $offset The starting offset
 	 * @param null|int $length The number of elements to extract (optional)
-	 *
-	 * @return array
 	 */
 	public static function slice(array $data, int $offset, ?int $length = null): array
 	{
@@ -730,8 +660,6 @@ class Helpers
 	 * String reversal is multibyte-safe (character-level, not byte-level).
 	 *
 	 * @param array|string $value The value to reverse
-	 *
-	 * @return array|string
 	 */
 	public static function reverse(array|string $value): array|string
 	{
@@ -746,8 +674,6 @@ class Helpers
 	 * Remove duplicate values from an array.
 	 *
 	 * @param array $data The input array
-	 *
-	 * @return array
 	 */
 	public static function unique(array $data): array
 	{
@@ -758,8 +684,6 @@ class Helpers
 	 * Flatten an array by one level.
 	 *
 	 * @param array $data The input array
-	 *
-	 * @return array
 	 */
 	public static function flatten(array $data): array
 	{
@@ -783,8 +707,6 @@ class Helpers
 	 *
 	 * @param array $data The input array
 	 * @param int   $size The chunk size
-	 *
-	 * @return array
 	 */
 	public static function chunk(array $data, int $size): array
 	{
@@ -795,8 +717,6 @@ class Helpers
 	 * Merge two or more arrays.
 	 *
 	 * @param array ...$arrays The arrays to merge
-	 *
-	 * @return array
 	 */
 	public static function merge(array ...$arrays): array
 	{
@@ -807,8 +727,6 @@ class Helpers
 	 * Sort an array in ascending order and re-index from zero.
 	 *
 	 * @param array $data The input array
-	 *
-	 * @return array
 	 */
 	public static function sort(array $data): array
 	{
@@ -822,8 +740,6 @@ class Helpers
 	 *
 	 * @param array  $data The input array
 	 * @param string $key  The key to sort by
-	 *
-	 * @return array
 	 */
 	public static function sortBy(array $data, string $key): array
 	{
@@ -838,8 +754,6 @@ class Helpers
 	 * @param float|int $start The first value
 	 * @param float|int $end   The last value (inclusive)
 	 * @param float|int $step  The increment between values (default: 1)
-	 *
-	 * @return array
 	 */
 	public static function _range(float|int $start, float|int $end, float|int $step = 1): array
 	{
@@ -850,8 +764,6 @@ class Helpers
 	 * Return the minimum value in an array.
 	 *
 	 * @param array $data The input array (must not be empty)
-	 *
-	 * @return mixed
 	 */
 	public static function _min(array $data): mixed
 	{
@@ -862,8 +774,6 @@ class Helpers
 	 * Return the maximum value in an array.
 	 *
 	 * @param array $data The input array (must not be empty)
-	 *
-	 * @return mixed
 	 */
 	public static function _max(array $data): mixed
 	{
@@ -874,8 +784,6 @@ class Helpers
 	 * Return the sum of all values in an array.
 	 *
 	 * @param array $data The input array
-	 *
-	 * @return float|int
 	 */
 	public static function sum(array $data): float|int
 	{
@@ -888,8 +796,6 @@ class Helpers
 	 * Returns 0.0 for an empty array.
 	 *
 	 * @param array $data The input array
-	 *
-	 * @return float
 	 */
 	public static function avg(array $data): float
 	{
@@ -904,8 +810,6 @@ class Helpers
 	 * The original array is not modified; a shuffled copy is returned.
 	 *
 	 * @param array $data The input array
-	 *
-	 * @return array
 	 */
 	public static function shuffle(array $data): array
 	{
@@ -923,8 +827,6 @@ class Helpers
 	 *
 	 * @param array $data  The input array
 	 * @param mixed $value The value to match (optional)
-	 *
-	 * @return array
 	 */
 	public static function filter(array $data, mixed $value = null): array
 	{
@@ -946,8 +848,6 @@ class Helpers
 	 * @param int       $decimals      The number of decimal digits (default: 2)
 	 * @param string    $dec_point     The decimal point character (default: '.')
 	 * @param string    $thousands_sep The thousands separator (default: ',')
-	 *
-	 * @return string
 	 */
 	public static function number(float|int $value, int $decimals = 2, string $dec_point = '.', string $thousands_sep = ','): string
 	{
@@ -958,8 +858,6 @@ class Helpers
 	 * Return the absolute value of a number.
 	 *
 	 * @param float|int $value The number
-	 *
-	 * @return float|int
 	 */
 	public static function abs(float|int $value): float|int
 	{
@@ -971,8 +869,6 @@ class Helpers
 	 *
 	 * @param float|int $value     The number to round
 	 * @param int       $precision The number of decimal digits (default: 0)
-	 *
-	 * @return float
 	 */
 	public static function round(float|int $value, int $precision = 0): float
 	{
@@ -985,8 +881,6 @@ class Helpers
 	 * @param float|int $value The number to constrain
 	 * @param float|int $min   The lower bound
 	 * @param float|int $max   The upper bound
-	 *
-	 * @return float|int
 	 */
 	public static function clamp(float|int $value, float|int $min, float|int $max): float|int
 	{
@@ -997,8 +891,6 @@ class Helpers
 	 * Round a number down to the nearest integer.
 	 *
 	 * @param float|int $value The number to floor
-	 *
-	 * @return float
 	 */
 	public static function floor(float|int $value): float
 	{
@@ -1009,8 +901,6 @@ class Helpers
 	 * Round a number up to the nearest integer.
 	 *
 	 * @param float|int $value The number to ceil
-	 *
-	 * @return float
 	 */
 	public static function ceil(float|int $value): float
 	{
@@ -1024,8 +914,6 @@ class Helpers
 	 *
 	 * @param int $min The lower bound (inclusive, default: 0)
 	 * @param int $max The upper bound (inclusive, default: PHP_INT_MAX)
-	 *
-	 * @return int
 	 */
 	public static function random(int $min = 0, int $max = \PHP_INT_MAX): int
 	{
@@ -1040,8 +928,6 @@ class Helpers
 	 * Return the current Unix timestamp.
 	 *
 	 * @param bool $microtime Whether to include microseconds (default: false)
-	 *
-	 * @return float|int
 	 */
 	public static function now(bool $microtime = false): float|int
 	{
@@ -1058,8 +944,6 @@ class Helpers
 	 * @param DateTimeInterface|float|int|string $date     The date to format
 	 * @param string                             $format   The date format (default: 'Y-m-d H:i:s')
 	 * @param null|string                        $timezone The timezone (default: null, meaning the default timezone)
-	 *
-	 * @return string
 	 */
 	public static function date(DateTimeInterface|float|int|string $date, string $format = 'Y-m-d H:i:s', ?string $timezone = null): string
 	{
@@ -1112,8 +996,6 @@ class Helpers
 	 * Wrap an array in a mutable Store for chained .set() calls.
 	 *
 	 * @param array<mixed, mixed> $arr The initial data
-	 *
-	 * @return Store
 	 */
 	public static function store(array $arr = []): Store
 	{

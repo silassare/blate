@@ -43,9 +43,6 @@ class BlockIf extends Block
 
 	private bool $else_found = false;
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function getName(): string
 	{
@@ -53,8 +50,6 @@ class BlockIf extends Block
 	}
 
 	/**
-	 * {@inheritDoc}
-	 *
 	 * @throws BlateParserException
 	 */
 	#[Override]
@@ -69,9 +64,6 @@ class BlockIf extends Block
 		$this->parser->writeCode($code);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function onBreakPoint(TokenInterface $token): void
 	{
@@ -101,18 +93,12 @@ class BlockIf extends Block
 		}
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function onClose(): void
 	{
 		$this->parser->writeCode('}');
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	#[Override]
 	public function requireClose(): bool
 	{

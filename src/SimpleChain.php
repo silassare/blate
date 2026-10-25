@@ -61,7 +61,6 @@ class SimpleChain
 
 	/**
 	 * @param string $location compile-time source location 'line:index'
-	 * @param mixed  $key
 	 *
 	 * @return $this
 	 *
@@ -141,7 +140,6 @@ class SimpleChain
 
 	/**
 	 * @param string $location compile-time source location 'line:index'
-	 * @param mixed  ...$args
 	 *
 	 * @return $this
 	 *
