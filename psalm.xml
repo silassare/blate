@@ -14,6 +14,10 @@
         </ignoreFiles>
     </projectFiles>
     <issueHandlers>
+        <!-- PHP 8.5 deprecates every form of null array offset, `isset()`, `??` and `empty()` included,
+             so a possibly-null offset is a deprecation waiting to be triggered, not a style question. -->
+        <PossiblyNullArrayOffset errorLevel="error"/>
+        <NullArrayOffset errorLevel="error"/>
         <!-- Public API methods not called within the library itself (consumed externally) -->
         <PossiblyUnusedMethod errorLevel="suppress"/>
         <!-- Fluent builder methods whose return values are chained by callers externally -->

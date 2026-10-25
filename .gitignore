@@ -14,3 +14,6 @@ tests/.cache
 
 # phpcs
 .phpcs.cache
+
+# phpunit
+.phpunit.cache

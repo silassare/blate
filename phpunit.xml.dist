@@ -2,27 +2,35 @@
 
 <phpunit
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/9.5/phpunit.xsd"
+	xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/12.0/phpunit.xsd"
 	bootstrap="tests/autoload.php"
+	cacheDirectory=".phpunit.cache"
 	failOnWarning="true"
-	convertErrorsToExceptions="true"
-	convertNoticesToExceptions="true"
-	convertWarningsToExceptions="true"
-	stopOnError="false"
-	stopOnFailure="false"
-	stopOnIncomplete="false"
-	stopOnSkipped="false"
-	stopOnRisky="false">
+	failOnNotice="true"
+	failOnDeprecation="true"
+	failOnRisky="true"
+	displayDetailsOnTestsThatTriggerDeprecations="true"
+	displayDetailsOnTestsThatTriggerWarnings="true"
+	displayDetailsOnTestsThatTriggerNotices="true"
+	displayDetailsOnTestsThatTriggerErrors="true">
 
-    <php>
-        <ini name="error_reporting" value="-1"/>
-    </php>
+	<php>
+		<ini name="error_reporting" value="-1"/>
+	</php>
 
-    <testsuites>
-        <testsuite name="Blate Test Suite">
-            <directory>tests/</directory>
+	<testsuites>
+		<testsuite name="Blate Test Suite">
+			<directory>tests/</directory>
 			<exclude>tests/.cache</exclude>
-        </testsuite>
-    </testsuites>
+		</testsuite>
+	</testsuites>
+
+	<!-- The code this suite answers for. Deprecations are deliberately left unrestricted: one raised
+	     in `tests/` is as much ours to fix as one raised in `src/`, and `failOnDeprecation` fails on both. -->
+	<source restrictNotices="true" restrictWarnings="true">
+		<include>
+			<directory>src</directory>
+		</include>
+	</source>
 
 </phpunit>
