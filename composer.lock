@@ -65,12 +65,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/silassare/php-utils.git",
-                "reference": "ab1cab54abbcf2ad0a3805e9e325227aacc764dc"
+                "reference": "de87eca493fd49aab4d7dd6d54292e091082108f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/silassare/php-utils/zipball/ab1cab54abbcf2ad0a3805e9e325227aacc764dc",
-                "reference": "ab1cab54abbcf2ad0a3805e9e325227aacc764dc",
+                "url": "https://api.github.com/repos/silassare/php-utils/zipball/de87eca493fd49aab4d7dd6d54292e091082108f",
+                "reference": "de87eca493fd49aab4d7dd6d54292e091082108f",
                 "shasum": ""
             },
             "require": {
@@ -118,7 +118,7 @@
                 "issues": "https://github.com/silassare/php-utils/issues",
                 "source": "https://github.com/silassare/php-utils/tree/main"
             },
-            "time": "2026-10-27T14:17:21+00:00"
+            "time": "2026-10-27T15:33:57+00:00"
         }
     ],
     "packages-dev": [
@@ -2252,12 +2252,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/oliup-io/oliup-cs-php.git",
-                "reference": "de09ba535e482bcdde72da65cb38751b650cb936"
+                "reference": "f9d2c51a23eb2246d278e0ed4961748dc46aefbc"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/oliup-io/oliup-cs-php/zipball/de09ba535e482bcdde72da65cb38751b650cb936",
-                "reference": "de09ba535e482bcdde72da65cb38751b650cb936",
+                "url": "https://api.github.com/repos/oliup-io/oliup-cs-php/zipball/f9d2c51a23eb2246d278e0ed4961748dc46aefbc",
+                "reference": "f9d2c51a23eb2246d278e0ed4961748dc46aefbc",
                 "shasum": ""
             },
             "require": {
@@ -2311,7 +2311,7 @@
                 "issues": "https://github.com/oliup-io/oliup-cs-php/issues",
                 "source": "https://github.com/oliup-io/oliup-cs-php/tree/main"
             },
-            "time": "2026-10-27T13:56:38+00:00"
+            "time": "2026-10-27T15:29:25+00:00"
         },
         {
             "name": "phar-io/manifest",
