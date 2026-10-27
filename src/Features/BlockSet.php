@@ -54,7 +54,7 @@ class BlockSet extends Block
 		$var_name = $this->lexer->nextIs(Token::T_NAME, null, true);
 		$this->lexer->nextIs(null, '=', true);
 		$this->lexer->move();
-		$expression = (new Expression())->getWhileTrue($this->lexer, static function (TokenInterface $token) {
+		$expression = new Expression()->getWhileTrue($this->lexer, static function (TokenInterface $token) {
 			return Token::T_TAG_CLOSE !== $token->getType() && Token::T_SEMICOLON !== $token->getType();
 		});
 		$this->parser->writeCode(Str::interpolate(

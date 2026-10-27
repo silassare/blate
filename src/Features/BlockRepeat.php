@@ -68,7 +68,7 @@ class BlockRepeat extends Block
 	{
 		$this->lexer->nextIs(Token::T_WHITESPACE);
 
-		$count_expr = (new Expression())->getWhileTrue(
+		$count_expr = new Expression()->getWhileTrue(
 			$this->lexer,
 			static function (TokenInterface $t): bool {
 				return Token::T_TAG_CLOSE !== $t->getType()

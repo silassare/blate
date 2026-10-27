@@ -15,15 +15,15 @@ namespace Blate\Tests;
 
 use Blate\Blate;
 use Blate\Exceptions\BlateRuntimeException;
+use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\TestCase;
 
 /**
  * The built-ins and the deferred set-up wait for Blate's first use.
  *
  * @internal
- *
- * @coversNothing
  */
+#[CoversNothing]
 final class LazyRegistryTest extends TestCase
 {
 	public function testNothingIsRegisteredBeforeTheFirstUse(): void

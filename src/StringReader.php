@@ -147,11 +147,11 @@ class StringReader
 	 */
 	public function saveCurrentState(): self
 	{
-		$state['cursor']      = $this->cursor;
-		$state['line_number'] = $this->line_number;
-		$state['line_index']  = $this->line_index;
-
-		$this->states[] = $state;
+		$this->states[] = [
+			'cursor'      => $this->cursor,
+			'line_number' => $this->line_number,
+			'line_index'  => $this->line_index,
+		];
 
 		return $this;
 	}

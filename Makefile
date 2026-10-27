@@ -38,7 +38,7 @@ install:
 
 ## test: run the PHPUnit test suite (FILE=tests/FooTest.php one file, FILTER=testBar one case)
 test:
-	$(PHPUNIT) --testdox --do-not-cache-result $(if $(FILTER),--filter '$(FILTER)',) $(FILE)
+	$(PHPUNIT) --testdox --do-not-record-test-run-history $(if $(FILTER),--filter '$(FILTER)',) $(FILE)
 
 ## check: code style and static analysis, the gate for every change
 check: cs psalm

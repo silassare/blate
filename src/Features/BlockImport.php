@@ -61,7 +61,7 @@ class BlockImport extends Block
 
 		$this->lexer->nextIs(Token::T_WHITESPACE);
 
-		$context      = (new Expression())->get($this->lexer);
+		$context      = new Expression()->get($this->lexer);
 		$blate_var    = $this->parser->createVar();
 		$instance_var = $this->parser->createVar();
 		$context_var  = $this->parser->createVar();

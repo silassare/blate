@@ -15,13 +15,13 @@ namespace Blate\Tests;
 
 use Blate\Exceptions\BlateException;
 use Blate\Lexer;
+use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\TestCase;
 
 /**
  * @internal
- *
- * @coversNothing
  */
+#[CoversNothing]
 final class LexerTest extends TestCase
 {
 	/**

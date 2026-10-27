@@ -166,7 +166,7 @@ final class Blate
 		if (null !== self::$cache_dir) {
 			$dst_dir = self::$cache_dir;
 		} elseif ($this->is_url) {
-			$dst_dir = $path_info['dirname'];
+			$dst_dir = \dirname($this->template);
 		} else {
 			$dst_dir = BLATE_TEMPLATE_RESOLVE_DIR;
 		}
@@ -532,7 +532,7 @@ final class Blate
 		}
 
 		self::$blocks[$name] = $block_class;
-		(new BlateRegistryChangedEvent())->dispatch();
+		new BlateRegistryChangedEvent()->dispatch();
 	}
 
 	/**
@@ -623,13 +623,13 @@ final class Blate
 		}
 
 		if (isset(self::$helpers[$name])) {
-			throw (new BlateRuntimeException(\sprintf(Message::HELPER_ALREADY_REGISTERED, $name)))
+			throw new BlateRuntimeException(\sprintf(Message::HELPER_ALREADY_REGISTERED, $name))
 				->suspectCallable(self::$helpers[$name]);
 		}
 
 		self::$helpers[$name]                            = $helper;
 		self::$helpers[self::HELPER_PREFIX_CHAR . $name] = $helper;
-		(new BlateRegistryChangedEvent())->dispatch();
+		new BlateRegistryChangedEvent()->dispatch();
 	}
 
 	/**
@@ -771,7 +771,7 @@ final class Blate
 		$description = isset($options['description']) ? (string) $options['description'] : null;
 
 		$ctx->registerVar($name, $value, $editable, $description);
-		(new BlateRegistryChangedEvent())->dispatch();
+		new BlateRegistryChangedEvent()->dispatch();
 	}
 
 	/**
@@ -812,7 +812,7 @@ final class Blate
 		$description = isset($options['description']) ? (string) $options['description'] : null;
 
 		$ctx->registerComputed($name, $factory, $editable, $description);
-		(new BlateRegistryChangedEvent())->dispatch();
+		new BlateRegistryChangedEvent()->dispatch();
 	}
 
 	/**

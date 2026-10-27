@@ -57,7 +57,7 @@ class BlockIf extends Block
 	{
 		$this->lexer->nextIs(Token::T_WHITESPACE);
 
-		$expression = (new Expression())->get($this->lexer);
+		$expression = new Expression()->get($this->lexer);
 
 		$code = 'if (' . $expression . '){';
 
@@ -83,7 +83,7 @@ class BlockIf extends Block
 		} elseif (self::BREAKPOINT_ELSE_IF === $name) {
 			$this->lexer->nextIs(Token::T_WHITESPACE);
 
-			$expression = (new Expression())->get($this->lexer);
+			$expression = new Expression()->get($this->lexer);
 
 			$code = '} elseif (' . $expression . '){';
 

@@ -15,6 +15,7 @@ namespace Blate\Tests;
 
 use Blate\Blate;
 use Blate\Lsp\BlateLspServer;
+use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 
@@ -28,9 +29,8 @@ use ReflectionClass;
  * here.
  *
  * @internal
- *
- * @coversNothing
  */
+#[CoversNothing]
 final class BlateLspServerTest extends TestCase
 {
 	private BlateLspServer $server;

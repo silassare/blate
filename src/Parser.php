@@ -165,12 +165,12 @@ class Parser
 
 	private function comment(): void
 	{
-		(new BlockComment($this, $this->lexer->current()))->onOpen();
+		new BlockComment($this, $this->lexer->current())->onOpen();
 	}
 
 	private function php(): void
 	{
-		(new BlockPhp($this, $this->lexer->current()))->onOpen();
+		new BlockPhp($this, $this->lexer->current())->onOpen();
 	}
 
 	private function expression(TokenInterface $token): void
@@ -187,7 +187,7 @@ class Parser
 		if ($block) {
 			$block->onChildExpressionFound($token, $escape);
 		} else {
-			$this->writeExpression((new Expression())->get($this->lexer), $escape);
+			$this->writeExpression(new Expression()->get($this->lexer), $escape);
 		}
 	}
 

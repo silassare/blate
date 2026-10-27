@@ -19,15 +19,15 @@ use Blate\Exceptions\BlateException;
 use Blate\Exceptions\BlateRuntimeException;
 use Blate\Parser;
 use Exception;
+use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 use Throwable;
 
 /**
  * @internal
- *
- * @coversNothing
  */
+#[CoversNothing]
 final class TemplateSyntaxTest extends TestCase
 {
 	// =========================================================================

@@ -139,6 +139,8 @@ class Lexer implements LexerInterface
 	{
 		$this->saveCurrentState();
 
+		$token = null;
+
 		while ($token = $this->computeToken()) {
 			if (!$ignore_whitespace || Token::T_WHITESPACE !== $token->getType()) {
 				break;
@@ -209,6 +211,8 @@ class Lexer implements LexerInterface
 	#[Override]
 	public function nextIs(?int $type = null, ?string $value = null, bool $ignore_whitespace = false): TokenInterface
 	{
+		$token = null;
+
 		while ($token = $this->move()) {
 			if (!$ignore_whitespace || Token::T_WHITESPACE !== $token->getType()) {
 				break;
@@ -244,6 +248,8 @@ class Lexer implements LexerInterface
 	#[Override]
 	public function nextIsOneOf(array $types, bool $ignore_whitespace = false): TokenInterface
 	{
+		$token = null;
+
 		while ($token = $this->move()) {
 			if (!$ignore_whitespace || Token::T_WHITESPACE !== $token->getType()) {
 				break;

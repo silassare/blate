@@ -97,7 +97,7 @@ class BlockEach extends Block
 
 		$this->lexer->nextIs(Token::T_WHITESPACE);
 
-		$list_access = (new Expression())->get($this->lexer);
+		$list_access = new Expression()->get($this->lexer);
 
 		$value_var = $this->parser->createVar();
 		$key_var   = $this->parser->createVar();

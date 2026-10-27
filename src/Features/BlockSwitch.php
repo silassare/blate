@@ -66,7 +66,7 @@ class BlockSwitch extends Block
 	public function onOpen(): void
 	{
 		$this->lexer->nextIs(Token::T_WHITESPACE);
-		$expression        = (new Expression())->get($this->lexer);
+		$expression        = new Expression()->get($this->lexer);
 		$this->switch_var  = $this->parser->createVar();
 		$this->parser->writeCode($this->switch_var . ' = ' . $expression . ';');
 	}
@@ -85,7 +85,7 @@ class BlockSwitch extends Block
 
 		if (self::BREAKPOINT_CASE === $name) {
 			$this->lexer->nextIs(Token::T_WHITESPACE);
-			$expr = (new Expression())->get($this->lexer);
+			$expr = new Expression()->get($this->lexer);
 
 			if (!$this->has_branch) {
 				$this->parser->writeCode('if (' . $this->switch_var . ' === ' . $expr . ') {');

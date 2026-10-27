@@ -75,7 +75,7 @@ class SimpleChain
 			$source = $this->current;
 
 			if (!self::has($source, $key, $val)) {
-				throw (new BlateRuntimeException(\sprintf(Message::CHAIN_UNDEFINED_KEY, $key, \get_debug_type($source))))
+				throw new BlateRuntimeException(\sprintf(Message::CHAIN_UNDEFINED_KEY, $key, \get_debug_type($source)))
 					->suspectLocation($this->buildSuspectLocation($location, $key));
 			}
 		}
@@ -128,7 +128,7 @@ class SimpleChain
 		$val           = $this->data_context->getHelper($key);
 
 		if (null === $val) {
-			throw (new BlateRuntimeException(\sprintf(Message::HELPER_NOT_FOUND, $key)))
+			throw new BlateRuntimeException(\sprintf(Message::HELPER_NOT_FOUND, $key))
 				->suspectLocation($this->buildSuspectLocation($location, $key));
 		}
 
@@ -148,7 +148,7 @@ class SimpleChain
 	public function call(string $location, mixed ...$args): static
 	{
 		if (!\is_callable($this->current)) {
-			throw (new BlateRuntimeException(\sprintf(Message::CHAIN_VALUE_NOT_A_CALLABLE, \get_debug_type($this->current))))
+			throw new BlateRuntimeException(\sprintf(Message::CHAIN_VALUE_NOT_A_CALLABLE, \get_debug_type($this->current)))
 				->suspectLocation($this->buildSuspectLocation($location, $this->current_key));
 		}
 

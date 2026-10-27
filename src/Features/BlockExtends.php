@@ -95,7 +95,7 @@ class BlockExtends extends Block
 
 		$this->lexer->nextIs(Token::T_WHITESPACE);
 
-		$context               = (new Expression())->get($this->lexer);
+		$context               = new Expression()->get($this->lexer);
 		$extended_blate_var    = $this->parser->createVar();
 		$extended_instance_var = $this->parser->createVar();
 		$extended_context_var  = $this->parser->createVar();
