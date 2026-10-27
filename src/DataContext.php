@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Blate;
 
+use ArrayAccess;
 use Blate\Helpers\Helpers;
 use LogicException;
 
@@ -99,7 +100,7 @@ class DataContext
 
 	public function get(mixed $key): mixed
 	{
-		$i = \count($this->stack);
+		$i     = \count($this->stack);
 		$value = null;
 
 		while ($i--) {
@@ -142,7 +143,19 @@ class DataContext
 			throw new LogicException('DataContext stack is empty.');
 		}
 
-		$this->stack[$n - 1][$key] = $value;
+		$top = $this->stack[$n - 1];
+
+		if (\is_array($top)) {
+			$top[$key]           = $value;
+			$this->stack[$n - 1] = $top;
+		} elseif ($top instanceof ArrayAccess) {
+			$top[$key] = $value;
+		} else {
+			throw new LogicException(\sprintf(
+				'The current DataContext layer is a %s, which cannot be written to by key.',
+				\get_debug_type($top)
+			));
+		}
 
 		return $this;
 	}
