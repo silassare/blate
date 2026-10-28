@@ -90,8 +90,6 @@ class ExpressionContext
 	 */
 	public function whileInChildrenOf(TokenInterface $parent): callable
 	{
-		return static function ($token) use ($parent) {
-			return $token->getParent() === $parent;
-		};
+		return static fn ($token) => $token->getParent() === $parent;
 	}
 }

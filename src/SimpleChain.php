@@ -181,9 +181,7 @@ class SimpleChain
 			}
 
 			if (\is_callable([$source, $key])) {
-				$value = static function (...$args) use ($source, $key) {
-					return \call_user_func_array([$source, $key], $args);
-				};
+				$value = static fn (...$args) => \call_user_func_array([$source, $key], $args);
 
 				return true;
 			}

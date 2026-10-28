@@ -45,9 +45,7 @@ class BlockComment extends Block
 	{
 		$reader = $this->lexer->getReader();
 
-		$reader->whileTrue(static function () use ($reader) {
-			return !$reader->isNextChunk(Blate::BLOCK_COMMENT . Blate::TAG_CLOSER);
-		});
+		$reader->whileTrue(static fn () => !$reader->isNextChunk(Blate::BLOCK_COMMENT . Blate::TAG_CLOSER));
 
 		$this->lexer->nextIs(null, Blate::BLOCK_COMMENT);
 		$this->lexer->nextIs(Token::T_TAG_CLOSE);

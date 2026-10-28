@@ -919,7 +919,7 @@ final class TemplateSyntaxTest extends TestCase
 		// to be no composer.json in any ancestor outside the project root.
 		// Create a deeply nested subdirectory of the system temp dir.
 		$isolated = \sys_get_temp_dir() . '/blate_test_no_composer_' . \uniqid('', true) . '/sub';
-		\mkdir($isolated, 0755, true);
+		\mkdir($isolated, 0o755, true);
 
 		$root = Blate::findProjectRoot($isolated);
 
@@ -942,7 +942,7 @@ final class TemplateSyntaxTest extends TestCase
 	{
 		$dir    = \sys_get_temp_dir() . '/blate_test_autoload_' . \uniqid('', true);
 		$subdir = $dir . '/src';
-		\mkdir($subdir, 0755, true);
+		\mkdir($subdir, 0o755, true);
 		\file_put_contents($dir . '/composer.json', '{}');
 
 		$counter_file = $dir . '/counter.txt';
@@ -975,7 +975,7 @@ final class TemplateSyntaxTest extends TestCase
 	public function testAutoLoadReturnsFalseWhenNoConfig(): void
 	{
 		$dir = \sys_get_temp_dir() . '/blate_test_noconfig_' . \uniqid('', true);
-		\mkdir($dir, 0755, true);
+		\mkdir($dir, 0o755, true);
 		\file_put_contents($dir . '/composer.json', '{}');
 
 		$result = Blate::autoLoad($dir);
@@ -991,7 +991,7 @@ final class TemplateSyntaxTest extends TestCase
 	public function testAutoLoadReturnsFalseWhenNoProjectRoot(): void
 	{
 		$dir = \sys_get_temp_dir() . '/blate_test_noroot_' . \uniqid('', true);
-		\mkdir($dir, 0755, true);
+		\mkdir($dir, 0o755, true);
 
 		$result = Blate::autoLoad($dir);
 		self::assertFalse($result);

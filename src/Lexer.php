@@ -312,9 +312,7 @@ class Lexer implements LexerInterface
 			$type         = Token::T_TAG_CLOSE;
 			$this->in_tag = false;
 		} elseif (!$this->in_tag) {
-			$chunk = $reader->whileTrue(static function () use ($reader) {
-				return !$reader->isNextChunk(Blate::TAG_OPENER);
-			});
+			$chunk = $reader->whileTrue(static fn () => !$reader->isNextChunk(Blate::TAG_OPENER));
 			$type  = Token::T_RAW_DATA;
 		} elseif ('\'' === $c || '"' === $c) {
 			$reader->move();
@@ -324,9 +322,7 @@ class Lexer implements LexerInterface
 			$chunk->setValue($c . $r->getValue() . $c);
 			$type = Token::T_STRING;
 		} elseif ($this->isWhiteSpace($c)) {
-			$chunk = $reader->whileTrue(function ($cur) {
-				return $this->isWhiteSpace($cur);
-			});
+			$chunk = $reader->whileTrue(fn ($cur) => $this->isWhiteSpace($cur));
 			$type  = Token::T_WHITESPACE;
 		} elseif ('{' === $c) {
 			$reader->move();
@@ -573,9 +569,7 @@ class Lexer implements LexerInterface
 	private function eatNumber(): StringChunk
 	{
 		$result = $this->reader->whileTrue(
-			function ($c) {
-				return $this->isDigit($c) || '.' === $c || 'e' === $c || 'E' === $c;
-			}
+			fn ($c) => $this->isDigit($c) || '.' === $c || 'e' === $c || 'E' === $c
 		);
 
 		$value = $result->getValue();

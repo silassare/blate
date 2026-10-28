@@ -40,9 +40,7 @@ class Expression
 	 */
 	public function get(LexerInterface $lexer): string
 	{
-		return $this->getWhileTrue($lexer, static function (TokenInterface $token) {
-			return Token::T_TAG_CLOSE !== $token->getType();
-		});
+		return $this->getWhileTrue($lexer, static fn (TokenInterface $token) => Token::T_TAG_CLOSE !== $token->getType());
 	}
 
 	/**
@@ -64,9 +62,7 @@ class Expression
 	{
 		// Parse the base expression, stopping at T_PIPE as well as the caller's boundary.
 		$ep = new ExpressionParser($lexer);
-		$ep->parse(static function (TokenInterface $token) use ($whileTrue) {
-			return Token::T_PIPE !== $token->getType() && $whileTrue($token);
-		});
+		$ep->parse(static fn (TokenInterface $token) => Token::T_PIPE !== $token->getType() && $whileTrue($token));
 
 		$output = $ep->getOutput();
 

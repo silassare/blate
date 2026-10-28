@@ -14,9 +14,7 @@ declare(strict_types=1);
 use Blate\Blate;
 use Blate\Tests\Utils\SampleInfo;
 
-Blate::registerHelper('hello', static function (string $name) {
-	return "Hello {$name}!";
-});
+Blate::registerHelper('hello', static fn (string $name) => "Hello {$name}!");
 
 return [
 	'me' => new SampleInfo(),

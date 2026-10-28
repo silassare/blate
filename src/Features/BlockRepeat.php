@@ -70,10 +70,8 @@ class BlockRepeat extends Block
 
 		$count_expr = new Expression()->getWhileTrue(
 			$this->lexer,
-			static function (TokenInterface $t): bool {
-				return Token::T_TAG_CLOSE !== $t->getType()
-					&& !(Token::T_NAME === $t->getType() && 'as' === $t->getValue());
-			}
+			static fn (TokenInterface $t): bool => Token::T_TAG_CLOSE !== $t->getType()
+					&& !(Token::T_NAME === $t->getType() && 'as' === $t->getValue())
 		);
 
 		$count_expr = \trim($count_expr);

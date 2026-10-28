@@ -1247,9 +1247,7 @@ class BlateLspServer
 		// After this pass, no remaining {…} tag contains nested braces, so the
 		// plain-text split below is safe.
 		foreach (['/\{#.*?#\}/s', '/\{~.*?~\}/s', '/\{@raw\}.*?\{\/raw\}/s'] as $pattern) {
-			$content = \preg_replace_callback($pattern, static function (array $m): string {
-				return \str_repeat(' ', \strlen($m[0]));
-			}, $content) ?? $content;
+			$content = \preg_replace_callback($pattern, static fn (array $m): string => \str_repeat(' ', \strlen($m[0])), $content) ?? $content;
 		}
 
 		// Blank plain text (content outside {…} template tags).
@@ -1268,9 +1266,7 @@ class BlateLspServer
 		// The escape is the backslash, as Lexer::computeToken() reads it.
 		return \preg_replace_callback(
 			'/\'(?:\\\.|[^\'\\\])*\'|"(?:\\\.|[^"\\\])*"/s',
-			static function (array $m): string {
-				return \str_repeat(' ', \strlen($m[0]));
-			},
+			static fn (array $m): string => \str_repeat(' ', \strlen($m[0])),
 			$result
 		) ?? $result;
 	}

@@ -50,9 +50,7 @@ class BlockRaw extends Block
 		$this->lexer->nextIs(Token::T_TAG_CLOSE, null, true);
 		$reader = $this->lexer->getReader();
 
-		$chunk = $reader->whileTrue(static function () use ($reader) {
-			return !$reader->isNextChunk(Blate::TAG_OPENER . Blate::BLOCK_CLOSE . self::NAME);
-		});
+		$chunk = $reader->whileTrue(static fn () => !$reader->isNextChunk(Blate::TAG_OPENER . Blate::BLOCK_CLOSE . self::NAME));
 
 		$this->parser->write($chunk->getValue());
 	}

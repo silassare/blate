@@ -47,9 +47,7 @@ class BlockPhp extends Block
 	{
 		$reader = $this->lexer->getReader();
 
-		$content = $reader->whileTrue(static function () use ($reader) {
-			return !$reader->isNextChunk(Blate::BLOCK_PHP . Blate::TAG_CLOSER);
-		});
+		$content = $reader->whileTrue(static fn () => !$reader->isNextChunk(Blate::BLOCK_PHP . Blate::TAG_CLOSER));
 
 		$this->parser->writeCode($content->getValue());
 

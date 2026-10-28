@@ -909,7 +909,7 @@ final class Blate
 		$path    = $this->dst_path;
 		$dst_dir = \dirname($path);
 
-		if (!\file_exists($dst_dir) && !\mkdir($dst_dir, 0775, true) && !\is_dir($dst_dir)) {
+		if (!\file_exists($dst_dir) && !\mkdir($dst_dir, 0o775, true) && !\is_dir($dst_dir)) {
 			throw new BlateException(\sprintf(Message::FILE_IS_NOT_WRITABLE, $path));
 		}
 

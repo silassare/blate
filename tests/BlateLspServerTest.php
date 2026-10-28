@@ -1102,7 +1102,7 @@ final class BlateLspServerTest extends TestCase
 	{
 		$dir = \sys_get_temp_dir() . '/blate_lsp_test_' . \uniqid('', true);
 
-		\mkdir($dir, 0755, true);
+		\mkdir($dir, 0o755, true);
 		$this->temp[] = $dir;
 
 		return $dir;
@@ -1111,7 +1111,7 @@ final class BlateLspServerTest extends TestCase
 	private function makeDir(string $dir): void
 	{
 		if (!\is_dir($dir)) {
-			\mkdir($dir, 0755, true);
+			\mkdir($dir, 0o755, true);
 		}
 	}
 

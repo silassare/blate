@@ -13,8 +13,6 @@ declare(strict_types=1);
 
 use Blate\Blate;
 
-Blate::registerHelper('scopeGetPath', static function (): string {
-	return \basename(Blate::scope()->template->getSrcPath() ?? '');
-});
+Blate::registerHelper('scopeGetPath', static fn (): string => \basename(Blate::scope()->template->getSrcPath() ?? ''));
 
 return [];
