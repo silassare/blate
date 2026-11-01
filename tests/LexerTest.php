@@ -15,6 +15,7 @@ namespace Blate\Tests;
 
 use Blate\Exceptions\BlateException;
 use Blate\Lexer;
+use Blate\Tests\Utils\TestPaths;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\TestCase;
 
@@ -29,7 +30,7 @@ final class LexerTest extends TestCase
 	 */
 	public function testTokenize(): void
 	{
-		$dir           = BLATE_TEST_TEMPLATES_DIR . '/lexer';
+		$dir           = TestPaths::SAMPLES . '/lexer';
 		$template_file = $dir . '/template.blate';
 		$tokens_file   = $dir . '/tokens.json';
 		$template      = \file_get_contents($template_file);

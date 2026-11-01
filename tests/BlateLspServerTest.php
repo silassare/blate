@@ -15,6 +15,7 @@ namespace Blate\Tests;
 
 use Blate\Blate;
 use Blate\Lsp\BlateLspServer;
+use Override;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
@@ -39,6 +40,7 @@ final class BlateLspServerTest extends TestCase
 	/** @var list<string> the directories a test made, removed when it ends */
 	private array $temp = [];
 
+	#[Override]
 	protected function setUp(): void
 	{
 		$this->server = new BlateLspServer(
@@ -47,6 +49,7 @@ final class BlateLspServerTest extends TestCase
 		$this->ref    = new ReflectionClass($this->server);
 	}
 
+	#[Override]
 	protected function tearDown(): void
 	{
 		foreach ($this->temp as $dir) {
@@ -272,6 +275,7 @@ final class BlateLspServerTest extends TestCase
 	public function testGlobalVarShadowWarnsForABareAccess(): void
 	{
 		$warns = $this->call('buildGlobalVarShadowWarnings', '{BRACE_OPEN}');
+		self::assertIsArray($warns);
 
 		self::assertCount(1, $warns);
 		self::assertSame('blate.global.shadow', $warns[0]['code']);
@@ -285,6 +289,7 @@ final class BlateLspServerTest extends TestCase
 	public function testGlobalVarShadowWarnsOnceForAQuotedNameAndItsVariable(): void
 	{
 		$warns = $this->call('buildGlobalVarShadowWarnings', "{\$map('BRACE_OPEN', BRACE_OPEN)}");
+		self::assertIsArray($warns);
 
 		self::assertCount(1, $warns);
 		// The variable, at offset 20, not the key at offset 6.
@@ -438,6 +443,7 @@ final class BlateLspServerTest extends TestCase
 	public function testHelperShadowWarningFires(): void
 	{
 		$warns = $this->call('buildHelperShadowWarnings', '{upper(name)}');
+		self::assertIsArray($warns);
 
 		self::assertCount(1, $warns);
 		self::assertSame('blate.helper.shadow', $warns[0]['code']);
@@ -486,6 +492,7 @@ final class BlateLspServerTest extends TestCase
 	{
 		// '{upper(x)}' -- 'upper' starts at byte 1, ends at byte 6.
 		$warns = $this->call('buildHelperShadowWarnings', '{upper(x)}');
+		self::assertIsArray($warns);
 
 		self::assertCount(1, $warns);
 		self::assertSame(['line' => 0, 'character' => 1], $warns[0]['range']['start']);
@@ -500,6 +507,7 @@ final class BlateLspServerTest extends TestCase
 	{
 		// BRACE_OPEN is a built-in global var; bare access triggers a warning.
 		$warns = $this->call('buildGlobalVarShadowWarnings', '{BRACE_OPEN}');
+		self::assertIsArray($warns);
 
 		self::assertCount(1, $warns);
 		self::assertSame('blate.global.shadow', $warns[0]['code']);
@@ -549,6 +557,7 @@ final class BlateLspServerTest extends TestCase
 	{
 		// '{BRACE_OPEN}' -- 'BRACE_OPEN' starts at byte 1, ends at byte 11.
 		$warns = $this->call('buildGlobalVarShadowWarnings', '{BRACE_OPEN}');
+		self::assertIsArray($warns);
 
 		self::assertCount(1, $warns);
 		self::assertSame(['line' => 0, 'character' => 1], $warns[0]['range']['start']);
@@ -562,6 +571,7 @@ final class BlateLspServerTest extends TestCase
 	public function testGlobalRefUnknownErrorFires(): void
 	{
 		$errors = $this->call('buildGlobalRefUnknownErrors', '{$global.DOES_NOT_EXIST_9999}');
+		self::assertIsArray($errors);
 
 		self::assertCount(1, $errors);
 		self::assertSame('blate.global.unknown', $errors[0]['code']);
@@ -594,6 +604,7 @@ final class BlateLspServerTest extends TestCase
 	{
 		// '{$global.UNKNOWN9}' -- 'UNKNOWN9' starts at byte 9, ends at byte 17.
 		$errors = $this->call('buildGlobalRefUnknownErrors', '{$global.UNKNOWN9}');
+		self::assertIsArray($errors);
 
 		self::assertCount(1, $errors);
 		self::assertSame(['line' => 0, 'character' => 9], $errors[0]['range']['start']);
@@ -607,6 +618,7 @@ final class BlateLspServerTest extends TestCase
 	public function testDollarHelperUnknownErrorFires(): void
 	{
 		$errors = $this->call('buildDollarHelperUnknownErrors', '{$notRegistered9999(x)}');
+		self::assertIsArray($errors);
 
 		self::assertCount(1, $errors);
 		self::assertSame('blate.helper.unknown', $errors[0]['code']);
@@ -664,6 +676,7 @@ final class BlateLspServerTest extends TestCase
 	{
 		// '{$xyzzy9999(v)}': '$' at byte 1, name 'xyzzy9999' starts at byte 2.
 		$errors = $this->call('buildDollarHelperUnknownErrors', '{$xyzzy9999(v)}');
+		self::assertIsArray($errors);
 
 		self::assertCount(1, $errors);
 		self::assertSame(['line' => 0, 'character' => 2], $errors[0]['range']['start']);
@@ -961,6 +974,7 @@ final class BlateLspServerTest extends TestCase
 	{
 		// '{foo}': 'foo' occupies bytes 1..3 (length 3), range end is byte 4.
 		$edits = $this->call('buildRenameEdits', '{foo}', 1, 'bar');
+		self::assertIsArray($edits);
 
 		self::assertNotNull($edits);
 		self::assertCount(1, $edits);
@@ -973,6 +987,7 @@ final class BlateLspServerTest extends TestCase
 		// 'foo' must not match inside 'foobar'.
 		$content = '{foo} {foobar}';
 		$edits   = $this->call('buildRenameEdits', $content, 1, 'qux');
+		self::assertIsArray($edits);
 
 		self::assertNotNull($edits);
 		self::assertCount(1, $edits);
@@ -983,6 +998,7 @@ final class BlateLspServerTest extends TestCase
 	{
 		$content = "{foo}\n{bar}\n{foo}";
 		$edits   = $this->call('buildRenameEdits', $content, 1, 'renamed');
+		self::assertIsArray($edits);
 
 		self::assertNotNull($edits);
 		self::assertCount(2, $edits);

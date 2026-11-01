@@ -18,6 +18,7 @@ use Blate\BlateTemplateScope;
 use Blate\Exceptions\BlateException;
 use Blate\Exceptions\BlateRuntimeException;
 use Blate\Parser;
+use Blate\Tests\Utils\TestPaths;
 use Exception;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\TestCase;
@@ -1103,7 +1104,7 @@ final class TemplateSyntaxTest extends TestCase
 
 	protected function runValid(string $name): void
 	{
-		$sample_dir      = BLATE_TEST_TEMPLATES_DIR . '/' . $name;
+		$sample_dir      = TestPaths::SAMPLES . '/' . $name;
 		$template        = $sample_dir . '/template.blate';
 		$output_file     = $sample_dir . '/output.txt';
 		$full_error_file = $sample_dir . '/error.full.txt';
@@ -1146,7 +1147,7 @@ final class TemplateSyntaxTest extends TestCase
 
 	protected function runInvalid(string $name): void
 	{
-		$sample_dir      = BLATE_TEST_TEMPLATES_DIR . '/' . $name;
+		$sample_dir      = TestPaths::SAMPLES . '/' . $name;
 		$template        = $sample_dir . '/template.blate';
 		$error_file      = $sample_dir . '/error.txt';
 		$full_error_file = $sample_dir . '/error.full.txt';

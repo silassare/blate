@@ -15,6 +15,4 @@ use Blate\Blate;
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
-require_once __DIR__ . '/Utils/define.php';
-
 Blate::setCacheDir(__DIR__ . '/../tests/.cache');
