@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Blate\Features;
 
+use Blate\Blate;
 use Blate\Exceptions\BlateParserException;
 use Blate\Expressions\Expression;
 use Blate\Helpers\Helpers;
@@ -89,7 +90,8 @@ class BlockExtends extends Block
 
 		$abs_path = PathUtils::resolve($blate->getSrcDir(), Helpers::unquote($path_token->getValue()));
 
-		if ($abs_path === $blate->getSrcPath()) {
+		// One spelling of each path: {@see Blate::pathKey()}, as for an import.
+		if (Blate::pathKey($abs_path) === Blate::pathKey($blate->getSrcPath())) {
 			throw BlateParserException::withToken(Message::EXTENDED_PATH_IS_SELF, $path_token);
 		}
 

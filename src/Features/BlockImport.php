@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Blate\Features;
 
+use Blate\Blate;
 use Blate\Exceptions\BlateParserException;
 use Blate\Expressions\Expression;
 use Blate\Helpers\Helpers;
@@ -55,7 +56,10 @@ class BlockImport extends Block
 
 		$abs_path = PathUtils::resolve($blate->getSrcDir(), Helpers::unquote($path_token->getValue()));
 
-		if ($abs_path === $blate->getSrcPath()) {
+		// Compared on one spelling of each path: the resolve above is textual, so `./a.blate` and
+		// `.//a.blate` named the same file and compared unequal, which let a one-file cycle through
+		// to the render-time guard instead of being refused here ({@see Blate::pathKey()}).
+		if (Blate::pathKey($abs_path) === Blate::pathKey($blate->getSrcPath())) {
 			throw BlateParserException::withToken(Message::IMPORT_PATH_IS_SELF, $path_token);
 		}
 

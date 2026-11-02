@@ -109,6 +109,11 @@ final class Blate
 	 */
 	private static array $scope_stack = [];
 
+	/**
+	 * This template's identity while it renders: {@see self::renderKey()}.
+	 */
+	private ?string $render_key = null;
+
 	private static bool $builtins_registered = false;
 
 	private static bool $used = false;
@@ -377,11 +382,41 @@ final class Blate
 	}
 
 	/**
+	 * One spelling of a path, so two spellings of the same file compare equal.
+	 *
+	 * `PathUtils::resolve()` is textual: it leaves a doubled separator alone and follows no symlink,
+	 * so `/tpl/a.blate` and `/tpl//a.blate` are different strings for the same file, and a directory
+	 * symlink gives a third. Anything comparing templates by path compares this instead.
+	 */
+	public static function pathKey(string $path): string
+	{
+		return \realpath($path) ?: $path;
+	}
+
+	/**
+	 * What identifies this template while it renders, or null for one compiled from a string.
+	 *
+	 * {@see self::pushScope()} refuses a template already on the stack, which is how an import or
+	 * extends cycle is caught: the chain is only knowable at render, because {@see BlockImport} and
+	 * {@see BlockExtends} emit code rather than compiling what they name, so compiling A never opens
+	 * B. A template from a string has no identity to compare and cannot be imported by name.
+	 */
+	public function renderKey(): ?string
+	{
+		if (!$this->is_url) {
+			return null;
+		}
+
+		// A path and a `realpath()` of it: neither reads the template, so nothing here can re-enter.
+		return $this->render_key ??= self::pathKey($this->src_path);
+	}
+
+	/**
 	 * Get a parsed template instance.
 	 *
 	 * @throws BlateException
 	 */
-	public function getParsedInstance(): BlateTemplateParsed
+	public function getParsedInstance(bool $retry = true): BlateTemplateParsed
 	{
 		$f_exists = false;
 		if (\file_exists($this->dst_path)) {
@@ -400,11 +435,23 @@ final class Blate
 
 		$f_exists && @\unlink($this->dst_path);
 
-		// let's parse
+		// Compiled again, once: a stale file that declares no class is replaced and the second pass
+		// finds the class. It used to call itself with no bound, so a file that could not be
+		// replaced -- an `@unlink()` that failed on a cache directory this user may not write, and
+		// `parse()` skips compiling while the file exists -- recursed for ever, including the file
+		// and re-reading the source on every turn.
+		if (!$retry) {
+			throw new BlateException(\sprintf(
+				Message::TEMPLATE_CLASS_NOT_DECLARED,
+				$this->dst_path,
+				$fqn
+			));
+		}
+
 		$o = $this->is_url ? self::fromPath($this->src_path) : self::fromString($this->input);
 		$o->parse();
 
-		return $o->getParsedInstance();
+		return $o->getParsedInstance(false);
 	}
 
 	/**
@@ -479,6 +526,33 @@ final class Blate
 	 */
 	public static function pushScope(BlateTemplateScope $scope): void
 	{
+		$key = $scope->template->renderKey();
+
+		if (null !== $key) {
+			$chain   = [];
+			$repeats = false;
+
+			// The whole chain, and only then the verdict: stopping at the match would name the
+			// template twice and hide the templates between the two, which are the ones to look at.
+			foreach (self::$scope_stack as $open) {
+				$open_key = $open->template->renderKey();
+				$chain[]  = $open_key ?? '(a template compiled from a string)';
+				$repeats  = $repeats || $key === $open_key;
+			}
+
+			if ($repeats) {
+				$chain[] = $key;
+
+				// Refused before the push, so the caller's `finally` has nothing to pop: this runs
+				// from BlateTemplateParsed::run(), above its own try.
+				throw new BlateRuntimeException(\sprintf(
+					Message::TEMPLATE_RENDER_CYCLE,
+					$key,
+					\implode(' -> ', $chain)
+				));
+			}
+		}
+
 		self::$scope_stack[] = $scope;
 	}
 

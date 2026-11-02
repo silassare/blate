@@ -439,6 +439,15 @@ Each test case under `tests/samples/<name>/` contains:
 
 ## Conventions
 
+- **A template cycle is a render-time fact, and `Blate::pushScope()` is where it is refused.**
+  `{@import}` / `{@extends}` emit a call into the compiled class instead of compiling what they name,
+  so compiling A never opens B: the chain only exists while templates run, and the scope stack is
+  what holds it. Compare paths with `Blate::pathKey()` (one spelling: `realpath()` or the path),
+  never as raw strings -- `PathUtils::resolve()` is textual and leaves `//` and symlinks alone.
+- **A recovery path that recompiles is allowed one retry**, then reports
+  (`Blate::getParsedInstance(bool $retry)`): a stale compiled file that cannot be replaced used to
+  make it call itself for ever.
+
 - `declare(strict_types=1)` is required in every PHP file.
 - All files carry the copyright header from `src/Blate.php`.
 - PSR-4: namespace `Blate\` maps to `src/`; `Blate\Tests\` maps to `tests/`.

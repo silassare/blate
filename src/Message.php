@@ -87,6 +87,14 @@ final class Message
 
 	public const string IMPORT_PATH_IS_SELF = 'A template shouldn\'t import itself, "{found}" found on line {line} at index {index}.';
 
+	public const string TEMPLATE_RENDER_CYCLE = 'Template "%s" is already being rendered: a template'
+		. ' imports or extends itself through this chain: %s. A cycle is only knowable at render,'
+		. ' because an import is resolved when the template runs.';
+
+	public const string TEMPLATE_CLASS_NOT_DECLARED = 'Compiled template "%s" does not declare class'
+		. ' "%s", and compiling it again did not change that. Delete it: the cache directory may not'
+		. ' be writable, so the stale file could not be replaced.';
+
 	public const string BLOCK_NOT_REGISTERED = 'Block "%s" is not registered.';
 
 	public const string INVALID_BLOCK_NAME = 'Invalid block name "%s", block name should match pattern: "%s"';

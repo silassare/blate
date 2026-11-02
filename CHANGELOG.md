@@ -5,6 +5,33 @@ before it is its history.
 
 ## Unreleased (1.x-dev)
 
+### Fixed
+
+- **Two templates that import each other compiled cleanly and exhausted the process at render.**
+  `{@import}` and `{@extends}` refused only a template naming *itself*, and they do not compile what
+  they name: `onOpen()` emits `Blate::fromPath(...)->getParsedInstance()->run(...)` into the compiled
+  class, so compiling A never opens B and the chain exists only while the templates run. Two
+  ordinary partials importing each other -- no privileges, no unusual filesystem -- grew the heap and
+  the stack with a `Blate`, a `DataContext` and a scope per turn until the request died.
+
+  `Blate::pushScope()` now refuses a template already on the render stack, which is the stack that
+  already had the right lifetime: pushed before `build()`, popped in a `finally`. The error names the
+  chain in the order it opened (`a.blate -> b.blate -> c.blate -> a.blate`), so an author reads which
+  templates to look at rather than a stack trace. Rendering the same partial twice side by side is
+  untouched: what is refused is a template inside itself.
+
+- **`Blate::getParsedInstance()` could call itself for ever.** Its recovery path -- a compiled file
+  that exists but declares no class -- unlinked the file and recompiled, with no bound. When the
+  unlink fails (a cache directory this user may not write, with the failure silenced by `@`) and
+  `parse()` skips compiling because the file still exists, it recursed, including the file and
+  re-reading the source on every turn. It now compiles once more and then reports the file and the
+  class it does not declare.
+
+- **Paths are compared on one spelling.** `{@import}` and `{@extends}` compared the resolved path
+  against the template's own as strings, and `PathUtils::resolve()` is textual: it leaves a doubled
+  separator alone and follows no symlink. `Blate::pathKey()` is now that one spelling, used by both
+  features and by the render-time guard above.
+
 ### Breaking changes
 
 - **PHP 8.5 is the minimum** (`"php": ">=8.5"`), and `silassare/php-utils` is `^2.0`, since the
