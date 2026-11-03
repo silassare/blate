@@ -90,7 +90,11 @@ class BlockExtends extends Block
 
 		$abs_path = PathUtils::resolve($blate->getSrcDir(), Helpers::unquote($path_token->getValue()));
 
-		// One spelling of each path: {@see Blate::pathKey()}, as for an import.
+		// Still refused here, where an import of itself is not: an extends holds only slots and is
+		// the whole template, so it cannot be put under a condition on the data the way the import
+		// inside a tree partial is. A template that is its own parent therefore never ends, for any
+		// data, and that is knowable now rather than at render.
+		// One spelling of each path: {@see Blate::pathKey()}.
 		if (Blate::pathKey($abs_path) === Blate::pathKey($blate->getSrcPath())) {
 			throw BlateParserException::withToken(Message::EXTENDED_PATH_IS_SELF, $path_token);
 		}

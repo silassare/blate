@@ -85,11 +85,10 @@ final class Message
 
 	public const string EXTENDED_PATH_IS_SELF = 'A template shouldn\'t extend itself, "{found}" found on line {line} at index {index}.';
 
-	public const string IMPORT_PATH_IS_SELF = 'A template shouldn\'t import itself, "{found}" found on line {line} at index {index}.';
-
-	public const string TEMPLATE_RENDER_CYCLE = 'Template "%s" is already being rendered: a template'
-		. ' imports or extends itself through this chain: %s. A cycle is only knowable at render,'
-		. ' because an import is resolved when the template runs.';
+	public const string TEMPLATE_RENDER_TOO_DEEP = 'Templates are nested more than %d levels deep'
+		. ' while rendering "%s": an import or extends does not end. The innermost templates are:'
+		. ' %s. A template repeating in that chain is recursion, which is allowed and must be'
+		. ' bounded by the data it descends; this depth says the data never ran out.';
 
 	public const string TEMPLATE_CLASS_NOT_DECLARED = 'Compiled template "%s" does not declare class'
 		. ' "%s", and compiling it again did not change that. Delete it: the cache directory may not'

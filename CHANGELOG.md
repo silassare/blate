@@ -7,18 +7,31 @@ before it is its history.
 
 ### Fixed
 
-- **Two templates that import each other compiled cleanly and exhausted the process at render.**
-  `{@import}` and `{@extends}` refused only a template naming *itself*, and they do not compile what
-  they name: `onOpen()` emits `Blate::fromPath(...)->getParsedInstance()->run(...)` into the compiled
-  class, so compiling A never opens B and the chain exists only while the templates run. Two
-  ordinary partials importing each other -- no privileges, no unusual filesystem -- grew the heap and
-  the stack with a `Blate`, a `DataContext` and a scope per turn until the request died.
+- **Templates that import each other without end exhausted the process at render, and the render
+  depth is what bounds it.** `{@import}` and `{@extends}` do not compile what they name: `onOpen()`
+  emits `Blate::fromPath(...)->getParsedInstance()->run(...)` into the compiled class, so compiling
+  A never opens B and the chain exists only while the templates run. Two partials importing each
+  other -- no privileges, no unusual filesystem -- grew the heap and the stack with a `Blate`, a
+  `DataContext` and a scope per turn until the request died.
 
-  `Blate::pushScope()` now refuses a template already on the render stack, which is the stack that
-  already had the right lifetime: pushed before `build()`, popped in a `finally`. The error names the
-  chain in the order it opened (`a.blate -> b.blate -> c.blate -> a.blate`), so an author reads which
-  templates to look at rather than a stack trace. Rendering the same partial twice side by side is
-  untouched: what is refused is a template inside itself.
+  `Blate::pushScope()` now counts the render stack against `Blate::MAX_RENDER_DEPTH` (64, raised or
+  lowered with `Blate::setMaxRenderDepth()`), and the error names the innermost templates in the
+  order they opened, so an author reads which files repeat rather than a stack trace.
+
+  A first pass refused any template already on the render stack instead, which was wrong and is
+  corrected here: a template inside itself is a **recursion** and not a cycle, and it is the only
+  way to render a tree -- the partial that renders one node imports the one that renders its
+  children, and what ends it is the children running out. The same template with smaller data
+  terminates and with unchanged data does not, so identity cannot tell the two apart and only a
+  depth can. Rendering the same partial twice side by side was never affected either way.
+
+- **A template may import itself.** The parse-time refusal of a self-import is gone: it never
+  bounded anything, since the same recursion written across two files that import each other passed
+  it, and it forced every tree into that two-file shape. A single partial may now hold the whole
+  recursion -- `{@if node.children}{@import './tree.blate' $map('nodes', node.children)}{/if}` --
+  and the render depth bounds it like any other. `{@extends}` still refuses a template naming
+  itself: an extends holds only slots and is the whole template, so it cannot be placed under a
+  condition on the data and a template that is its own parent never ends, for any data.
 
 - **`Blate::getParsedInstance()` could call itself for ever.** Its recovery path -- a compiled file
   that exists but declares no class -- unlinked the file and recompiled, with no bound. When the

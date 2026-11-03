@@ -1,0 +1,1 @@
+{@each node in nodes}[{node.label}{@if node.children}{@import './template.blate' $map('nodes', node.children)}{/if}]{/each}

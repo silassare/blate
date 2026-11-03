@@ -13,11 +13,9 @@ declare(strict_types=1);
 
 namespace Blate\Features;
 
-use Blate\Blate;
 use Blate\Exceptions\BlateParserException;
 use Blate\Expressions\Expression;
 use Blate\Helpers\Helpers;
-use Blate\Message;
 use Blate\Token;
 use Override;
 use PHPUtils\FS\PathUtils;
@@ -32,7 +30,8 @@ use PHPUtils\Str;
  * the imported template immediately in the current output stream using the
  * given context expression.
  *
- * The imported path cannot be the same file as the current template.
+ * The imported path may be the current template: a partial rendering a tree imports itself for a
+ * node's children. The render depth bounds it ({@see \Blate\Blate::MAX_RENDER_DEPTH}).
  */
 class BlockImport extends Block
 {
@@ -56,13 +55,12 @@ class BlockImport extends Block
 
 		$abs_path = PathUtils::resolve($blate->getSrcDir(), Helpers::unquote($path_token->getValue()));
 
-		// Compared on one spelling of each path: the resolve above is textual, so `./a.blate` and
-		// `.//a.blate` named the same file and compared unequal, which let a one-file cycle through
-		// to the render-time guard instead of being refused here ({@see Blate::pathKey()}).
-		if (Blate::pathKey($abs_path) === Blate::pathKey($blate->getSrcPath())) {
-			throw BlateParserException::withToken(Message::IMPORT_PATH_IS_SELF, $path_token);
-		}
-
+		// A template may import itself. It is how a tree is rendered: the partial that renders one
+		// node imports itself for that node's children, under a condition on the data, and what
+		// ends it is the children running out. Refusing it here only moved the same recursion into
+		// a second file that imports this one back, which is no more bounded and harder to read.
+		// What bounds it is the render depth, which is the only thing that can: whether the
+		// recursion ends is a property of the data and not of the path.
 		$this->lexer->nextIs(Token::T_WHITESPACE);
 
 		$context      = new Expression()->get($this->lexer);

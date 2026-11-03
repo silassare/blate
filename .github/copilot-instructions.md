@@ -439,11 +439,17 @@ Each test case under `tests/samples/<name>/` contains:
 
 ## Conventions
 
-- **A template cycle is a render-time fact, and `Blate::pushScope()` is where it is refused.**
+- **A template inside itself is recursion, and the render depth is what bounds it.**
   `{@import}` / `{@extends}` emit a call into the compiled class instead of compiling what they name,
-  so compiling A never opens B: the chain only exists while templates run, and the scope stack is
-  what holds it. Compare paths with `Blate::pathKey()` (one spelling: `realpath()` or the path),
-  never as raw strings -- `PathUtils::resolve()` is textual and leaves `//` and symlinks alone.
+  so compiling A never opens B: the chain only exists while templates run, and `Blate::pushScope()`
+  is where it is counted against `Blate::MAX_RENDER_DEPTH` (`setMaxRenderDepth()` to raise it).
+  Never refuse a template already on the stack: a partial that renders a tree imports itself for a
+  node's children, and the same template with smaller data is the only way to render nesting at
+  all. What tells that from a runaway is the data, not the path, so only a depth can tell them
+  apart. A template may import itself; it may not extend itself, because an extends holds only
+  slots and is the whole template, so it cannot be put under a condition and never ends.
+  Compare paths with `Blate::pathKey()` (one spelling: `realpath()` or the path), never as raw
+  strings -- `PathUtils::resolve()` is textual and leaves `//` and symlinks alone.
 - **A recovery path that recompiles is allowed one retry**, then reports
   (`Blate::getParsedInstance(bool $retry)`): a stale compiled file that cannot be replaced used to
   make it call itself for ever.

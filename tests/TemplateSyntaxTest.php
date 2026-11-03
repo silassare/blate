@@ -617,11 +617,14 @@ final class TemplateSyntaxTest extends TestCase
 	}
 
 	/**
-	 * {@import} referencing its own file path (circular include).
+	 * {@import} referencing its own file path, which is how a tree is rendered.
+	 *
+	 * Bounded by the data and not by the path: the template repeats while there are children. What
+	 * stops one whose data never runs out is {@see Blate::MAX_RENDER_DEPTH}.
 	 */
-	public function testForbiddenImportSamePath(): void
+	public function testImportOfItselfRendersWhileTheDataLasts(): void
 	{
-		$this->runInvalid('import-same-path');
+		$this->runValid('import-self-recursion');
 	}
 
 	// =========================================================================

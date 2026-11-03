@@ -69,7 +69,26 @@ final class Blate
 
 	public const string VAR_NAME_PATTERN = '~^[a-z_][a-z0-9$_]*$~i';
 
+	/**
+	 * How deep templates may nest while rendering: {@see self::setMaxRenderDepth()}.
+	 *
+	 * A template inside itself is a recursion and not a cycle, which is the only way to render a
+	 * tree: `{@import}` resolves its path when the template runs, so the partial that renders one
+	 * node imports the one that renders its children, and what ends it is the data running out.
+	 * Template identity cannot tell the two apart -- the same template with smaller data terminates,
+	 * the same template with the same data does not -- so what separates them is this depth. The
+	 * legitimate case is shallow; the broken one is unbounded.
+	 */
+	public const int MAX_RENDER_DEPTH = 64;
+
+	/**
+	 * How many of the innermost templates the refusal above names.
+	 */
+	private const int CHAIN_TAIL_LENGTH = 8;
+
 	private static int $var_counter = 0;
+
+	private static ?int $max_render_depth = null;
 
 	private static array $checked_classes = [];
 
@@ -396,10 +415,10 @@ final class Blate
 	/**
 	 * What identifies this template while it renders, or null for one compiled from a string.
 	 *
-	 * {@see self::pushScope()} refuses a template already on the stack, which is how an import or
-	 * extends cycle is caught: the chain is only knowable at render, because {@see BlockImport} and
+	 * What names the templates in {@see self::pushScope()}'s refusal, so an author reading it knows
+	 * which files to look at. The chain is only knowable at render, because {@see BlockImport} and
 	 * {@see BlockExtends} emit code rather than compiling what they name, so compiling A never opens
-	 * B. A template from a string has no identity to compare and cannot be imported by name.
+	 * B. A template from a string has no path to name and cannot be imported by name.
 	 */
 	public function renderKey(): ?string
 	{
@@ -526,34 +545,59 @@ final class Blate
 	 */
 	public static function pushScope(BlateTemplateScope $scope): void
 	{
-		$key = $scope->template->renderKey();
+		$max = self::maxRenderDepth();
 
-		if (null !== $key) {
-			$chain   = [];
-			$repeats = false;
+		if (\count(self::$scope_stack) >= $max) {
+			// The innermost frames and not the whole stack: at this depth the chain is mostly the
+			// same few templates repeating, and the repeat is what the author needs to see.
+			$tail  = \array_slice(self::$scope_stack, -self::CHAIN_TAIL_LENGTH);
+			$chain = \array_map(
+				static fn (BlateTemplateScope $open): string => $open->template->renderKey()
+					?? '(a template compiled from a string)',
+				$tail
+			);
 
-			// The whole chain, and only then the verdict: stopping at the match would name the
-			// template twice and hide the templates between the two, which are the ones to look at.
-			foreach (self::$scope_stack as $open) {
-				$open_key = $open->template->renderKey();
-				$chain[]  = $open_key ?? '(a template compiled from a string)';
-				$repeats  = $repeats || $key === $open_key;
-			}
+			$chain[] = $scope->template->renderKey() ?? '(a template compiled from a string)';
 
-			if ($repeats) {
-				$chain[] = $key;
-
-				// Refused before the push, so the caller's `finally` has nothing to pop: this runs
-				// from BlateTemplateParsed::run(), above its own try.
-				throw new BlateRuntimeException(\sprintf(
-					Message::TEMPLATE_RENDER_CYCLE,
-					$key,
-					\implode(' -> ', $chain)
-				));
-			}
+			// Refused before the push, so the caller's `finally` has nothing to pop: this runs
+			// from BlateTemplateParsed::run(), above its own try.
+			throw new BlateRuntimeException(\sprintf(
+				Message::TEMPLATE_RENDER_TOO_DEEP,
+				$max,
+				$scope->template->renderKey() ?? '(a template compiled from a string)',
+				\implode(' -> ', $chain)
+			));
 		}
 
 		self::$scope_stack[] = $scope;
+	}
+
+	/**
+	 * How deep templates may nest while rendering.
+	 */
+	public static function maxRenderDepth(): int
+	{
+		return self::$max_render_depth ?? self::MAX_RENDER_DEPTH;
+	}
+
+	/**
+	 * Sets how deep templates may nest while rendering, or null for {@see self::MAX_RENDER_DEPTH}.
+	 *
+	 * A project whose own model nests deeper than the default raises this; it is the depth of the
+	 * render stack and not of the data, so a page of a hundred sibling nodes is one level.
+	 *
+	 * @throws BlateRuntimeException
+	 */
+	public static function setMaxRenderDepth(?int $depth): void
+	{
+		if (null !== $depth && $depth < 1) {
+			throw new BlateRuntimeException(\sprintf(
+				'A render depth of %d allows no template to render at all.',
+				$depth
+			));
+		}
+
+		self::$max_render_depth = $depth;
 	}
 
 	/**
