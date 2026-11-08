@@ -94,8 +94,12 @@ class BlockExtends extends Block
 		// the whole template, so it cannot be put under a condition on the data the way the import
 		// inside a tree partial is. A template that is its own parent therefore never ends, for any
 		// data, and that is knowable now rather than at render.
-		// One spelling of each path: {@see Blate::pathKey()}.
-		if (Blate::pathKey($abs_path) === Blate::pathKey($blate->getSrcPath())) {
+		// One spelling of each path: {@see Blate::pathKey()}. A template compiled from a string has
+		// no path of its own, so there is no file it could name that would be itself; the language
+		// server compiles every buffer it checks that way.
+		$src_path = $blate->getSrcPath();
+
+		if (null !== $src_path && Blate::pathKey($abs_path) === Blate::pathKey($src_path)) {
 			throw BlateParserException::withToken(Message::EXTENDED_PATH_IS_SELF, $path_token);
 		}
 

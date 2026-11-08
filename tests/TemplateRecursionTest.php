@@ -279,6 +279,20 @@ final class TemplateRecursionTest extends TestCase
 		}
 	}
 
+	/**
+	 * What a language server compiles: the buffer, as a string, with no path of its own.
+	 */
+	public function testATemplateCompiledFromAStringExtendsAFile(): void
+	{
+		$base = $this->write('base.blate', '<p>{@slot title}none{/slot}</p>');
+
+		$out = Blate::fromString("{@extends '" . $base . "' \$\$}\n{@slot title}A{/slot}\n{/extends}")
+			->parse(true)
+			->runGet([]);
+
+		self::assertSame('<p>A</p>', \trim($out));
+	}
+
 	private function write(string $name, string $content): string
 	{
 		$path = $this->dir . \DIRECTORY_SEPARATOR . $name;

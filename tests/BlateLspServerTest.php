@@ -14,11 +14,13 @@ declare(strict_types=1);
 namespace Blate\Tests;
 
 use Blate\Blate;
+use Blate\Exceptions\BlateException;
 use Blate\Lsp\BlateLspServer;
 use Override;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
+use TypeError;
 
 /**
  * Tests for the private helper methods of BlateLspServer using reflection.
@@ -1109,6 +1111,27 @@ final class BlateLspServerTest extends TestCase
 		$this->write($root . '/vendor/composer/installed.json', 'not json');
 
 		self::assertSame([], $this->call('packageConfigDirs', $root));
+	}
+
+	// =========================================================================
+	// Diagnostics: diagnosticMessage
+	// =========================================================================
+
+	public function testADiagnosticOfOurOwnReadsAsItIs(): void
+	{
+		$message = $this->call('diagnosticMessage', new BlateException('cannot read "base.blate".'));
+
+		self::assertSame('cannot read "base.blate".', $message);
+	}
+
+	public function testAFailureOfBlateIsSaidToBeOurs(): void
+	{
+		$message = $this->call('diagnosticMessage', new TypeError('null given'));
+
+		self::assertIsString($message);
+		self::assertStringContainsString('a fault of blate and not of the template', $message);
+		self::assertStringContainsString('TypeError', $message);
+		self::assertStringContainsString('null given', $message);
 	}
 
 	/**

@@ -15,6 +15,7 @@ namespace Blate\Lsp;
 
 use Blate\Blate;
 use Blate\Events\BlateRegistryChangedEvent;
+use Blate\Exceptions\BlateException;
 use Blate\Exceptions\BlateParserException;
 use Blate\Exceptions\BlateRuntimeException;
 use Blate\Helpers\Helpers;
@@ -1009,10 +1010,36 @@ class BlateLspServer
 					],
 					'severity' => 2,       // DiagnosticSeverity.Warning
 					'source'   => 'blate',
-					'message'  => $e->getMessage(),
+					'message'  => self::diagnosticMessage($e),
 				]],
 			]);
 		}
+	}
+
+	/**
+	 * What a failure that is not a parser's reads as, at the top of the file being checked.
+	 *
+	 * An exception blate raises is about the template and reads as it is: a file an import names and
+	 * cannot be read is the usual one. Anything else -- a type error, a call to something missing --
+	 * is this package failing while it checked, and says so with its own class and site. An author
+	 * who cannot tell the two apart reads a bug of ours as something to fix in their own template,
+	 * which is what one did: a template compiled from a string could not be told from a file, and
+	 * the editor showed the type error that came of it as an ordinary warning on line 1.
+	 */
+	private static function diagnosticMessage(Throwable $e): string
+	{
+		if ($e instanceof BlateException || $e instanceof BlateRuntimeException) {
+			return $e->getMessage();
+		}
+
+		return \sprintf(
+			'blate failed while checking this template, which is a fault of blate and not of the '
+				. 'template: %s: %s, at %s:%d',
+			$e::class,
+			$e->getMessage(),
+			$e->getFile(),
+			$e->getLine(),
+		);
 	}
 
 	// =========================================================================

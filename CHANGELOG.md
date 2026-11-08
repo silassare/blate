@@ -7,6 +7,21 @@ before it is its history.
 
 ### Fixed
 
+- **A template compiled from a string crashed on `{@extends}`.** The refusal of a template that
+  extends itself compared the file it names with the template's own path, and a template compiled
+  from a string has none, so `Blate::pathKey()` was handed null and raised a `TypeError` instead of
+  compiling. Nothing a string names can be itself, so the comparison is now made only when there is
+  a path to compare. The language server compiles every buffer it checks that way, which is where
+  this was found: opening a template with `{@extends}` in it reported the type error and no
+  diagnostics of the template's own.
+
+- **The language server said a fault of blate's the way it says a fault of the template's.** Its
+  diagnostics fall back to a warning on the first line for anything the parser did not raise, which
+  reads as something to fix in the template; a type error of ours arrived there looking exactly like
+  an import naming a file that is not there. A failure blate did not raise deliberately now says so,
+  with its class and the line of ours it came from, so what to report and what to fix are not the
+  same message.
+
 - **Templates that import each other without end exhausted the process at render, and the render
   depth is what bounds it.** `{@import}` and `{@extends}` do not compile what they name: `onOpen()`
   emits `Blate::fromPath(...)->getParsedInstance()->run(...)` into the compiled class, so compiling
