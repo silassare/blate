@@ -221,8 +221,12 @@ class Lexer implements LexerInterface
 
 		if (!$token) {
 			$chunk = new StringChunk($this->reader);
+			// A call may ask for a value at any type (`nextIs(null, '=')`), and then there is no
+			// type name to print: the value is what was expected, and a token is all that is left
+			// to say when the call named neither.
+			$expected = null !== $type ? Token::getTypeName($type) : ($value ?? 'a token');
 
-			throw BlateParserException::withChunk(Message::UNEXPECTED_EOF_WHILE_EXPECTING, $chunk->setExpected(Token::getTypeName($type)));
+			throw BlateParserException::withChunk(Message::UNEXPECTED_EOF_WHILE_EXPECTING, $chunk->setExpected($expected));
 		}
 
 		if (null !== $type && $type !== $token->getType()) {

@@ -46,6 +46,7 @@ class TypedStack
 	private array $all              = [];
 	private ?TokenInterface $active = null;
 
+	/** @var array<string, string> */
 	private array $codes = [];
 
 	/**
@@ -76,12 +77,11 @@ class TypedStack
 		return $this->all;
 	}
 
-	/**
-	 * @return null|mixed
-	 */
-	public function getCode(TokenInterface $token): mixed
+	public function getCode(TokenInterface $token): string
 	{
-		return $this->codes[$token->getRef()] ?? null;
+		// Empty for a token that opened no buffer: both callers write this into generated code,
+		// where a null is a type error and an empty buffer is a slot nothing was written into.
+		return $this->codes[$token->getRef()] ?? '';
 	}
 
 	/**

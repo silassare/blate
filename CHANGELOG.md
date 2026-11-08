@@ -7,6 +7,29 @@ before it is its history.
 
 ### Fixed
 
+- **The end of the input raised a type error where a parse error was due.** `Lexer::nextIs()` may
+  be asked for a value at any token type (`nextIs(null, '=')`, which four blocks do), and when the
+  input ended first it asked for the name of a type nobody gave: `Token::getTypeName(null)`. It now
+  names the value that was expected, or says a token was, and a truncated template gets the parse
+  error it should always have had.
+
+- **A code buffer nobody opened reads as empty rather than absent.** `TypedStack::getCode()`
+  answered null for a token that opened none, and both callers put that straight into generated
+  code, where only a string means anything: a slot declared and left empty was a type error waiting
+  for the template that declared one. It returns a string, and the two callers lost their nullable
+  path.
+
+- **The `extends` block uses the token it was built with**, instead of reading the lexer a second
+  time for the token it is standing on, and the parser hands the comment and inline-PHP blocks the
+  token its own loop just moved onto. Same tokens, now visibly present rather than possibly absent,
+  and `BlockExtends` keeps one field for the tag instead of two names for it.
+
+- **`Blate` keeps the source path and not a flag beside it.** `renderKey()` and the one-shot
+  recompile asked `is_url` and then used `src_path`, which is the same fact told twice; they ask for
+  the path now, and `is_url` stays a constructor parameter that decides what to read. The template
+  snapshot of the lexer also stopped depending on how many tokens the suite made before it ran,
+  since a token's ref carries a counter of the process.
+
 - **A template compiled from a string crashed on `{@extends}`.** The refusal of a template that
   extends itself compared the file it names with the template's own path, and a template compiled
   from a string has none, so `Blate::pathKey()` was handed null and raised a `TypeError` instead of

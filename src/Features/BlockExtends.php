@@ -43,8 +43,6 @@ class BlockExtends extends Block
 {
 	public const string NAME = 'extends';
 
-	private TokenInterface $extends;
-
 	#[Override]
 	public function getName(): string
 	{
@@ -79,10 +77,11 @@ class BlockExtends extends Block
 	#[Override]
 	public function onOpen(): void
 	{
-		$this->extends = $this->lexer->current();
-
+		// The token this block was built with, which is the one the lexer stands on: read from the
+		// lexer a second time it came back as possibly absent, and there is no moment in `onOpen()`
+		// when the tag that opened the block is not there.
 		$this->parser->extends()
-			->start($this->extends);
+			->start($this->token);
 
 		$path_token = $this->lexer->nextIs(Token::T_STRING, null, true);
 
@@ -110,9 +109,9 @@ class BlockExtends extends Block
 		$extended_instance_var = $this->parser->createVar();
 		$extended_context_var  = $this->parser->createVar();
 
-		$this->extends->setAttribute(Token::ATTR_EXTENDED_BLATE_VAR, $extended_instance_var);
-		$this->extends->setAttribute(Token::ATTR_EXTENDED_INSTANCE_VAR, $extended_instance_var);
-		$this->extends->setAttribute(Token::ATTR_EXTENDED_CONTEXT_VAR, $extended_context_var);
+		$this->token->setAttribute(Token::ATTR_EXTENDED_BLATE_VAR, $extended_instance_var);
+		$this->token->setAttribute(Token::ATTR_EXTENDED_INSTANCE_VAR, $extended_instance_var);
+		$this->token->setAttribute(Token::ATTR_EXTENDED_CONTEXT_VAR, $extended_context_var);
 
 		$this->parser->writeCode(Str::interpolate(
 			"\n{blate_var} = Blate::fromPath({abs_path})->parse();\n"
@@ -134,8 +133,8 @@ class BlockExtends extends Block
 		$this->parser->writeCode(Str::interpolate(
 			"\n{instance_var}->run({context_var});",
 			[
-				'instance_var' => $this->extends->getAttribute(Token::ATTR_EXTENDED_INSTANCE_VAR),
-				'context_var'  => $this->extends->getAttribute(Token::ATTR_EXTENDED_CONTEXT_VAR),
+				'instance_var' => $this->token->getAttribute(Token::ATTR_EXTENDED_INSTANCE_VAR),
+				'context_var'  => $this->token->getAttribute(Token::ATTR_EXTENDED_CONTEXT_VAR),
 			]
 		));
 	}

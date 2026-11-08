@@ -117,9 +117,9 @@ class Parser
 				} elseif (Blate::BLOCK_CLOSE === $next_value) {
 					$this->blockClose();
 				} elseif (Blate::BLOCK_COMMENT === $next_value) {
-					$this->comment();
+					$this->comment($next);
 				} elseif (Blate::BLOCK_PHP === $next_value) {
-					$this->php();
+					$this->php($next);
 				} else {
 					$this->expression($token);
 				}
@@ -163,14 +163,19 @@ class Parser
 		}
 	}
 
-	private function comment(): void
+	/**
+	 * @param TokenInterface $token the tag the loop moved onto, which is what the lexer stands on:
+	 *                              given rather than read again, so the token a block is built with
+	 *                              is one the caller already holds
+	 */
+	private function comment(TokenInterface $token): void
 	{
-		new BlockComment($this, $this->lexer->current())->onOpen();
+		new BlockComment($this, $token)->onOpen();
 	}
 
-	private function php(): void
+	private function php(TokenInterface $token): void
 	{
-		new BlockPhp($this, $this->lexer->current())->onOpen();
+		new BlockPhp($this, $token)->onOpen();
 	}
 
 	private function expression(TokenInterface $token): void

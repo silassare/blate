@@ -14,7 +14,9 @@ declare(strict_types=1);
 namespace Blate\Tests;
 
 use Blate\Exceptions\BlateException;
+use Blate\Exceptions\BlateParserException;
 use Blate\Lexer;
+use Blate\Token;
 use Blate\Tests\Utils\TestPaths;
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\TestCase;
@@ -42,9 +44,45 @@ final class LexerTest extends TestCase
 
 		if (\file_exists($tokens_file)) {
 			$expected = \file_get_contents($tokens_file);
-			self::assertSame($expected, $output);
+
+			// A token's ref carries a counter of the process, so what this file holds depends on
+			// how many tokens were made before this test ran: compared with that number blanked,
+			// since it says nothing about tokenizing and everything about the order of the suite.
+			self::assertSame(self::withoutTokenCounter($expected), self::withoutTokenCounter($output));
 		} else {
 			\file_put_contents($tokens_file, $output);
+		}
+	}
+
+	private static function withoutTokenCounter(string $json): string
+	{
+		return \preg_replace('~"t\d+_l~', '"t_l', $json) ?? $json;
+	}
+
+	/**
+	 * A call may ask for a value at any token type, and then there is no type name to print when
+	 * the input ends first: asking for the name of a type that was never given raised a type error
+	 * where a parser error was due.
+	 */
+	public function testTheEndOfTheInputNamesWhatWasExpectedWhenNoTypeWasAskedFor(): void
+	{
+		try {
+			new Lexer('')->nextIs(null, '=');
+
+			self::fail('The end of the input must be refused.');
+		} catch (BlateParserException $e) {
+			self::assertStringContainsString('"="', $e->getMessage());
+		}
+	}
+
+	public function testTheEndOfTheInputNamesTheTypeWhenOneWasAskedFor(): void
+	{
+		try {
+			new Lexer('')->nextIs(Token::T_NAME);
+
+			self::fail('The end of the input must be refused.');
+		} catch (BlateParserException $e) {
+			self::assertStringContainsString('T_NAME', $e->getMessage());
 		}
 	}
 }

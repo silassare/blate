@@ -1136,6 +1136,12 @@ final class TemplateSyntaxTest extends TestCase
 			throw new RuntimeException('Unexpected error, see details in: ' . $full_error_file);
 		}
 
+		if (null === $output) {
+			// Neither an output nor an error. Writing that to the sample file is how a sample stops
+			// asserting anything, which is worse than a failure here.
+			self::fail('The sample produced neither output nor an error: ' . $name);
+		}
+
 		if (\file_exists($full_error_file)) {
 			\unlink($full_error_file);
 		}

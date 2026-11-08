@@ -159,12 +159,17 @@ final class Blate
 	 *
 	 * @throws BlateException
 	 */
-	private function __construct(private string $template, private bool $is_url = true, bool $timed_class_name = false)
+	/**
+	 * @param bool $is_url whether `$template` is a path to read rather than the template itself.
+	 *                     Not kept: what it decides is the source path, and every question asked
+	 *                     of it later is answered by whether there is one.
+	 */
+	private function __construct(private string $template, bool $is_url = true, bool $timed_class_name = false)
 	{
 		// before the cache directory is read: a deferred set-up may be what sets it
 		self::firstUse();
 
-		if ($this->is_url) {
+		if ($is_url) {
 			$this->template = PathUtils::resolve(BLATE_TEMPLATE_RESOLVE_DIR, $this->template);
 			$this->input    = self::loadFile($this->template);
 			$this->src_path = $this->template;
@@ -189,7 +194,7 @@ final class Blate
 		// Otherwise fall back to a blate_cache/ sibling of the template file.
 		if (null !== self::$cache_dir) {
 			$dst_dir = self::$cache_dir;
-		} elseif ($this->is_url) {
+		} elseif ($is_url) {
 			$dst_dir = \dirname($this->template);
 		} else {
 			$dst_dir = BLATE_TEMPLATE_RESOLVE_DIR;
@@ -422,7 +427,9 @@ final class Blate
 	 */
 	public function renderKey(): ?string
 	{
-		if (!$this->is_url) {
+		// The path itself: having one is what being read from one amounts to, and asked this way
+		// the type says it too. A template from a string has nothing to name.
+		if (null === $this->src_path) {
 			return null;
 		}
 
@@ -467,7 +474,9 @@ final class Blate
 			));
 		}
 
-		$o = $this->is_url ? self::fromPath($this->src_path) : self::fromString($this->input);
+		// Again the path and not a flag beside it: two facts that cannot disagree, and this is the
+		// one the type carries.
+		$o = null !== $this->src_path ? self::fromPath($this->src_path) : self::fromString($this->input);
 		$o->parse();
 
 		return $o->getParsedInstance(false);
