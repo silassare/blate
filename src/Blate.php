@@ -157,12 +157,11 @@ final class Blate
 	/**
 	 * Blate constructor.
 	 *
-	 * @throws BlateException
-	 */
-	/**
 	 * @param bool $is_url whether `$template` is a path to read rather than the template itself.
 	 *                     Not kept: what it decides is the source path, and every question asked
 	 *                     of it later is answered by whether there is one.
+	 *
+	 * @throws BlateException
 	 */
 	private function __construct(private string $template, bool $is_url = true, bool $timed_class_name = false)
 	{
