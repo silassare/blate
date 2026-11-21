@@ -1,4 +1,5 @@
-/.idea
+.idea
+.claude
 /ignore
 /vendor
 **/blate_cache/**
