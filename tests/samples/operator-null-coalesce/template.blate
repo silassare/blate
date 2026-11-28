@@ -2,3 +2,8 @@
 {b ?? 'fallback'}
 {missing ?? b ?? 'last'}
 {x ?? y ?? 0}
+{user.name ?? 'anonymous'}
+{user.title ?? 'no title'}
+{user.title.short ?? 'no short title'}
+{nobody.name ?? 'nobody'}
+{user.title ?? user.name}

@@ -15,6 +15,7 @@ namespace Blate\Tests;
 
 use Blate\Blate;
 use Blate\BlateTemplateParsed;
+use Blate\Exceptions\BlateRuntimeException;
 use Override;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
@@ -50,6 +51,27 @@ final class BlateFromStringTest extends TestCase
 		\exec('rm -rf ' . \escapeshellarg($this->dir));
 
 		parent::tearDown();
+	}
+
+	/**
+	 * A key missing below the top level is still an error where nothing asked for a fallback: `??`
+	 * answers for its own left operand, and only for it.
+	 */
+	public function testAMissingNestedKeyThrowsWithoutAFallback(): void
+	{
+		$this->expectException(BlateRuntimeException::class);
+		$this->expectExceptionMessage('Can\'t get "title" from "array".');
+
+		Blate::fromString('{user.title}')->runGet(['user' => ['name' => 'Ada']]);
+	}
+
+	public function testAMissingNestedKeyTakesTheFallbackOfNullCoalesce(): void
+	{
+		self::assertSame(
+			'none|Ada',
+			Blate::fromString("{user.title.short ?? 'none'}|{user.title ?? user.name}")
+				->runGet(['user' => ['name' => 'Ada']])
+		);
 	}
 
 	public function testATemplateFromAStringHasNothingToNameOnARenderStack(): void

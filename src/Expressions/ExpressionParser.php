@@ -168,7 +168,7 @@ class ExpressionParser implements ParserInterface
 								|| Token::T_SEMICOLON === $next->getType() // {@set} assignment separator
 							) {
 								$this->setActiveChain($current, null);
-								$this->write('->val()');
+								$this->write(VarName::terminator($next));
 							}
 						} else {
 							$this->write($current);

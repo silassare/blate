@@ -7,6 +7,13 @@ before it is its history.
 
 ### Fixed
 
+- **`??` answers for a key missing below the top level.** `{a.b ?? 'x'}` threw when `a` had no
+  `b`: a chain step raised the error before the operator was reached, so `??` caught only a
+  missing top-level name. A step that finds nothing now holds the error, `->val()` throws it as
+  before, and a chain that is the left operand of `??` ends with `->valOrNull()`, which answers
+  null. A missing key with no fallback is still an error. A template compiled before this keeps
+  its old code until it is compiled again.
+
 - **The end of the input raised a type error where a parse error was due.** `Lexer::nextIs()` may
   be asked for a value at any token type (`nextIs(null, '=')`, which four blocks do), and when the
   input ended first it asked for the name of a type nobody gave: `Token::getTypeName(null)`. It now

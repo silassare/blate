@@ -52,11 +52,31 @@ class SimpleChain
 
 	private bool $is_head = true;
 
+	/**
+	 * The key a step could not find, held rather than thrown: `val()` throws it, as the step would
+	 * have, and `valOrNull()` answers null, which is what `{a.b ?? x}` asks for. Thrown at the
+	 * step, a missing key in the left operand of `??` failed before the operator was reached.
+	 */
+	private ?BlateRuntimeException $missing = null;
+
 	public function __construct(private DataContext $data_context) {}
 
 	public function val(): mixed
 	{
+		if (null !== $this->missing) {
+			throw $this->missing;
+		}
+
 		return $this->current;
+	}
+
+	/**
+	 * The value, or null where a step found nothing: the end of a chain that is the left operand
+	 * of `??`.
+	 */
+	public function valOrNull(): mixed
+	{
+		return null === $this->missing ? $this->current : null;
 	}
 
 	/**
@@ -72,11 +92,18 @@ class SimpleChain
 			$this->is_head = false;
 			$val           = $this->data_context->get($key);
 		} else {
+			if (null !== $this->missing) {
+				return $this;
+			}
+
 			$source = $this->current;
 
 			if (!self::has($source, $key, $val)) {
-				throw new BlateRuntimeException(\sprintf(Message::CHAIN_UNDEFINED_KEY, $key, \get_debug_type($source)))
-					->suspectLocation($this->buildSuspectLocation($location, $key));
+				$this->missing = new BlateRuntimeException(
+					\sprintf(Message::CHAIN_UNDEFINED_KEY, $key, \get_debug_type($source))
+				)->suspectLocation($this->buildSuspectLocation($location, $key));
+
+				return $this;
 			}
 		}
 
@@ -147,6 +174,10 @@ class SimpleChain
 	 */
 	public function call(string $location, mixed ...$args): static
 	{
+		if (null !== $this->missing) {
+			return $this;
+		}
+
 		if (!\is_callable($this->current)) {
 			throw new BlateRuntimeException(\sprintf(Message::CHAIN_VALUE_NOT_A_CALLABLE, \get_debug_type($this->current)))
 				->suspectLocation($this->buildSuspectLocation($location, $this->current_key));

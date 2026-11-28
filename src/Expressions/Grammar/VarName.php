@@ -143,7 +143,17 @@ class VarName implements TokenHandlerInterface
 			)
 		) {
 			$parser->setActiveChain($current, null);
-			$parser->write('->val()');
+			$parser->write(self::terminator($next));
 		}
+	}
+
+	/**
+	 * How a chain ends before the token that follows it: `->valOrNull()` where that is `??`, whose
+	 * left operand may name a key that is not there, `->val()` everywhere else, which throws for
+	 * one.
+	 */
+	public static function terminator(?TokenInterface $next): string
+	{
+		return null !== $next && Token::T_NULL_COALESCE === $next->getType() ? '->valOrNull()' : '->val()';
 	}
 }

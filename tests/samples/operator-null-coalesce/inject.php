@@ -11,8 +11,10 @@
 
 declare(strict_types=1);
 
-// 'a' is set; 'b', 'missing', 'x', 'y' are all absent (context returns null).
+// 'a' is set; 'b', 'missing', 'x', 'y' are all absent (context returns null). 'user' has a name and
+// no title: a key missing below the top level is what `??` answers for too, at any depth.
 return [
-	'a' => 'hello',
-	'x' => 42,
+	'a'    => 'hello',
+	'x'    => 42,
+	'user' => ['name' => 'Ada'],
 ];
